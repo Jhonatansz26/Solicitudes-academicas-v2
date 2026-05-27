@@ -13,7 +13,13 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -36,46 +42,68 @@ interface AuthenticatedRequest extends Request {
 @UseGuards(JwtAuthGuard)
 @Controller('requests')
 export class RequestsController {
-  constructor(private readonly requestsService: RequestsService) { }
+  constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new request (DRAFT)' })
-  @ApiResponse({ status: 201, description: 'Request created' })
+  @ApiOperation({
+    summary: 'Create a new request (DRAFT)',
+    description: 'Creates a new academic request in DRAFT status. The student can edit and submit it later.',
+  })
+  @ApiCreatedResponse({ description: 'Request created successfully' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateRequestDto) {
     return this.requestsService.create(req.user.id, dto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List requests (student=own, staff=all)' })
-  @ApiResponse({ status: 200, description: 'Paginated list of requests' })
+  @ApiOperation({
+    summary: 'List requests with pagination',
+    description: 'Students see only their own requests. Staff, coordinators, and admins see all requests.',
+  })
+  @ApiOkResponse({ description: 'Paginated list of requests' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @ApiQuery({ name: 'status', required: false, enum: ['DRAFT', 'SUBMITTED', 'IN_REVIEW', 'PENDING_DOCUMENTS', 'APPROVED', 'REJECTED', 'CANCELLED'] })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'requestTypeId', required: false, type: String })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   findAll(@Req() req: AuthenticatedRequest, @Query() query: QueryRequestsDto) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.findAll(req.user.id, role, query);
   }
 
   @Get('types')
-  @ApiOperation({ summary: 'List active request types' })
-  @ApiResponse({ status: 200, description: 'List of request types' })
+  @ApiOperation({
+    summary: 'List active request types',
+    description: 'Returns all active request types (Certificado, Homologación, etc.) available for creating requests.',
+  })
+  @ApiOkResponse({ description: 'List of active request types' })
   getTypes() {
     return this.requestsService.getRequestTypes();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get request detail with history' })
-  @ApiResponse({ status: 200, description: 'Request detail' })
-  @ApiResponse({ status: 404, description: 'Request not found' })
+  @ApiOperation({
+    summary: 'Get request detail',
+    description: 'Returns full request details including attachments, history, and user information.',
+  })
+  @ApiOkResponse({ description: 'Request detail with attachments and history' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiForbiddenResponse({ description: 'Student can only view their own requests' })
   findOne(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.findOne(id, req.user.id, role);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Edit draft request' })
-  @ApiResponse({ status: 200, description: 'Request updated' })
-  @ApiResponse({ status: 403, description: 'Not owner or not in DRAFT' })
+  @ApiOperation({
+    summary: 'Edit draft request',
+    description: 'Updates title or description of a request. Only allowed in DRAFT status and by the owner.',
+  })
+  @ApiOkResponse({ description: 'Request updated successfully' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiForbiddenResponse({ description: 'Not the owner or request is not in DRAFT status' })
   update(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -85,17 +113,26 @@ export class RequestsController {
   }
 
   @Post(':id/submit')
-  @ApiOperation({ summary: 'Submit draft request (DRAFT → SUBMITTED)' })
-  @ApiResponse({ status: 200, description: 'Request submitted' })
-  @ApiResponse({ status: 409, description: 'Not in DRAFT state' })
+  @ApiOperation({
+    summary: 'Submit draft request',
+    description: 'Transitions a request from DRAFT to SUBMITTED. Cannot be undone.',
+  })
+  @ApiOkResponse({ description: 'Request submitted successfully' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiConflictResponse({ description: 'Request is not in DRAFT status' })
+  @ApiForbiddenResponse({ description: 'Not the owner of the request' })
   submit(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.requestsService.submit(id, req.user.id);
   }
 
   @Post(':id/cancel')
-  @ApiOperation({ summary: 'Cancel request' })
-  @ApiResponse({ status: 200, description: 'Request cancelled' })
-  @ApiResponse({ status: 403, description: 'Already in final state' })
+  @ApiOperation({
+    summary: 'Cancel request',
+    description: 'Cancels a request. Not allowed if the request is already in a final state (APPROVED, REJECTED, CANCELLED).',
+  })
+  @ApiOkResponse({ description: 'Request cancelled successfully' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiForbiddenResponse({ description: 'Not the owner or request is in a final state' })
   cancel(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.requestsService.cancel(id, req.user.id);
   }
@@ -103,10 +140,15 @@ export class RequestsController {
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles('STAFF', 'COORDINATOR', 'ADMIN')
-  @ApiOperation({ summary: 'Change request status (staff/coordinator/admin)' })
-  @ApiResponse({ status: 200, description: 'Status changed' })
-  @ApiResponse({ status: 400, description: 'Comment required when rejecting' })
-  @ApiResponse({ status: 403, description: 'Insufficient role permissions' })
+  @ApiOperation({
+    summary: 'Change request status',
+    description: 'Staff can move to IN_REVIEW or PENDING_DOCUMENTS. Coordinators can APPROVE or REJECT. Admins have full control.',
+  })
+  @ApiOkResponse({ description: 'Status changed successfully' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiBadRequestResponse({ description: 'Comment is required when rejecting a request' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions or invalid status transition' })
+  @ApiConflictResponse({ description: 'Request is already in the target state or a final state' })
   changeStatus(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,

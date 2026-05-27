@@ -1,13 +1,19 @@
 import { IsString, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateRequestDto {
-  @ApiProperty({ description: 'Request title', required: false })
+  @ApiPropertyOptional({
+    description: 'Updated request title',
+    example: 'Solicitud de certificado de estudio - Urgente',
+  })
   @IsString()
   @IsOptional()
   title?: string;
 
-  @ApiProperty({ description: 'Request description', required: false })
+  @ApiPropertyOptional({
+    description: 'Updated request description',
+    example: 'Se requiere con urgencia para fecha límite del viernes',
+  })
   @IsString()
   @IsOptional()
   description?: string;

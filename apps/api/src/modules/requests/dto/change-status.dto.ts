@@ -1,13 +1,20 @@
 import { IsEnum, IsOptional, IsString, ValidateIf } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RequestStatus } from '@prisma/client';
 
 export class ChangeStatusDto {
-  @ApiProperty({ enum: RequestStatus, description: 'New status for the request' })
+  @ApiProperty({
+    description: 'New status to assign to the request',
+    enum: RequestStatus,
+    example: 'IN_REVIEW',
+  })
   @IsEnum(RequestStatus)
   newStatus: RequestStatus;
 
-  @ApiProperty({ description: 'Comment (required when rejecting)', required: false })
+  @ApiPropertyOptional({
+    description: 'Comment explaining the status change (required when status is REJECTED)',
+    example: 'Documentación incompleta, falta récord académico',
+  })
   @IsString()
   @IsOptional()
   @ValidateIf((o) => o.newStatus === 'REJECTED')

@@ -43,11 +43,34 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Solicitudes Académicas API')
+    .setDescription('API REST for managing academic requests at the university. Supports student certificate requests, homologations, cancellations, and more with a multi-role approval workflow.')
     .setVersion('v1')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter your JWT access token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addTag('Auth', 'Authentication and user management endpoints')
+    .addTag('Requests', 'Academic request CRUD and workflow operations')
+    .addTag('Documents', 'Document attachment upload, download, and management')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Solicitudes Académicas API — Docs',
+    swaggerOptions: {
+      persistAuthorization: true,
+      defaultModelsExpandDepth: 2,
+      displayRequestDuration: true,
+      filter: true,
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

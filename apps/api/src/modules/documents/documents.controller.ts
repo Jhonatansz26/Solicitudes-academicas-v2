@@ -18,7 +18,13 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
   ApiBearerAuth,
   ApiConsumes,
   ApiBody,
@@ -44,7 +50,10 @@ export class DocumentsController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload a document attachment to a request' })
+  @ApiOperation({
+    summary: 'Upload a document attachment',
+    description: 'Uploads a file and attaches it to a request. Allowed types: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Max size: 10MB. Students can only upload to their own requests in DRAFT or PENDING_DOCUMENTS status. Max 5 attachments per request.',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -60,15 +69,17 @@ export class DocumentsController {
           type: 'string',
           format: 'uuid',
           description: 'ID of the request to attach the file to',
+          example: '550e8400-e29b-41d4-a716-446655440000',
         },
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'Document uploaded successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid file type, size, or missing fields' })
-  @ApiResponse({ status: 403, description: 'Not authorized to upload to this request' })
-  @ApiResponse({ status: 404, description: 'Request not found' })
-  @ApiResponse({ status: 409, description: 'Maximum attachments per request reached' })
+  @ApiCreatedResponse({ description: 'Document uploaded successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid file type, file size exceeds 10MB, or no file provided' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Not authorized to upload to this request or request not in allowed status' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiConflictResponse({ description: 'Maximum 5 attachments per request reached' })
   async upload(
     @Req() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
@@ -79,10 +90,14 @@ export class DocumentsController {
   }
 
   @Get('request/:requestId')
-  @ApiOperation({ summary: 'List all attachments for a request' })
-  @ApiResponse({ status: 200, description: 'List of attachments' })
-  @ApiResponse({ status: 403, description: 'Not authorized to view this request documents' })
-  @ApiResponse({ status: 404, description: 'Request not found' })
+  @ApiOperation({
+    summary: 'List attachments for a request',
+    description: 'Returns all document attachments for a specific request, ordered by creation date (newest first).',
+  })
+  @ApiOkResponse({ description: 'List of attachments' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Student can only view documents from their own requests' })
+  @ApiNotFoundResponse({ description: 'Request not found' })
   async findByRequest(
     @Req() req: AuthenticatedRequest,
     @Param('requestId', ParseUUIDPipe) requestId: string,
@@ -92,10 +107,14 @@ export class DocumentsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get attachment metadata' })
-  @ApiResponse({ status: 200, description: 'Attachment metadata' })
-  @ApiResponse({ status: 403, description: 'Not authorized to view this attachment' })
-  @ApiResponse({ status: 404, description: 'Attachment not found' })
+  @ApiOperation({
+    summary: 'Get attachment metadata',
+    description: 'Returns metadata for a specific document attachment including file name, MIME type, size, and uploader info.',
+  })
+  @ApiOkResponse({ description: 'Attachment metadata' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Not authorized to view this attachment' })
+  @ApiNotFoundResponse({ description: 'Attachment not found' })
   async findOne(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -105,10 +124,14 @@ export class DocumentsController {
   }
 
   @Get(':id/download')
-  @ApiOperation({ summary: 'Download an attachment file' })
-  @ApiResponse({ status: 200, description: 'File stream' })
-  @ApiResponse({ status: 403, description: 'Not authorized to download this file' })
-  @ApiResponse({ status: 404, description: 'Attachment or file not found' })
+  @ApiOperation({
+    summary: 'Download an attachment file',
+    description: 'Streams the actual file content for download. Returns the file with its original name and MIME type.',
+  })
+  @ApiOkResponse({ description: 'File stream with Content-Disposition header' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Not authorized to download this file' })
+  @ApiNotFoundResponse({ description: 'Attachment or file not found in storage' })
   async download(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -129,10 +152,14 @@ export class DocumentsController {
   @UseGuards(RolesGuard)
   @Roles('STUDENT', 'STAFF', 'COORDINATOR', 'ADMIN')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete an attachment' })
-  @ApiResponse({ status: 200, description: 'Attachment deleted' })
-  @ApiResponse({ status: 403, description: 'Not authorized to delete this attachment' })
-  @ApiResponse({ status: 404, description: 'Attachment not found' })
+  @ApiOperation({
+    summary: 'Delete an attachment',
+    description: 'Deletes a document attachment and its file from storage. Users can only delete their own uploads. Admins can delete any attachment.',
+  })
+  @ApiOkResponse({ description: 'Attachment deleted successfully' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Not authorized to delete this attachment' })
+  @ApiNotFoundResponse({ description: 'Attachment not found' })
   async remove(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
