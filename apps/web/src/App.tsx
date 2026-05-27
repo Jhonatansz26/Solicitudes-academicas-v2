@@ -1,121 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Toaster } from './shared/components/ui/sonner'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="min-h-screen bg-background p-8">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <div className="space-y-2">
+          <h1>Solicitudes Académicas</h1>
+          <p className="text-muted-foreground">
+            Frontend V2 — Design System Verification
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Primary</h3>
+            <div className="h-12 w-full rounded-md bg-primary" />
+            <p className="font-mono text-xs text-muted-foreground">#1a2340</p>
+          </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Accent</h3>
+            <div className="h-12 w-full rounded-md bg-accent" />
+            <p className="font-mono text-xs text-muted-foreground">#E8A820</p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Background</h3>
+            <div className="h-12 w-full rounded-md border border-border bg-background" />
+            <p className="font-mono text-xs text-muted-foreground">#f0f2f6</p>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+          <h3>Typography</h3>
+          <div className="space-y-2">
+            <h1>Heading 1 — 30px</h1>
+            <h2>Heading 2 — 24px</h2>
+            <h3>Heading 3 — 20px</h3>
+            <p>Body text — Inter, 16px, line-height 1.5</p>
+            <p className="font-mono text-sm">Mono text — JetBrains Mono, 14px</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+          <h3>Semantic Colors</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-md bg-success-soft px-3 py-2 text-sm font-medium text-success">Success</div>
+            <div className="rounded-md bg-warning-soft px-3 py-2 text-sm font-medium text-warning">Warning</div>
+            <div className="rounded-md bg-danger-soft px-3 py-2 text-sm font-medium text-danger">Danger</div>
+            <div className="rounded-md bg-info-soft px-3 py-2 text-sm font-medium text-info">Info</div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
+          <h3>Border Radius</h3>
+          <div className="flex gap-4">
+            <div className="h-16 w-16 bg-primary" style={{ borderRadius: 'var(--radius-sm)' }} />
+            <div className="h-16 w-16 bg-primary" style={{ borderRadius: 'var(--radius-md)' }} />
+            <div className="h-16 w-16 bg-primary" style={{ borderRadius: 'var(--radius-lg)' }} />
+            <div className="h-16 w-16 bg-primary" style={{ borderRadius: 'var(--radius-xl)' }} />
+          </div>
+        </div>
+      </div>
+
+      <Toaster />
+    </div>
   )
 }
 
