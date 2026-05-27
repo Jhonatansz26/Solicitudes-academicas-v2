@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -66,7 +67,7 @@ export class RequestsController {
   @ApiOperation({ summary: 'Get request detail with history' })
   @ApiResponse({ status: 200, description: 'Request detail' })
   @ApiResponse({ status: 404, description: 'Request not found' })
-  findOne(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+  findOne(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.findOne(id, req.user.id, role);
   }
@@ -77,7 +78,7 @@ export class RequestsController {
   @ApiResponse({ status: 403, description: 'Not owner or not in DRAFT' })
   update(
     @Req() req: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRequestDto,
   ) {
     return this.requestsService.update(id, req.user.id, dto);
@@ -87,7 +88,7 @@ export class RequestsController {
   @ApiOperation({ summary: 'Submit draft request (DRAFT → SUBMITTED)' })
   @ApiResponse({ status: 200, description: 'Request submitted' })
   @ApiResponse({ status: 409, description: 'Not in DRAFT state' })
-  submit(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+  submit(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.requestsService.submit(id, req.user.id);
   }
 
@@ -95,7 +96,7 @@ export class RequestsController {
   @ApiOperation({ summary: 'Cancel request' })
   @ApiResponse({ status: 200, description: 'Request cancelled' })
   @ApiResponse({ status: 403, description: 'Already in final state' })
-  cancel(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+  cancel(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.requestsService.cancel(id, req.user.id);
   }
 
@@ -108,7 +109,7 @@ export class RequestsController {
   @ApiResponse({ status: 403, description: 'Insufficient role permissions' })
   changeStatus(
     @Req() req: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ChangeStatusDto,
   ) {
     const role = req.user.role as 'STAFF' | 'COORDINATOR' | 'ADMIN';

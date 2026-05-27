@@ -13,6 +13,7 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -84,7 +85,7 @@ export class DocumentsController {
   @ApiResponse({ status: 404, description: 'Request not found' })
   async findByRequest(
     @Req() req: AuthenticatedRequest,
-    @Param('requestId') requestId: string,
+    @Param('requestId', ParseUUIDPipe) requestId: string,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.documentsService.findByRequest(requestId, req.user.id, role);
@@ -97,7 +98,7 @@ export class DocumentsController {
   @ApiResponse({ status: 404, description: 'Attachment not found' })
   async findOne(
     @Req() req: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.documentsService.findOne(id, req.user.id, role);
@@ -110,7 +111,7 @@ export class DocumentsController {
   @ApiResponse({ status: 404, description: 'Attachment or file not found' })
   async download(
     @Req() req: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
@@ -134,7 +135,7 @@ export class DocumentsController {
   @ApiResponse({ status: 404, description: 'Attachment not found' })
   async remove(
     @Req() req: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.documentsService.remove(id, req.user.id, role);
