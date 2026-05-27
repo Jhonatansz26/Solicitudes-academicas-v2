@@ -1,7 +1,146 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum RoleName {
+  STUDENT
+  STAFF
+  COORDINATOR
+  ADMIN
+}
+
+enum RequestStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  PENDING_DOCUMENTS
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SYSTEM
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  name      RoleName @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users     User[]
+
+  @@map("roles")
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  passwordHash   String           @map("password_hash")
+  fullName       String           @map("full_name")
+  documentNumber String           @map("document_number")
+  isActive       Boolean          @default(true) @map("is_active")
+  roleId         String           @map("role_id")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  role           Role             @relation(fields: [roleId], references: [id])
+  studentProfile StudentProfile?
+  requests       Request[]
+  refreshTokens  RefreshToken[]
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+model StudentProfile {
+  id           String @id @default(uuid())
+  userId       String @unique @map("user_id")
+  program      String
+  semester     Int
+  studentCode  String @map("student_code")
+
+  user         User   @relation(fields: [userId], references: [id])
+
+  @@map("student_profiles")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+model RequestType {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  description    String?
+  estimatedDays  Int      @map("estimated_days")
+  isActive       Boolean  @default(true) @map("is_active")
+
+  requests       Request[]
+
+  @@map("request_types")
+}
+
+model Request {
+  id              String        @id @default(uuid())
+  trackingNumber  String        @unique @map("tracking_number")
+  title           String
+  description     String?
+  status          RequestStatus @default(DRAFT)
+  userId          String        @map("user_id")
+  requestTypeId   String        @map("request_type_id")
+  assignedTo      String?       @map("assigned_to")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user            User          @relation(fields: [userId], references: [id])
+  requestType     RequestType   @relation(fields: [requestTypeId], references: [id])
+  attachments     Attachment[]
+  notifications   Notification[]
+
+  @@map("requests")
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  requestId String   @map("request_id")
+  fileName  String   @map("file_name")
+  url       String
+  mimeType  String   @map("mime_type")
+  provider  String
+  uploadedBy String  @map("uploaded_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  request   Request  @relation(fields: [requestId], references: [id])
+
+  @@map("attachments")
+}
+
+model Notification {
+  id        String             @id @default(uuid())
+  userId    String             @map("user_id")
+  requestId String?            @map("request_id")
+  channel   NotificationChannel
+  subject   String
+  sent      Boolean            @default(false)
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  user      User               @relation(fields: [userId], references: [id])
+  request   Request?           @relation(fields: [requestId], references: [id])
+
+  @@map("notifications")
 }
