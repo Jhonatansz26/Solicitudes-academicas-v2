@@ -124,7 +124,10 @@ export class RequestsService {
   }
 
   async update(id: string, userId: string, dto: UpdateRequestDto) {
-    const request = await this.prisma.request.findUnique({ where: { id } });
+    const request = await this.prisma.request.findUnique({
+      where: { id },
+      select: { userId: true, status: true },
+    });
 
     if (!request) {
       throw new NotFoundException('Request not found');
@@ -146,7 +149,10 @@ export class RequestsService {
   }
 
   async submit(id: string, userId: string) {
-    const request = await this.prisma.request.findUnique({ where: { id } });
+    const request = await this.prisma.request.findUnique({
+      where: { id },
+      select: { userId: true, status: true },
+    });
 
     if (!request) {
       throw new NotFoundException('Request not found');
@@ -164,7 +170,10 @@ export class RequestsService {
   }
 
   async cancel(id: string, userId: string) {
-    const request = await this.prisma.request.findUnique({ where: { id } });
+    const request = await this.prisma.request.findUnique({
+      where: { id },
+      select: { userId: true, status: true },
+    });
 
     if (!request) {
       throw new NotFoundException('Request not found');
@@ -182,7 +191,10 @@ export class RequestsService {
   }
 
   async changeStatus(id: string, dto: ChangeStatusDto, actorId: string, actorRole: RoleName) {
-    const request = await this.prisma.request.findUnique({ where: { id } });
+    const request = await this.prisma.request.findUnique({
+      where: { id },
+      select: { userId: true, status: true },
+    });
 
     if (!request) {
       throw new NotFoundException('Request not found');
@@ -225,7 +237,10 @@ export class RequestsService {
     comment: string | null,
   ) {
     return this.prisma.$transaction(async (tx) => {
-      const request = await tx.request.findUnique({ where: { id } });
+      const request = await tx.request.findUnique({
+        where: { id },
+        select: { status: true },
+      });
 
       if (!request) {
         throw new NotFoundException('Request not found');

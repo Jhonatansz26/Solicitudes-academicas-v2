@@ -82,6 +82,7 @@ model RefreshToken {
 
   user      User     @relation(fields: [userId], references: [id])
 
+  @@index([tokenHash])
   @@map("refresh_tokens")
 }
 
@@ -115,6 +116,11 @@ model Request {
   notifications   Notification[]
   history         RequestHistory[]
 
+  @@index([userId])
+  @@index([status])
+  @@index([requestTypeId])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId, status, createdAt(sort: Desc)])
   @@map("requests")
 }
 
@@ -134,6 +140,9 @@ model Attachment {
   request      Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
   uploader     User     @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
 
+  @@index([requestId])
+  @@index([requestId, createdAt(sort: Desc)])
+  @@index([uploadedBy])
   @@map("attachments")
 }
 
@@ -149,6 +158,9 @@ model Notification {
   user      User               @relation(fields: [userId], references: [id])
   request   Request?           @relation(fields: [requestId], references: [id])
 
+  @@index([userId])
+  @@index([requestId])
+  @@index([sent])
   @@map("notifications")
 }
 
@@ -164,5 +176,7 @@ model RequestHistory {
   request         Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
   user            User?         @relation(fields: [userId], references: [id])
 
+  @@index([requestId])
+  @@index([requestId, createdAt(sort: Desc)])
   @@map("request_history")
 }
