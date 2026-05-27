@@ -55,6 +55,8 @@ model User {
   requests       Request[]
   refreshTokens  RefreshToken[]
   notifications  Notification[]
+  requestHistory RequestHistory[]
+  uploadedAttachments  Attachment[]  @relation("AttachmentUploader")
 
   @@map("users")
 }
@@ -111,21 +113,26 @@ model Request {
   requestType     RequestType   @relation(fields: [requestTypeId], references: [id])
   attachments     Attachment[]
   notifications   Notification[]
+  history         RequestHistory[]
 
   @@map("requests")
 }
 
 model Attachment {
-  id        String   @id @default(uuid())
-  requestId String   @map("request_id")
-  fileName  String   @map("file_name")
-  url       String
-  mimeType  String   @map("mime_type")
-  provider  String
-  uploadedBy String  @map("uploaded_by")
-  createdAt DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  requestId    String   @map("request_id")
+  fileName     String   @map("file_name")
+  originalName String   @map("original_name")
+  url          String
+  mimeType     String   @map("mime_type")
+  fileSize     Int      @map("file_size")
+  provider     String   @default("local")
+  uploadedBy   String   @map("uploaded_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  request   Request  @relation(fields: [requestId], references: [id])
+  request      Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  uploader     User     @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
 
   @@map("attachments")
 }
@@ -143,4 +150,19 @@ model Notification {
   request   Request?           @relation(fields: [requestId], references: [id])
 
   @@map("notifications")
+}
+
+model RequestHistory {
+  id              String        @id @default(uuid())
+  requestId       String        @map("request_id")
+  previousStatus  RequestStatus? @map("previous_status")
+  newStatus       RequestStatus  @map("new_status")
+  userId          String?       @map("user_id")
+  comment         String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  request         Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user            User?         @relation(fields: [userId], references: [id])
+
+  @@map("request_history")
 }
