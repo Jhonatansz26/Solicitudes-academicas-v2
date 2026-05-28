@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRequest, useSubmitRequest, useCancelRequest } from '@/features/requests/hooks/use-requests'
+import { DocumentsSection } from '@/features/requests/components/documents-section'
 import { StatusBadge } from '@/features/requests/components/status-badge'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -182,6 +183,8 @@ export function RequestDetail() {
           </div>
         )}
       </div>
+
+      {id && <DocumentsSection requestId={id} />}
 
       <div className="rounded-lg border border-border bg-surface">
         <div className="p-6 border-b border-border">
