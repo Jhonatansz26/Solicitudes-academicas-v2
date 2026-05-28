@@ -7,6 +7,8 @@ import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
 import { DocumentsPage } from '@/pages/documents/documents-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
+import { CreateRequest } from '@/features/requests/components/create-request'
+import { RequestDetail } from '@/features/requests/components/request-detail'
 import { useAuth } from '@/app/providers/auth-provider'
 
 export const router = createBrowserRouter([
@@ -33,6 +35,14 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard/requests',
         element: <RequestsPage />,
+      },
+      {
+        path: '/dashboard/requests/new',
+        element: <CreateRequest />,
+      },
+      {
+        path: '/dashboard/requests/:id',
+        element: <RequestDetail />,
       },
       {
         path: '/dashboard/documents',
