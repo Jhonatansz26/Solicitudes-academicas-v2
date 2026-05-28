@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { FileText, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
+import { useAuth } from '@/app/providers/auth-provider'
 
 const stats = [
   { label: 'Solicitudes activas', value: '12', icon: FileText, color: 'text-primary' },
@@ -10,12 +11,14 @@ const stats = [
 ]
 
 export function DashboardPage() {
+  const { user } = useAuth()
+
   return (
     <div className="space-y-6">
       <div>
         <h1>Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Resumen de tu actividad en el portal acadÃ©mico
+          Bienvenido, {user?.fullName}
         </p>
       </div>
 

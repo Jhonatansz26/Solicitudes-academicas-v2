@@ -7,6 +7,7 @@ import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
 import { DocumentsPage } from '@/pages/documents/documents-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
+import { useAuth } from '@/app/providers/auth-provider'
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,6 @@ export const router = createBrowserRouter([
 ])
 
 function CatchAllRedirect() {
-  const isAuthenticated = localStorage.getItem('mock-auth') === 'true'
+  const { isAuthenticated } = useAuth()
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
 }

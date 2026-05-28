@@ -1,22 +1,16 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@/app/providers/auth-provider'
 
 interface ProtectedRouteProps {
   children: ReactNode
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
-  const [isChecking, setIsChecking] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  useEffect(() => {
-    const mockAuth = localStorage.getItem('mock-auth') === 'true'
-    setIsAuthenticated(mockAuth)
-    setIsChecking(false)
-  }, [])
-
-  if (isChecking) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">

@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { Menu, Bell, ChevronRight } from 'lucide-react'
+import { useAuth } from '@/app/providers/auth-provider'
 
 interface TopbarProps {
   onMenuClick: () => void
@@ -14,8 +15,13 @@ const routeLabels: Record<string, string> = {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const location = useLocation()
+  const { user } = useAuth()
   const currentPath = location.pathname
   const label = routeLabels[currentPath] || 'Dashboard'
+
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U'
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-surface/80 px-4 backdrop-blur-sm md:px-6">
@@ -41,7 +47,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </button>
 
         <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-accent">
-          U
+          {initials}
         </div>
       </div>
     </header>

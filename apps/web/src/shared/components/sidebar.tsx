@@ -9,6 +9,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react'
+import { useAuth } from '@/app/providers/auth-provider'
 
 interface SidebarProps {
   open?: boolean
@@ -23,6 +24,8 @@ const navItems = [
 ]
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const { logout } = useAuth()
+
   return (
     <>
       <aside
@@ -91,10 +94,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="border-t border-border p-3 space-y-1">
           <button
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
-            onClick={() => {
-              localStorage.removeItem('mock-auth')
-              window.location.href = '/login'
-            }}
+            onClick={() => logout()}
           >
             <LogOut className="h-4 w-4" />
             Cerrar sesiÃ³n

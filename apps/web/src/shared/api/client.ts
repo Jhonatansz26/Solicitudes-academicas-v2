@@ -1,6 +1,17 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiError } from '@/shared/types'
 
+type TokenGetter = () => string | null
+type LogoutFn = () => void
+
+let getToken: TokenGetter = () => null
+let doLogout: LogoutFn = () => {}
+
+export function configureAuthInterceptors(tokenGetter: TokenGetter, logout: LogoutFn) {
+  getToken = tokenGetter
+  doLogout = logout
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   withCredentials: true,
@@ -29,7 +40,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token')
+    const token = getToken()
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -70,7 +81,6 @@ api.interceptors.response.use(
         )
 
         const newToken = data.accessToken
-        localStorage.setItem('access_token', newToken)
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${newToken}`
@@ -80,9 +90,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('mock-auth')
-        window.location.href = '/login'
+        doLogout()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
