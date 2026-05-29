@@ -25,10 +25,12 @@ import {
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiConflictResponse,
+  ApiTooManyRequestsResponse,
   ApiBearerAuth,
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
@@ -49,6 +51,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post('upload')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Upload a document attachment',
@@ -75,6 +78,7 @@ export class DocumentsController {
     },
   })
   @ApiCreatedResponse({ description: 'Document uploaded successfully' })
+  @ApiTooManyRequestsResponse({ description: 'Upload rate limit exceeded (5 per minute)' })
   @ApiBadRequestResponse({ description: 'Invalid file type, file size exceeds 10MB, or no file provided' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @ApiForbiddenResponse({ description: 'Not authorized to upload to this request or request not in allowed status' })

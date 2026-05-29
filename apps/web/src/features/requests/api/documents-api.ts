@@ -39,6 +39,7 @@ export async function downloadDocument(id: string, fileName: string): Promise<vo
   window.URL.revokeObjectURL(url)
 }
 
-export async function deleteDocument(id: string): Promise<void> {
-  await api.delete(`/api/documents/${id}`)
+export async function deleteDocument(id: string, requestId?: string): Promise<{ id: string; requestId?: string }> {
+  const { data } = await api.delete<{ id: string }>(`/api/documents/${id}`)
+  return { ...data, requestId }
 }

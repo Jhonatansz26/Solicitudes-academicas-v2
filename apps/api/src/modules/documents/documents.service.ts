@@ -99,37 +99,45 @@ export class DocumentsService {
       throw new BadRequestException('Failed to store file');
     }
 
-    const attachment = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.attachment.create({
-        data: {
-          requestId,
-          fileName: storageResult.fileName,
-          originalName: file.originalname,
-          url: storageResult.url,
-          mimeType: file.mimetype,
-          fileSize: storageResult.fileSize,
-          provider: 'local',
-          uploadedBy: userId,
-        },
-        include: {
-          uploader: { select: { id: true, fullName: true, email: true } },
-        },
+    try {
+      const attachment = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.attachment.create({
+          data: {
+            requestId,
+            fileName: storageResult.fileName,
+            originalName: file.originalname,
+            url: storageResult.url,
+            mimeType: file.mimetype,
+            fileSize: storageResult.fileSize,
+            provider: 'local',
+            uploadedBy: userId,
+          },
+          include: {
+            uploader: { select: { id: true, fullName: true, email: true } },
+          },
+        });
+
+        await tx.requestHistory.create({
+          data: {
+            requestId,
+            previousStatus: request.status,
+            newStatus: request.status,
+            userId,
+            comment: `Document uploaded: ${file.originalname}`,
+          },
+        });
+
+        return created;
       });
 
-      await tx.requestHistory.create({
-        data: {
-          requestId,
-          previousStatus: request.status,
-          newStatus: request.status,
-          userId,
-          comment: `Document uploaded: ${file.originalname}`,
-        },
-      });
-
-      return created;
-    });
-
-    return attachment;
+      return attachment;
+    } catch (error) {
+      try {
+        await this.storage.delete(storageFileName);
+      } catch {
+      }
+      throw error;
+    }
   }
 
   async findByRequest(requestId: string, userId: string, role: RoleName) {

@@ -88,7 +88,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
 
   const handleDelete = () => {
     if (!deleteTarget) return
-    deleteDoc(deleteTarget.id, {
+    deleteDoc({ id: deleteTarget.id, requestId }, {
       onSuccess: () => setDeleteTarget(null),
       onError: () => setError('Error al eliminar el archivo'),
     })
@@ -108,7 +108,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
         <input
           ref={fileInputRef}
           type="file"
-          className="hidden"
+          className="absolute w-0 h-0 opacity-0 pointer-events-none"
           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
           onChange={handleFileSelect}
           disabled={uploading}
@@ -203,7 +203,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
         )}
       </div>
 
-      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Eliminar documento</DialogTitle>
