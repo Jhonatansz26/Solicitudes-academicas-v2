@@ -6,7 +6,9 @@ import {
   createRequest,
   submitRequest,
   cancelRequest,
+  changeRequestStatus,
   type RequestsQuery,
+  type ChangeStatusInput,
 } from '@/features/requests/api/requests-api'
 
 export const requestsKeys = {
@@ -67,6 +69,18 @@ export function useCancelRequest() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: cancelRequest,
+    onSuccess: (request) => {
+      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
+    },
+  })
+}
+
+export function useChangeRequestStatus() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ChangeStatusInput }) =>
+      changeRequestStatus(id, input),
     onSuccess: (request) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })

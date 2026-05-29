@@ -51,3 +51,16 @@ export async function cancelRequest(id: string): Promise<Request> {
   const { data } = await api.post<Request>(`/api/requests/${id}/cancel`)
   return data
 }
+
+export interface ChangeStatusInput {
+  newStatus: RequestStatus
+  comment?: string
+}
+
+export async function changeRequestStatus(
+  id: string,
+  input: ChangeStatusInput
+): Promise<Request> {
+  const { data } = await api.patch<Request>(`/api/requests/${id}/status`, input)
+  return data
+}

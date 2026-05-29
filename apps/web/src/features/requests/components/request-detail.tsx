@@ -1,7 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRequest, useSubmitRequest, useCancelRequest } from '@/features/requests/hooks/use-requests'
 import { DocumentsSection } from '@/features/requests/components/documents-section'
+import { ReviewPanel } from '@/features/requests/components/review-panel'
+import { AwaitingDocumentsBanner } from '@/features/requests/components/awaiting-documents-banner'
 import { StatusBadge } from '@/features/requests/components/status-badge'
+import {
+  getHistoryIcon,
+  getHistoryColor,
+  getHistoryLabel,
+} from '@/features/requests/components/history-utils'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
@@ -16,12 +23,14 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
+import { usePermissions } from '@/shared/hooks/use-permissions'
 import { useState } from 'react'
 
 export function RequestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { isReviewer } = usePermissions()
   const { data: request, isLoading } = useRequest(id || '')
   const { mutate: submit, isPending: submitting } = useSubmitRequest()
   const { mutate: cancel, isPending: cancelling } = useCancelRequest()
@@ -46,6 +55,7 @@ export function RequestDetail() {
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-40 w-full rounded-lg" />
         <Skeleton className="h-60 w-full rounded-lg" />
+        <Skeleton className="h-48 w-full rounded-lg" />
       </div>
     )
   }
@@ -61,6 +71,8 @@ export function RequestDetail() {
       </div>
     )
   }
+
+  const lastComment = request.history?.find((h) => h.comment)?.comment ?? undefined
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -95,26 +107,37 @@ export function RequestDetail() {
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">
                 {confirmAction === 'submit'
-                  ? 'Â¿Enviar solicitud a revisiÃ³n?'
-                  : 'Â¿Cancelar esta solicitud?'}
+                  ? '¿Enviar solicitud a revisión?'
+                  : '¿Cancelar esta solicitud?'}
               </p>
               <p className="text-xs text-muted-foreground">
                 {confirmAction === 'submit'
-                  ? 'Esta acciÃ³n no se puede deshacer. La solicitud pasarÃ¡ a estado "Enviada".'
-                  : 'La solicitud serÃ¡ marcada como cancelada y no podrÃ¡ ser recuperada.'}
+                  ? 'Esta acción no se puede deshacer. La solicitud pasará a estado "Enviada".'
+                  : 'La solicitud será marcada como cancelada y no podrá ser recuperada.'}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={handleAction} disabled={submitting || cancelling}>
               {(submitting || cancelling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {confirmAction === 'submit' ? 'Confirmar envÃ­o' : 'Confirmar cancelaciÃ³n'}
+              {confirmAction === 'submit' ? 'Confirmar envío' : 'Confirmar cancelación'}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setConfirmAction(null)}>
               Volver
             </Button>
           </div>
         </div>
+      )}
+
+      {request.status === 'PENDING_DOCUMENTS' && (
+        <AwaitingDocumentsBanner
+          comment={lastComment}
+          isOwner={isOwner}
+          onUploadClick={() => {
+            const el = document.querySelector('[data-documents-section]')
+            el?.scrollIntoView({ behavior: 'smooth' })
+          }}
+        />
       )}
 
       <div className="rounded-lg border border-border bg-surface">
@@ -176,7 +199,7 @@ export function RequestDetail() {
 
         {request.description && (
           <div className="p-6 border-b border-border">
-            <h3 className="text-sm font-medium text-foreground mb-2">DescripciÃ³n</h3>
+            <h3 className="text-sm font-medium text-foreground mb-2">Descripción</h3>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {request.description}
             </p>
@@ -184,7 +207,11 @@ export function RequestDetail() {
         )}
       </div>
 
-      {id && <DocumentsSection requestId={id} />}
+      {id && isReviewer && <ReviewPanel requestId={id} currentStatus={request.status} />}
+
+      <div data-documents-section>
+        {id && <DocumentsSection requestId={id} />}
+      </div>
 
       <div className="rounded-lg border border-border bg-surface">
         <div className="p-6 border-b border-border">
@@ -197,7 +224,9 @@ export function RequestDetail() {
               {request.history.map((entry, index) => (
                 <div key={entry.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getHistoryColor(entry.newStatus)} bg-surface border border-border`}>
+                      {getHistoryIcon(entry.newStatus)}
+                    </div>
                     {index < (request.history?.length ?? 0) - 1 && (
                       <div className="w-px flex-1 bg-border my-1" />
                     )}
@@ -205,13 +234,7 @@ export function RequestDetail() {
                   <div className="pb-6 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-foreground">
-                        {entry.newStatus === 'SUBMITTED' && 'Solicitud enviada'}
-                        {entry.newStatus === 'IN_REVIEW' && 'En revisiÃ³n'}
-                        {entry.newStatus === 'PENDING_DOCUMENTS' && 'Documentos pendientes'}
-                        {entry.newStatus === 'APPROVED' && 'Aprobada'}
-                        {entry.newStatus === 'REJECTED' && 'Rechazada'}
-                        {entry.newStatus === 'CANCELLED' && 'Cancelada'}
-                        {entry.newStatus === 'DRAFT' && 'Borrador creado'}
+                        {getHistoryLabel(entry.newStatus)}
                       </span>
                       {entry.previousStatus && entry.previousStatus !== entry.newStatus && (
                         <span className="text-xs text-muted-foreground">
@@ -223,9 +246,9 @@ export function RequestDetail() {
                       {formatDateTime(entry.createdAt)}
                     </p>
                     {entry.comment && (
-                      <p className="text-xs text-muted-foreground mt-1 italic">
+                      <div className="mt-2 rounded-md bg-surface-hover px-3 py-2 text-xs text-muted-foreground">
                         {entry.comment}
-                      </p>
+                      </div>
                     )}
                   </div>
                 </div>

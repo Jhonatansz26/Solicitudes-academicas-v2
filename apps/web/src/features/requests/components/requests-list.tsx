@@ -3,13 +3,6 @@ import { useRequests } from '@/features/requests/hooks/use-requests'
 import { StatusBadge } from '@/features/requests/components/status-badge'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
   FileText,
@@ -18,14 +11,22 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpRight,
+  Clock,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { usePermissions } from '@/shared/hooks/use-permissions'
 import { REQUEST_STATUS_CONFIG } from '@/shared/constants'
 import type { RequestStatus } from '@/shared/types'
+
+const QUICK_FILTERS: { key: string; label: string; statuses: RequestStatus[] }[] = [
+  { key: 'pending_review', label: 'Pendientes', statuses: ['SUBMITTED', 'IN_REVIEW'] },
+  { key: 'all', label: 'Todas', statuses: [] },
+]
 
 export function RequestsList() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { isReviewer } = usePermissions()
 
   const page = Number(searchParams.get('page')) || 1
   const status = (searchParams.get('status') as RequestStatus) || undefined
@@ -70,6 +71,33 @@ export function RequestsList() {
         </Button>
       </div>
 
+      {isReviewer && (
+        <div className="flex gap-2">
+          {QUICK_FILTERS.map((filter) => (
+            <Button
+              key={filter.key}
+              variant={
+                (!status && filter.key === 'all') ||
+                (filter.key === 'pending_review' && ['SUBMITTED', 'IN_REVIEW'].includes(status || ''))
+                  ? 'default'
+                  : 'outline'
+              }
+              size="sm"
+              onClick={() => {
+                if (filter.key === 'pending_review') {
+                  handleStatusFilter('SUBMITTED')
+                } else {
+                  handleStatusFilter('all')
+                }
+              }}
+            >
+              {filter.key === 'pending_review' && <Clock className="mr-1.5 h-3.5 w-3.5" />}
+              {filter.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -84,19 +112,19 @@ export function RequestsList() {
           />
         </div>
 
-        <Select value={status || 'all'} onValueChange={handleStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Todos los estados" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            {Object.entries(REQUEST_STATUS_CONFIG).map(([key, config]) => (
-              <SelectItem key={key} value={key}>
-                {config.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          value={status || ''}
+          onChange={(e) => handleStatusFilter(e.target.value)}
+          className="h-10 rounded-md border border-border bg-surface px-3 pr-8 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-ring"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
+        >
+          <option value="">Todos los estados</option>
+          {Object.entries(REQUEST_STATUS_CONFIG).map(([key, config]) => (
+            <option key={key} value={key}>
+              {config.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {isLoading ? (
@@ -156,7 +184,7 @@ export function RequestsList() {
 
                 <div className="sm:col-span-2">
                   <span className="text-sm text-muted-foreground">
-                    {req.requestType?.name || '—'}
+                    {req.requestType?.name || 'â'}
                   </span>
                 </div>
 
