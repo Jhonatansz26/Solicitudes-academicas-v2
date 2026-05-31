@@ -54,6 +54,16 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
+  @Get('roles')
+  @ApiOperation({
+    summary: 'List all available roles',
+    description: 'Returns all roles with their IDs. Used for role selection in user creation and filtering.',
+  })
+  @ApiOkResponse({ description: 'List of roles' })
+  getRoles() {
+    return this.usersService.getRoles();
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get user detail',

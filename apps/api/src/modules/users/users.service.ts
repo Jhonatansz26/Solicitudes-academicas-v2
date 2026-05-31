@@ -94,6 +94,13 @@ export class UsersService {
     return user;
   }
 
+  async getRoles() {
+    return this.prisma.role.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async create(dto: CreateUserDto) {
     const role = await this.prisma.role.findUnique({
       where: { id: dto.roleId },
