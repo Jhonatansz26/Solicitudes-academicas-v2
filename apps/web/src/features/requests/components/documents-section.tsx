@@ -59,7 +59,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
     }
 
     if (file.size > MAX_SIZE) {
-      setError('El archivo excede el tamaÃ±o mÃ¡ximo de 10MB')
+      setError('El archivo excede el tamaño máximo de 10MB')
       e.target.value = ''
       return
     }
@@ -149,7 +149,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
             <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
             <p className="text-sm font-medium text-foreground">Sin documentos adjuntos</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Sube archivos PDF, imÃ¡genes o documentos para esta solicitud
+              Sube archivos PDF, imágenes o documentos para esta solicitud
             </p>
           </div>
         ) : (
@@ -208,7 +208,7 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
           <DialogHeader>
             <DialogTitle>Eliminar documento</DialogTitle>
             <DialogDescription>
-              Â¿EstÃ¡s seguro de que deseas eliminar "{deleteTarget?.name}"? Esta acciÃ³n no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar "{deleteTarget?.name}"? Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

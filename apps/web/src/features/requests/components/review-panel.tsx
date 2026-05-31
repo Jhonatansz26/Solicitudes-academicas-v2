@@ -30,7 +30,7 @@ interface ReviewPanelProps {
 const ACTION_CONFIG: Record<RequestStatus, { icon: React.ReactNode; label: string; variant: 'default' | 'destructive' | 'outline' }[]> = {
   DRAFT: [],
   SUBMITTED: [
-    { icon: <FileSearch className="h-4 w-4" />, label: 'Iniciar revisiÃ³n', variant: 'default' as const },
+    { icon: <FileSearch className="h-4 w-4" />, label: 'Iniciar revisión', variant: 'default' as const },
   ],
   IN_REVIEW: [
     { icon: <CheckCircle className="h-4 w-4" />, label: 'Aprobar', variant: 'default' as const },
@@ -38,7 +38,7 @@ const ACTION_CONFIG: Record<RequestStatus, { icon: React.ReactNode; label: strin
     { icon: <FileSearch className="h-4 w-4" />, label: 'Solicitar documentos', variant: 'outline' as const },
   ],
   PENDING_DOCUMENTS: [
-    { icon: <FileSearch className="h-4 w-4" />, label: 'Continuar revisiÃ³n', variant: 'default' as const },
+    { icon: <FileSearch className="h-4 w-4" />, label: 'Continuar revisión', variant: 'default' as const },
   ],
   APPROVED: [],
   REJECTED: [],
@@ -131,7 +131,7 @@ export function ReviewPanel({ requestId, currentStatus }: ReviewPanelProps) {
             <div className="flex items-center gap-3">
               <ClipboardCheck className="h-5 w-5 text-primary" />
               <div>
-                <h3 className="text-sm font-medium text-foreground">Panel de revisiÃ³n</h3>
+                <h3 className="text-sm font-medium text-foreground">Panel de revisión</h3>
                 <p className="text-xs text-muted-foreground">
                   Estado actual de la solicitud
                 </p>
@@ -154,7 +154,7 @@ export function ReviewPanel({ requestId, currentStatus }: ReviewPanelProps) {
               Rechazar solicitud
             </DialogTitle>
             <DialogDescription>
-              Indica el motivo del rechazo. Este comentario serÃ¡ visible para el solicitante.
+              Indica el motivo del rechazo. Este comentario será visible para el solicitante.
             </DialogDescription>
           </DialogHeader>
 
@@ -177,7 +177,7 @@ export function ReviewPanel({ requestId, currentStatus }: ReviewPanelProps) {
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              MÃ­nimo 10 caracteres. ({comment.length}/10)
+              Mínimo 10 caracteres. ({comment.length}/10)
             </p>
           </div>
 

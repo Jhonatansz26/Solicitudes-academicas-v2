@@ -3,13 +3,20 @@ import type { ApiError } from '@/shared/types'
 
 type TokenGetter = () => string | null
 type LogoutFn = () => void
+type OnTokenRefreshed = (token: string) => void
 
 let getToken: TokenGetter = () => null
 let doLogout: LogoutFn = () => {}
+let onTokenRefreshed: OnTokenRefreshed = () => {}
 
-export function configureAuthInterceptors(tokenGetter: TokenGetter, logout: LogoutFn) {
+export function configureAuthInterceptors(
+  tokenGetter: TokenGetter,
+  logout: LogoutFn,
+  onRefresh: OnTokenRefreshed,
+) {
   getToken = tokenGetter
   doLogout = logout
+  onTokenRefreshed = onRefresh
 }
 
 const api = axios.create({
@@ -87,6 +94,7 @@ api.interceptors.response.use(
         }
 
         processQueue(null, newToken)
+        onTokenRefreshed(newToken)
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)

@@ -62,7 +62,7 @@ export function RequestsList() {
         <div>
           <h1>Solicitudes</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            GestiÃ³n y seguimiento de solicitudes acadÃ©micas
+            Gestión y seguimiento de solicitudes académicas
           </p>
         </div>
         <Button size="sm" onClick={() => navigate('/dashboard/requests/new')}>
@@ -102,7 +102,7 @@ export function RequestsList() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por tÃ­tulo o nÃºmero de seguimiento..."
+            placeholder="Buscar por título o número de seguimiento..."
             className="pl-9"
             defaultValue={search}
             onBlur={(e) => handleSearch(e.target.value)}
@@ -139,8 +139,8 @@ export function RequestsList() {
           <h3 className="text-base font-medium text-foreground">No se encontraron solicitudes</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {search || status
-              ? 'Intenta cambiar los filtros de bÃºsqueda'
-              : 'Crea tu primera solicitud acadÃ©mica'}
+              ? 'Intenta cambiar los filtros de búsqueda'
+              : 'Crea tu primera solicitud académica'}
           </p>
           {!search && !status && (
             <Button className="mt-4" size="sm" onClick={() => navigate('/dashboard/requests/new')}>
@@ -154,7 +154,7 @@ export function RequestsList() {
           <div className="rounded-lg border border-border bg-surface overflow-hidden">
             <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div className="col-span-2">Tracking</div>
-              <div className="col-span-4">TÃ­tulo</div>
+              <div className="col-span-4">Título</div>
               <div className="col-span-2">Tipo</div>
               <div className="col-span-2">Estado</div>
               <div className="col-span-1">Fecha</div>
@@ -184,7 +184,7 @@ export function RequestsList() {
 
                 <div className="sm:col-span-2">
                   <span className="text-sm text-muted-foreground">
-                    {req.requestType?.name || 'â'}
+                    {req.requestType?.name || '—'}
                   </span>
                 </div>
 
@@ -221,7 +221,7 @@ export function RequestsList() {
                   Anterior
                 </Button>
                 <span className="text-sm text-muted-foreground px-2">
-                  PÃ¡gina {page} de {data.totalPages}
+                  Página {page} de {data.totalPages}
                 </span>
                 <Button
                   variant="outline"

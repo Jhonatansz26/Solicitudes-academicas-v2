@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsNumber, Min, Max } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RequestStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
@@ -49,6 +49,7 @@ export class QueryRequestsDto {
     example: 20,
   })
   @IsNumber()
+  @Max(100)
   @Min(1)
   @IsOptional()
   @Type(() => Number)

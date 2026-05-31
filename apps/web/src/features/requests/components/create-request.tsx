@@ -17,8 +17,8 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
 const createSchema = z.object({
-  title: z.string().min(3, 'El tÃ­tulo debe tener al menos 3 caracteres').max(200, 'El tÃ­tulo es demasiado largo'),
-  description: z.string().max(1000, 'La descripciÃ³n es demasiado larga').optional().or(z.literal('')),
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres').max(200, 'El título es demasiado largo'),
+  description: z.string().max(1000, 'La descripción es demasiado larga').optional().or(z.literal('')),
   requestTypeId: z.string().min(1, 'Selecciona un tipo de solicitud'),
 })
 
@@ -63,7 +63,7 @@ export function CreateRequest() {
       <div>
         <h1>Nueva Solicitud</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Completa los datos para crear una nueva solicitud acadÃ©mica
+          Completa los datos para crear una nueva solicitud académica
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function CreateRequest() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              TÃ­tulo <span className="text-danger">*</span>
+              Título <span className="text-danger">*</span>
             </label>
             <Input
               placeholder="Ej: Solicitud de certificado de estudio"
@@ -114,7 +114,7 @@ export function CreateRequest() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              DescripciÃ³n <span className="text-muted-foreground font-normal">(opcional)</span>
+              Descripción <span className="text-muted-foreground font-normal">(opcional)</span>
             </label>
             <Textarea
               placeholder="Agrega detalles adicionales sobre tu solicitud..."

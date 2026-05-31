@@ -10,7 +10,7 @@ const routeLabels: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/requests': 'Solicitudes',
   '/dashboard/documents': 'Documentos',
-  '/dashboard/settings': 'ConfiguraciÃ³n',
+  '/dashboard/settings': 'Configuración',
 }
 
 export function Topbar({ onMenuClick }: TopbarProps) {

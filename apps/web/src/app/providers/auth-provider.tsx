@@ -49,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null)
       setAccessToken(null)
       setIsAuthenticated(false)
-    })
+    }, setAccessToken)
   }, [])
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { useAuth } from '@/app/providers/auth-provider'
 
 const stats = [
   { label: 'Solicitudes activas', value: '12', icon: FileText, color: 'text-primary' },
-  { label: 'En revisiÃ³n', value: '3', icon: Clock, color: 'text-warning' },
+  { label: 'En revisión', value: '3', icon: Clock, color: 'text-warning' },
   { label: 'Aprobadas', value: '8', icon: CheckCircle, color: 'text-success' },
   { label: 'Pendientes', value: '1', icon: AlertCircle, color: 'text-danger' },
 ]
@@ -45,9 +45,9 @@ export function DashboardPage() {
         <CardContent>
           <div className="space-y-4">
             {[
-              { action: 'Solicitud de certificado enviada', date: 'Hace 2 horas', status: 'En revisiÃ³n' },
-              { action: 'HomologaciÃ³n aprobada', date: 'Hace 1 dÃ­a', status: 'Aprobada' },
-              { action: 'Documento adjuntado', date: 'Hace 3 dÃ­as', status: 'Pendiente' },
+              { action: 'Solicitud de certificado enviada', date: 'Hace 2 horas', status: 'En revisión' },
+              { action: 'Homologación aprobada', date: 'Hace 1 día', status: 'Aprobada' },
+              { action: 'Documento adjuntado', date: 'Hace 3 días', status: 'Pendiente' },
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                 <div>

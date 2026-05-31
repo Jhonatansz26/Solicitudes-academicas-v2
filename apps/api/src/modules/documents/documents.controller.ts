@@ -52,7 +52,11 @@ export class DocumentsController {
 
   @Post('upload')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
   @ApiOperation({
     summary: 'Upload a document attachment',
     description: 'Uploads a file and attaches it to a request. Allowed types: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Max size: 10MB. Students can only upload to their own requests in DRAFT or PENDING_DOCUMENTS status. Max 5 attachments per request.',

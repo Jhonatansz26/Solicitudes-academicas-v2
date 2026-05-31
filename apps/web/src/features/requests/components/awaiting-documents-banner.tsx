@@ -21,7 +21,7 @@ export function AwaitingDocumentsBanner({
             Documentos pendientes
           </h4>
           <p className="text-sm text-muted-foreground">
-            Se requieren documentos adicionales para continuar con la revisiÃ³n de esta solicitud.
+            Se requieren documentos adicionales para continuar con la revisión de esta solicitud.
           </p>
           {comment && (
             <div className="mt-2 rounded-md bg-surface/80 px-3 py-2 text-xs text-muted-foreground">

@@ -50,7 +50,7 @@ export class RequestsService {
 
   async findAll(userId: string, role: RoleName, query: QueryRequestsDto) {
     const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const limit = Math.min(query.limit ?? 20, 100);
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -166,7 +166,7 @@ export class RequestsService {
       throw new ConflictException('Only draft requests can be submitted');
     }
 
-    return this.changeStatusInternal(id, 'SUBMITTED', userId, null);
+    return this.changeStatusInternal(id, 'SUBMITTED', request.status, userId, null);
   }
 
   async cancel(id: string, userId: string) {
@@ -187,7 +187,7 @@ export class RequestsService {
       throw new ForbiddenException('Cannot cancel a request in a final state');
     }
 
-    return this.changeStatusInternal(id, 'CANCELLED', userId, 'Cancelled by user');
+    return this.changeStatusInternal(id, 'CANCELLED', request.status, userId, 'Cancelled by user');
   }
 
   async changeStatus(id: string, dto: ChangeStatusDto, actorId: string, actorRole: RoleName) {
@@ -220,7 +220,7 @@ export class RequestsService {
       throw new ForbiddenException('Coordinator can only approve or reject');
     }
 
-    return this.changeStatusInternal(id, dto.newStatus, actorId, dto.comment ?? null);
+    return this.changeStatusInternal(id, dto.newStatus, request.status, actorId, dto.comment ?? null);
   }
 
   async getRequestTypes() {
@@ -233,32 +233,38 @@ export class RequestsService {
   private async changeStatusInternal(
     id: string,
     newStatus: RequestStatus,
+    expectedStatus: RequestStatus,
     userId: string | null,
     comment: string | null,
   ) {
     return this.prisma.$transaction(async (tx) => {
-      const request = await tx.request.findUnique({
-        where: { id },
-        select: { status: true },
+      const result = await tx.request.updateMany({
+        where: { id, status: expectedStatus },
+        data: { status: newStatus },
       });
 
-      if (!request) {
-        throw new NotFoundException('Request not found');
+      if (result.count === 0) {
+        throw new ConflictException(
+          `Request status changed from '${expectedStatus}' to a different state by another process`,
+        );
       }
 
-      const updated = await tx.request.update({
+      const updated = await tx.request.findUnique({
         where: { id },
-        data: { status: newStatus },
         include: {
           requestType: true,
           user: { select: { id: true, fullName: true, email: true } },
         },
       });
 
+      if (!updated) {
+        throw new NotFoundException('Request not found');
+      }
+
       await tx.requestHistory.create({
         data: {
           requestId: id,
-          previousStatus: request.status,
+          previousStatus: expectedStatus,
           newStatus,
           userId,
           comment,

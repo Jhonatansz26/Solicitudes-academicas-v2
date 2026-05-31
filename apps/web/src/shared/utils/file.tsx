@@ -13,8 +13,8 @@ export function getFileTypeLabel(mimeType: string): string {
   if (mimeType === 'application/pdf') return 'PDF'
   if (mimeType.startsWith('image/')) return 'Imagen'
   if (mimeType.includes('word') || mimeType.includes('document')) return 'Documento'
-  if (mimeType.includes('sheet') || mimeType.includes('excel')) return 'Hoja de cÃ¡lculo'
-  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'PresentaciÃ³n'
+  if (mimeType.includes('sheet') || mimeType.includes('excel')) return 'Hoja de cálculo'
+  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'Presentación'
   return 'Archivo'
 }
 

@@ -20,7 +20,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText },
   { to: '/dashboard/documents', label: 'Documentos', icon: FolderOpen },
-  { to: '/dashboard/settings', label: 'ConfiguraciÃ³n', icon: Settings },
+  { to: '/dashboard/settings', label: 'Configuración', icon: Settings },
 ]
 
 export function Sidebar({ open, onClose }: SidebarProps) {
@@ -44,7 +44,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 SOLICITUDES
               </span>
               <span className="text-[10px] font-medium text-muted-foreground leading-tight">
-                Portal AcadÃ©mico
+                Portal Académico
               </span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             onClick={() => logout()}
           >
             <LogOut className="h-4 w-4" />
-            Cerrar sesiÃ³n
+            Cerrar sesión
           </button>
         </div>
       </aside>

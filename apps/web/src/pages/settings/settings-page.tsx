@@ -8,9 +8,9 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1>ConfiguraciÃ³n</h1>
+        <h1>Configuración</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          GestiÃ³n de tu perfil y preferencias
+          Gestión de tu perfil y preferencias
         </p>
       </div>
 
@@ -25,7 +25,7 @@ export function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Nombre completo</Label>
-              <Input placeholder="Juan PÃ©rez" defaultValue="Juan PÃ©rez" />
+              <Input placeholder="Juan Pérez" defaultValue="Juan Pérez" />
             </div>
             <div className="space-y-2">
               <Label>Correo institucional</Label>
@@ -44,14 +44,14 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>ContraseÃ±a actual</Label>
-              <Input type="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" />
+              <Label>Contraseña actual</Label>
+              <Input type="password" placeholder="••••••••" />
             </div>
             <div className="space-y-2">
-              <Label>Nueva contraseÃ±a</Label>
-              <Input type="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" />
+              <Label>Nueva contraseña</Label>
+              <Input type="password" placeholder="••••••••" />
             </div>
-            <Button size="sm" variant="outline">Actualizar contraseÃ±a</Button>
+            <Button size="sm" variant="outline">Actualizar contraseña</Button>
           </CardContent>
         </Card>
 
@@ -64,7 +64,7 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Las preferencias de notificaciÃ³n se configurarÃ¡n cuando se implemente el mÃ³dulo de notificaciones.
+              Las preferencias de notificación se configurarán cuando se implemente el módulo de notificaciones.
             </p>
           </CardContent>
         </Card>

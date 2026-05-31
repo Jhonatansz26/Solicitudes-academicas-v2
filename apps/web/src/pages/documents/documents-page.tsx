@@ -14,7 +14,7 @@ export function DocumentsPage() {
       <div>
         <h1>Documentos</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          GestiÃ³n de archivos adjuntos a tus solicitudes
+          Gestión de archivos adjuntos a tus solicitudes
         </p>
       </div>
 

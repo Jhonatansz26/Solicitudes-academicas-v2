@@ -18,17 +18,17 @@ export function AuthLayout() {
               </svg>
             </div>
             <h2 className="text-2xl font-semibold text-primary-foreground">
-              Solicitudes AcadÃ©micas
+              Solicitudes Académicas
             </h2>
             <p className="text-sm text-primary-foreground/70 leading-relaxed">
-              Portal institucional para la gestiÃ³n de solicitudes acadÃ©micas.
-              Certificados, homologaciones y trÃ¡mites en un solo lugar.
+              Portal institucional para la gestión de solicitudes académicas.
+              Certificados, homologaciones y trámites en un solo lugar.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 pt-8">
             {[
-              { label: 'TrÃ¡mites', value: '100%' },
+              { label: 'Trámites', value: '100%' },
               { label: 'Digital', value: '24/7' },
               { label: 'Seguro', value: 'SSL' },
             ].map((stat) => (

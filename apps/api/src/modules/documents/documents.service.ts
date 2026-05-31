@@ -212,6 +212,13 @@ export class DocumentsService {
       throw new ForbiddenException('You can only delete your own uploads. Admin can delete any attachment');
     }
 
+    const BLOCKED_DELETE_STATUSES: string[] = ['IN_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED'];
+    if (role !== 'ADMIN' && BLOCKED_DELETE_STATUSES.includes(attachment.request.status)) {
+      throw new ForbiddenException(
+        `Cannot delete documents from a request in '${attachment.request.status}' status`,
+      );
+    }
+
     await this.prisma.$transaction(async (tx) => {
       await tx.requestHistory.create({
         data: {
