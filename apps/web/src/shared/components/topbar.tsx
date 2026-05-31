@@ -17,6 +17,7 @@ const routeLabels: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/requests': 'Solicitudes',
   '/dashboard/admin/users': 'Usuarios',
+  '/dashboard/admin/request-types': 'Tipos de Solicitud',
   '/dashboard/documents': 'Documentos',
   '/dashboard/settings': 'Configuración',
 }

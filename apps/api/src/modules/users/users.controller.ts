@@ -8,9 +8,11 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,6 +34,11 @@ import { QueryUsersDto } from './dto/query-users.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import type { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user: { id: string; email: string; role: string };
+}
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -62,6 +69,16 @@ export class UsersController {
   @ApiOkResponse({ description: 'List of roles' })
   getRoles() {
     return this.usersService.getRoles();
+  }
+
+  @Get('stats')
+  @ApiOperation({
+    summary: 'Get users statistics',
+    description: 'Returns global user counts: total, active, inactive, and students.',
+  })
+  @ApiOkResponse({ description: 'Users statistics' })
+  getStats() {
+    return this.usersService.getUsersStats();
   }
 
   @Get(':id')
@@ -123,9 +140,13 @@ export class UsersController {
   @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
   @ApiNotFoundResponse({ description: 'User not found' })
   updateStatus(
+    @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserStatusDto,
   ) {
+    if (req.user.id === id) {
+      throw new BadRequestException('No puedes cambiar tu propio estado');
+    }
     return this.usersService.updateStatus(id, dto.isActive);
   }
 

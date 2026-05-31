@@ -7,6 +7,7 @@ import {
   updateUserStatus,
   deleteUser,
   fetchRoles,
+  fetchUsersStats,
   type UsersQuery,
 } from '@/features/admin/api/users-api'
 
@@ -17,6 +18,7 @@ export const usersKeys = {
   details: () => [...usersKeys.all, 'detail'] as const,
   detail: (id: string) => [...usersKeys.details(), id] as const,
   roles: () => [...usersKeys.all, 'roles'] as const,
+  stats: () => [...usersKeys.all, 'stats'] as const,
 }
 
 export function useUsers(query: UsersQuery) {
@@ -42,12 +44,21 @@ export function useRoles() {
   })
 }
 
+export function useUsersStats() {
+  return useQuery({
+    queryKey: usersKeys.stats(),
+    queryFn: fetchUsersStats,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
 export function useCreateUser() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: createUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
     },
   })
 }
@@ -71,6 +82,7 @@ export function useUpdateUserStatus() {
       updateUserStatus(id, isActive),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
     },
   })
 }
@@ -81,6 +93,7 @@ export function useDeleteUser() {
     mutationFn: deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
     },
   })
 }

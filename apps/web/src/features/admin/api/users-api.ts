@@ -1,6 +1,13 @@
 import { api } from '@/shared/api'
 import type { AdminUser, PaginatedResponse, CreateUserInput, UpdateUserInput, Role } from '@/shared/types'
 
+export interface UsersStats {
+  total: number
+  active: number
+  inactive: number
+  students: number
+}
+
 export interface UsersQuery {
   page?: number
   limit?: number
@@ -48,5 +55,10 @@ export async function deleteUser(id: string): Promise<{ message: string; id: str
 
 export async function fetchRoles(): Promise<Role[]> {
   const { data } = await api.get<Role[]>('/api/users/roles')
+  return data
+}
+
+export async function fetchUsersStats(): Promise<UsersStats> {
+  const { data } = await api.get<UsersStats>('/api/users/stats')
   return data
 }

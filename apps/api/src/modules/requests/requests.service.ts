@@ -8,6 +8,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { CreateRequestTypeDto } from './dto/create-request-type.dto';
+import { UpdateRequestTypeDto } from './dto/update-request-type.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { QueryRequestsDto } from './dto/query-requests.dto';
 import { RequestStatus, RoleName } from '@prisma/client';
@@ -227,6 +229,50 @@ export class RequestsService {
     return this.prisma.requestType.findMany({
       where: { isActive: true },
       orderBy: { name: 'asc' },
+    });
+  }
+
+  async getAllRequestTypes() {
+    return this.prisma.requestType.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createRequestType(dto: CreateRequestTypeDto) {
+    return this.prisma.requestType.create({
+      data: {
+        name: dto.name,
+        description: dto.description ?? null,
+        estimatedDays: dto.estimatedDays,
+      },
+    });
+  }
+
+  async updateRequestType(id: string, dto: UpdateRequestTypeDto) {
+    const type = await this.prisma.requestType.findUnique({ where: { id } });
+    if (!type) {
+      throw new NotFoundException('Request type not found');
+    }
+
+    return this.prisma.requestType.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        estimatedDays: dto.estimatedDays,
+      },
+    });
+  }
+
+  async deleteRequestType(id: string) {
+    const type = await this.prisma.requestType.findUnique({ where: { id } });
+    if (!type) {
+      throw new NotFoundException('Request type not found');
+    }
+
+    return this.prisma.requestType.update({
+      where: { id },
+      data: { isActive: false },
     });
   }
 

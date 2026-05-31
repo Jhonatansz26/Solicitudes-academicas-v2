@@ -3,12 +3,15 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
   UseGuards,
   Req,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +30,8 @@ import type { Request } from 'express';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { CreateRequestTypeDto } from './dto/create-request-type.dto';
+import { UpdateRequestTypeDto } from './dto/update-request-type.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { QueryRequestsDto } from './dto/query-requests.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -81,6 +86,72 @@ export class RequestsController {
   @ApiOkResponse({ description: 'List of active request types' })
   getTypes() {
     return this.requestsService.getRequestTypes();
+  }
+
+  @Get('types/all')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'List all request types (admin)',
+    description: 'Returns all request types including inactive ones. Admin only.',
+  })
+  @ApiOkResponse({ description: 'List of all request types' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  getAllTypes() {
+    return this.requestsService.getAllRequestTypes();
+  }
+
+  @Post('types')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Create a request type',
+    description: 'Creates a new request type. Admin only.',
+  })
+  @ApiCreatedResponse({ description: 'Request type created successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  @ApiConflictResponse({ description: 'Request type name already exists' })
+  createType(@Body() dto: CreateRequestTypeDto) {
+    return this.requestsService.createRequestType(dto);
+  }
+
+  @Patch('types/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Update a request type',
+    description: 'Updates an existing request type. Admin only.',
+  })
+  @ApiOkResponse({ description: 'Request type updated successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  @ApiNotFoundResponse({ description: 'Request type not found' })
+  @ApiConflictResponse({ description: 'Request type name already exists' })
+  updateType(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateRequestTypeDto,
+  ) {
+    return this.requestsService.updateRequestType(id, dto);
+  }
+
+  @Delete('types/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Deactivate a request type',
+    description: 'Soft-deletes a request type by setting isActive to false. Admin only.',
+  })
+  @ApiOkResponse({ description: 'Request type deactivated successfully' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  @ApiNotFoundResponse({ description: 'Request type not found' })
+  deleteType(@Param('id', ParseUUIDPipe) id: string) {
+    return this.requestsService.deleteRequestType(id);
   }
 
   @Get('stats')

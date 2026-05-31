@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import {
   useUsers,
   useRoles,
+  useUsersStats,
   useCreateUser,
   useUpdateUser,
   useUpdateUserStatus,
@@ -91,6 +92,7 @@ export function AdminUsersPage() {
 
   const { data, isLoading, isError } = useUsers({ page, search, role: roleFilter, isActive: parsedIsActive, limit: 20 })
   const { data: roles } = useRoles()
+  const { data: statsData } = useUsersStats()
   const { mutate: create, isPending: creating } = useCreateUser()
   const { mutate: update, isPending: updating } = useUpdateUser()
   const { mutate: toggleStatus, isPending: toggling } = useUpdateUserStatus()
@@ -118,10 +120,10 @@ export function AdminUsersPage() {
   const users = data?.data ?? []
 
   const kpis = {
-    total: data?.total ?? 0,
-    active: users.filter((u) => u.isActive).length,
-    inactive: users.filter((u) => !u.isActive).length,
-    students: users.filter((u) => u.role.name === 'STUDENT').length,
+    total: statsData?.total ?? 0,
+    active: statsData?.active ?? 0,
+    inactive: statsData?.inactive ?? 0,
+    students: statsData?.students ?? 0,
   }
 
   return (
@@ -274,6 +276,7 @@ export function AdminUsersPage() {
                     size="sm"
                     className="h-8 w-8 p-0"
                     onClick={() => setEditTarget(user)}
+                    aria-label="Editar usuario"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -283,6 +286,7 @@ export function AdminUsersPage() {
                     className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
                     onClick={() => setDeleteTarget(user)}
                     disabled={deleting}
+                    aria-label="Eliminar usuario"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -386,9 +390,9 @@ export function AdminUsersPage() {
                       setDeleteTarget(null)
                       toast.success('Usuario eliminado')
                     },
-                    onError: (err: any) => {
-                      const message = err?.response?.data?.message || 'Error al eliminar el usuario'
-                      toast.error(message)
+                    onError: (err) => {
+                      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                      toast.error(msg || 'Error al eliminar el usuario')
                       setDeleteTarget(null)
                     },
                   })
@@ -530,7 +534,6 @@ function CreateUserDialog({
       studentCode: isStudent ? data.studentCode : undefined,
     }
     onSubmit(input)
-    reset()
   }
 
   return (

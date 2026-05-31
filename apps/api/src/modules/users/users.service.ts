@@ -3,10 +3,13 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
+import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -99,6 +102,40 @@ export class UsersService {
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     });
+  }
+
+  async getUsersStats() {
+    const [byRole, byStatus] = await Promise.all([
+      this.prisma.user.groupBy({
+        by: ['roleId'],
+        _count: { roleId: true },
+      }),
+      this.prisma.user.groupBy({
+        by: ['isActive'],
+        _count: { isActive: true },
+      }),
+    ]);
+
+    const total = await this.prisma.user.count();
+
+    const active =
+      byStatus.find((s) => s.isActive === true)?._count.isActive ?? 0;
+    const inactive =
+      byStatus.find((s) => s.isActive === false)?._count.isActive ?? 0;
+
+    const roleMap: Record<string, number> = {};
+    for (const r of byRole) {
+      roleMap[r.roleId] = r._count.roleId;
+    }
+
+    const studentRole = await this.prisma.role.findUnique({
+      where: { name: 'STUDENT' },
+      select: { id: true },
+    });
+
+    const students = studentRole ? roleMap[studentRole.id] ?? 0 : 0;
+
+    return { total, active, inactive, students };
   }
 
   async create(dto: CreateUserDto) {
@@ -258,22 +295,25 @@ export class UsersService {
   async remove(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: {
-        _count: { select: { requests: true, uploadedAttachments: true } },
-      },
+      select: { id: true },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (user._count.requests > 0 || user._count.uploadedAttachments > 0) {
-      throw new ConflictException(
-        'El usuario tiene registros asociados. Desactívelo en lugar de eliminarlo.',
-      );
-    }
-
     await this.prisma.$transaction(async (tx) => {
+      const counts = await Promise.all([
+        tx.request.count({ where: { userId: id } }),
+        tx.attachment.count({ where: { uploadedBy: id } }),
+      ]);
+
+      if (counts[0] > 0 || counts[1] > 0) {
+        throw new ConflictException(
+          'El usuario tiene registros asociados. Desactívelo en lugar de eliminarlo.',
+        );
+      }
+
       await tx.studentProfile.deleteMany({ where: { userId: id } });
       await tx.notification.deleteMany({ where: { userId: id } });
       await tx.refreshToken.deleteMany({ where: { userId: id } });
@@ -281,5 +321,76 @@ export class UsersService {
     });
 
     return { message: 'User deleted', id };
+  }
+
+  async getMyProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        documentNumber: true,
+        role: { select: { name: true } },
+        studentProfile: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async updateMyProfile(userId: string, dto: UpdateMyProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName: dto.fullName,
+        email: dto.email,
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        documentNumber: true,
+        role: { select: { name: true } },
+        studentProfile: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async changeMyPassword(userId: string, dto: ChangeMyPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const newHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
+
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
 }

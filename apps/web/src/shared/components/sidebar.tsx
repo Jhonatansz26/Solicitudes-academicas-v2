@@ -9,6 +9,7 @@ import {
   LogOut,
   X,
   Users,
+  Tag,
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
 
@@ -24,7 +25,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText },
     ...(user?.role === 'ADMIN'
-      ? [{ to: '/dashboard/admin/users', label: 'Usuarios', icon: Users }]
+      ? [
+          { to: '/dashboard/admin/users', label: 'Usuarios', icon: Users },
+          { to: '/dashboard/admin/request-types', label: 'Tipos de solicitud', icon: Tag },
+        ]
       : []),
     { to: '/dashboard/documents', label: 'Documentos', icon: FolderOpen },
     { to: '/dashboard/settings', label: 'Configuración', icon: Settings },

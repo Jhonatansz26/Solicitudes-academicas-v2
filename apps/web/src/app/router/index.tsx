@@ -2,10 +2,12 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AuthLayout } from '../layouts/auth-layout'
 import { DashboardLayout } from '../layouts/dashboard-layout'
 import { ProtectedRoute } from './protected-route'
+import { AdminRoute } from './admin-route'
 import { LoginPage } from '@/pages/login/login-page'
 import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
+import { AdminRequestTypesPage } from '@/pages/admin/admin-request-types-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
 import { CreateRequest } from '@/features/requests/components/create-request'
 import { RequestDetail } from '@/features/requests/components/request-detail'
@@ -46,7 +48,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/dashboard/admin/users',
-        element: <AdminUsersPage />,
+        element: <AdminRoute><AdminUsersPage /></AdminRoute>,
+      },
+      {
+        path: '/dashboard/admin/request-types',
+        element: <AdminRoute><AdminRequestTypesPage /></AdminRoute>,
       },
       {
         path: '/dashboard/documents',
