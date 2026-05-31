@@ -230,6 +230,48 @@ export class RequestsService {
     });
   }
 
+  async getStats(userId: string, role: RoleName) {
+    const where = role === 'STUDENT' ? { userId } : {};
+
+    const [byStatus, recentActivity] = await Promise.all([
+      this.prisma.request.groupBy({
+        by: ['status'],
+        where,
+        _count: { status: true },
+      }),
+      this.prisma.request.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          trackingNumber: true,
+          title: true,
+          status: true,
+          updatedAt: true,
+          user: { select: { fullName: true } },
+          requestType: { select: { name: true } },
+        },
+      }),
+    ]);
+
+    const counts: Record<string, number> = {};
+    for (const entry of byStatus) {
+      counts[entry.status] = entry._count.status;
+    }
+
+    return {
+      total: Object.values(counts).reduce((a, b) => a + b, 0),
+      draft: counts['DRAFT'] || 0,
+      submitted: counts['SUBMITTED'] || 0,
+      inReview: (counts['IN_REVIEW'] || 0) + (counts['PENDING_DOCUMENTS'] || 0),
+      approved: counts['APPROVED'] || 0,
+      rejected: counts['REJECTED'] || 0,
+      cancelled: counts['CANCELLED'] || 0,
+      recentActivity,
+    };
+  }
+
   private async changeStatusInternal(
     id: string,
     newStatus: RequestStatus,

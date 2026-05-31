@@ -6,6 +6,7 @@ import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RequestsModule } from './modules/requests/requests.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { envValidationSchema } from './config/env.validation';
 
@@ -29,6 +30,7 @@ import { envValidationSchema } from './config/env.validation';
     AuthModule,
     RequestsModule,
     DocumentsModule,
+    UsersModule,
   ],
   providers: [
     {

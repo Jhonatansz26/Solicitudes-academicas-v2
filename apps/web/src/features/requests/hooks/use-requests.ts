@@ -3,6 +3,7 @@ import {
   fetchRequests,
   fetchRequest,
   fetchRequestTypes,
+  fetchDashboardStats,
   createRequest,
   submitRequest,
   cancelRequest,
@@ -35,6 +36,14 @@ export function useRequestTypes() {
   })
 }
 
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: fetchDashboardStats,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
 export function useRequest(id: string) {
   return useQuery({
     queryKey: requestsKeys.detail(id),
@@ -49,6 +58,7 @@ export function useCreateRequest() {
     mutationFn: createRequest,
     onSuccess: (newRequest) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
       return newRequest
     },
   })
@@ -61,6 +71,7 @@ export function useSubmitRequest() {
     onSuccess: (request) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
     },
   })
 }
@@ -72,6 +83,7 @@ export function useCancelRequest() {
     onSuccess: (request) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
     },
   })
 }
@@ -84,6 +96,7 @@ export function useChangeRequestStatus() {
     onSuccess: (request) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
     },
   })
 }

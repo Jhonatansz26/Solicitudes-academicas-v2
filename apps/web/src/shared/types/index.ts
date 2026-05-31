@@ -93,6 +93,25 @@ export interface PaginatedResponse<T> {
   totalPages: number
 }
 
+export interface DashboardStats {
+  total: number
+  draft: number
+  submitted: number
+  inReview: number
+  approved: number
+  rejected: number
+  cancelled: number
+  recentActivity: {
+    id: string
+    trackingNumber: string
+    title: string
+    status: RequestStatus
+    updatedAt: string
+    user: { fullName: string }
+    requestType: { name: string }
+  }[]
+}
+
 export interface ApiError {
   statusCode: number
   message: string

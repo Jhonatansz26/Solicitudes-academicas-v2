@@ -83,6 +83,17 @@ export class RequestsController {
     return this.requestsService.getRequestTypes();
   }
 
+  @Get('stats')
+  @ApiOperation({
+    summary: 'Get dashboard statistics',
+    description: 'Returns request counts by status and recent activity. Students see only their own stats; staff and above see global stats.',
+  })
+  @ApiOkResponse({ description: 'Dashboard statistics with per-status counts and recent activity' })
+  stats(@Req() req: AuthenticatedRequest) {
+    const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
+    return this.requestsService.getStats(req.user.id, role);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get request detail',

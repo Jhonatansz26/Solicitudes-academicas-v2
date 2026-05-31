@@ -59,6 +59,7 @@ async function bootstrap() {
     .addTag('Auth', 'Authentication and user management endpoints')
     .addTag('Requests', 'Academic request CRUD and workflow operations')
     .addTag('Documents', 'Document attachment upload, download, and management')
+    .addTag('Users', 'User management endpoints (admin only)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

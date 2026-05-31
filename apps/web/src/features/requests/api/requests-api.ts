@@ -1,5 +1,5 @@
 import { api } from '@/shared/api'
-import type { Request, RequestType, PaginatedResponse, RequestStatus } from '@/shared/types'
+import type { Request, RequestType, PaginatedResponse, DashboardStats, RequestStatus } from '@/shared/types'
 
 export interface RequestsQuery {
   page?: number
@@ -62,5 +62,10 @@ export async function changeRequestStatus(
   input: ChangeStatusInput
 ): Promise<Request> {
   const { data } = await api.patch<Request>(`/api/requests/${id}/status`, input)
+  return data
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const { data } = await api.get<DashboardStats>('/api/requests/stats')
   return data
 }
