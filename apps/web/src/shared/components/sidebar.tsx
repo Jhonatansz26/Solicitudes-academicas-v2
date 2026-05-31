@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LogOut,
   X,
+  Users,
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
 
@@ -16,15 +17,18 @@ interface SidebarProps {
   onClose?: () => void
 }
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText },
-  { to: '/dashboard/documents', label: 'Documentos', icon: FolderOpen },
-  { to: '/dashboard/settings', label: 'Configuración', icon: Settings },
-]
-
 export function Sidebar({ open, onClose }: SidebarProps) {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+
+  const navItems = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText },
+    ...(user?.role === 'ADMIN'
+      ? [{ to: '/dashboard/admin/users', label: 'Usuarios', icon: Users }]
+      : []),
+    { to: '/dashboard/documents', label: 'Documentos', icon: FolderOpen },
+    { to: '/dashboard/settings', label: 'Configuración', icon: Settings },
+  ]
 
   return (
     <>

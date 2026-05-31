@@ -112,6 +112,51 @@ export interface DashboardStats {
   }[]
 }
 
+export interface AdminUser {
+  id: string
+  email: string
+  fullName: string
+  documentNumber: string
+  isActive: boolean
+  roleId: string
+  createdAt: string
+  updatedAt: string
+  role: { id: string; name: RoleName }
+  studentProfile: {
+    id: string
+    userId: string
+    program: string
+    semester: number
+    studentCode: string
+  } | null
+}
+
+export interface Role {
+  id: string
+  name: RoleName
+}
+
+export interface CreateUserInput {
+  email: string
+  password: string
+  fullName: string
+  documentNumber: string
+  roleId: string
+  program?: string
+  semester?: number
+  studentCode?: string
+}
+
+export interface UpdateUserInput {
+  email?: string
+  fullName?: string
+  documentNumber?: string
+  roleId?: string
+  program?: string
+  semester?: number
+  studentCode?: string
+}
+
 export interface ApiError {
   statusCode: number
   message: string

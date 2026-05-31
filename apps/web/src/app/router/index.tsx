@@ -5,6 +5,7 @@ import { ProtectedRoute } from './protected-route'
 import { LoginPage } from '@/pages/login/login-page'
 import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
+import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
 import { CreateRequest } from '@/features/requests/components/create-request'
 import { RequestDetail } from '@/features/requests/components/request-detail'
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard/requests/:id',
         element: <RequestDetail />,
+      },
+      {
+        path: '/dashboard/admin/users',
+        element: <AdminUsersPage />,
       },
       {
         path: '/dashboard/documents',
