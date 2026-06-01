@@ -2,11 +2,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RequestsModule } from './modules/requests/requests.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { UsersModule } from './modules/users/users.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { envValidationSchema } from './config/env.validation';
 
@@ -16,6 +18,7 @@ import { envValidationSchema } from './config/env.validation';
       isGlobal: true,
       validationSchema: envValidationSchema,
     }),
+    EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -31,6 +34,7 @@ import { envValidationSchema } from './config/env.validation';
     RequestsModule,
     DocumentsModule,
     UsersModule,
+    NotificationsModule,
   ],
   providers: [
     {

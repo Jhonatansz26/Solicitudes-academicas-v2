@@ -5,6 +5,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -26,7 +27,10 @@ const USER_SELECT = {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   async findAll(query: QueryUsersDto) {
     const page = query.page ?? 1;
@@ -192,7 +196,21 @@ export class UsersService {
       };
     });
 
+    this.emitUserCreated(user);
     return user;
+  }
+
+  private emitUserCreated(user: { id: string; email: string; fullName: string; role: { name: string } }) {
+    try {
+      this.eventEmitter.emit('user.created', {
+        userId: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        roleName: user.role.name,
+      });
+    } catch {
+      // best-effort: event emission failure must not break user creation
+    }
   }
 
   async update(id: string, dto: UpdateUserDto) {

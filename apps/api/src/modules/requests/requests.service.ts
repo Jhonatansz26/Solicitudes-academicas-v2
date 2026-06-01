@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
@@ -19,7 +20,10 @@ const FINAL_STATUSES: RequestStatus[] = ['APPROVED', 'REJECTED', 'CANCELLED'];
 
 @Injectable()
 export class RequestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   async create(userId: string, dto: CreateRequestDto) {
     const requestType = await this.prisma.requestType.findUnique({
@@ -325,7 +329,7 @@ export class RequestsService {
     userId: string | null,
     comment: string | null,
   ) {
-    return this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       const result = await tx.request.updateMany({
         where: { id, status: expectedStatus },
         data: { status: newStatus },
@@ -337,7 +341,7 @@ export class RequestsService {
         );
       }
 
-      const updated = await tx.request.findUnique({
+      const request = await tx.request.findUnique({
         where: { id },
         include: {
           requestType: true,
@@ -345,7 +349,7 @@ export class RequestsService {
         },
       });
 
-      if (!updated) {
+      if (!request) {
         throw new NotFoundException('Request not found');
       }
 
@@ -359,8 +363,43 @@ export class RequestsService {
         },
       });
 
-      return updated;
+      return request;
     });
+
+    this.emitStatusChanged(updated, expectedStatus, userId, comment);
+    return updated;
+  }
+
+  private emitStatusChanged(
+    request: {
+      id: string;
+      trackingNumber: string;
+      title: string;
+      status: RequestStatus;
+      requestType: { name: string };
+      user: { id: string; email: string; fullName: string };
+    },
+    previousStatus: RequestStatus,
+    actorId: string | null,
+    comment: string | null,
+  ) {
+    try {
+      this.eventEmitter.emit('request.status.changed', {
+        requestId: request.id,
+        trackingNumber: request.trackingNumber,
+        title: request.title,
+        newStatus: request.status,
+        previousStatus,
+        studentId: request.user.id,
+        studentEmail: request.user.email,
+        studentName: request.user.fullName,
+        requestTypeName: request.requestType.name,
+        actorId,
+        comment,
+      });
+    } catch {
+      // best-effort: event emission failure must not break request flow
+    }
   }
 
   private generateTrackingNumber(): string {
