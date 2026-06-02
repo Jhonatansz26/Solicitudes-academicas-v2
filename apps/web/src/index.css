@@ -1,49 +1,113 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* — Tipografías — */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-display: 'Syne', sans-serif;
 
+  /* — Colores base (Light Mode) — */
   --color-background: #f0f2f6;
+  --color-foreground: #3d4d6a;
+
   --color-surface: #ffffff;
   --color-surface-hover: #f8fafc;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #3d4d6a;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #3d4d6a;
 
   --color-primary: #1a2340;
   --color-primary-hover: #243060;
   --color-primary-foreground: #ffffff;
 
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #1a2340;
+
   --color-accent: #E8A820;
   --color-accent-hover: #d49a1c;
   --color-accent-foreground: #1a2340;
 
+  --color-muted: #6b7a95;
+  --color-muted-foreground: #6b7a95;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e2e8f2;
+  --color-border-hover: #d0d7e8;
+  --color-input: #e2e8f2;
+  --color-ring: #5b9ef9;
+
+  /* — Semánticos — */
   --color-success: #16a34a;
   --color-success-foreground: #ffffff;
   --color-success-soft: #f0fdf4;
   --color-success-mid: #dcfce7;
+  --color-success-border: #bbf7d0;
 
   --color-warning: #d97706;
   --color-warning-foreground: #ffffff;
   --color-warning-soft: #fffbeb;
   --color-warning-mid: #fef3c7;
+  --color-warning-border: #fde68a;
 
   --color-danger: #dc2626;
   --color-danger-foreground: #ffffff;
   --color-danger-soft: #fef2f2;
   --color-danger-mid: #fee2e2;
+  --color-danger-border: #fecaca;
 
   --color-info: #0369a1;
   --color-info-foreground: #ffffff;
   --color-info-soft: #f0f9ff;
   --color-info-mid: #e0f2fe;
+  --color-info-border: #bae6fd;
 
-  --color-muted: #6b7a95;
-  --color-muted-foreground: #6b7a95;
+  --color-gold: #E8A820;
+  --color-gold-foreground: #1a2340;
+  --color-gold-soft: #fef9ec;
+  --color-gold-mid: #fef3c7;
+  --color-gold-border: #fde68a;
 
-  --color-border: #e2e8f2;
-  --color-border-hover: #d0d7e8;
+  /* — Sidebar (navy institucional) — */
+  --color-sidebar: #0D1B3E;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-accent: rgba(232, 168, 32, 0.15);
+  --color-sidebar-accent-foreground: #F5C842;
+  --color-sidebar-border: rgba(255, 255, 255, 0.10);
+  --color-sidebar-muted: rgba(255, 255, 255, 0.40);
+  --color-sidebar-muted-foreground: rgba(255, 255, 255, 0.25);
 
-  --color-ring: #5b9ef9;
+  /* — Navy scale — */
+  --color-navy-50: #f0f2f6;
+  --color-navy-100: #e0e4ed;
+  --color-navy-200: #c2c9db;
+  --color-navy-300: #94a0bf;
+  --color-navy-400: #6b7a95;
+  --color-navy-500: #4a5a7a;
+  --color-navy-600: #3d4d6a;
+  --color-navy-700: #243060;
+  --color-navy-800: #1a2340;
+  --color-navy-900: #0D1B3E;
+  --color-navy-950: #070e1f;
 
+  /* — Gold scale — */
+  --color-gold-50: #fefce8;
+  --color-gold-100: #fef9c3;
+  --color-gold-200: #fef08a;
+  --color-gold-300: #fde047;
+  --color-gold-400: #F5C842;
+  --color-gold-500: #E8A820;
+  --color-gold-600: #d49a1c;
+  --color-gold-700: #b47f17;
+  --color-gold-800: #946814;
+  --color-gold-900: #7a5612;
+  --color-gold-950: #452e08;
+
+  /* — Radios — */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -69,13 +133,13 @@
   body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
-    color: #3d4d6a;
+    color: var(--color-foreground);
     line-height: 1.5;
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    color: #1a2340;
+    color: var(--color-primary);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -97,4 +161,100 @@
   input, textarea, select {
     font-family: inherit;
   }
+}
+
+/* — Dark Mode — */
+.dark {
+  --color-background: #0a0f1e;
+  --color-foreground: #c8d0e0;
+
+  --color-surface: #111827;
+  --color-surface-hover: #1a2236;
+
+  --color-card: #111827;
+  --color-card-foreground: #c8d0e0;
+
+  --color-popover: #111827;
+  --color-popover-foreground: #c8d0e0;
+
+  --color-primary: #e0e4ed;
+  --color-primary-hover: #c2c9db;
+  --color-primary-foreground: #0D1B3E;
+
+  --color-secondary: #1a2236;
+  --color-secondary-foreground: #e0e4ed;
+
+  --color-accent: #F5C842;
+  --color-accent-hover: #E8A820;
+  --color-accent-foreground: #0D1B3E;
+
+  --color-muted: #6b7a95;
+  --color-muted-foreground: #8896ab;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #1e293b;
+  --color-border-hover: #334155;
+  --color-input: #1e293b;
+  --color-ring: #5b9ef9;
+
+  --color-success-soft: #052e16;
+  --color-success-mid: #052e16;
+  --color-success-border: #166534;
+
+  --color-warning-soft: #451a03;
+  --color-warning-mid: #451a03;
+  --color-warning-border: #92400e;
+
+  --color-danger-soft: #450a0a;
+  --color-danger-mid: #450a0a;
+  --color-danger-border: #991b1b;
+
+  --color-info-soft: #0c1e3a;
+  --color-info-mid: #0c1e3a;
+  --color-info-border: #075985;
+
+  --color-gold-soft: #452e08;
+  --color-gold-mid: #452e08;
+  --color-gold-border: #946814;
+
+  /* Sidebar se mantiene navy en ambos modos */
+  --color-sidebar: #0D1B3E;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-accent: rgba(232, 168, 32, 0.15);
+  --color-sidebar-accent-foreground: #F5C842;
+  --color-sidebar-border: rgba(255, 255, 255, 0.10);
+  --color-sidebar-muted: rgba(255, 255, 255, 0.40);
+  --color-sidebar-muted-foreground: rgba(255, 255, 255, 0.25);
+}
+
+/* — Animaciones — */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* — Scrollbar personalizado — */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
 }

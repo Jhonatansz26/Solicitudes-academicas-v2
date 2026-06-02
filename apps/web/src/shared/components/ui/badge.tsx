@@ -18,6 +18,23 @@ const badgeVariants = cva(
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
+        // Status variants
+        "status-submitted": "bg-info-soft text-info border border-info/20",
+        "status-in-review": "bg-warning-soft text-warning border border-warning/20",
+        "status-approved": "bg-success-soft text-success border border-success/20",
+        "status-rejected": "bg-danger-soft text-danger border border-danger/20",
+        "status-draft": "bg-surface-hover text-muted-foreground border border-border",
+        "status-cancelled": "bg-surface-hover text-muted-foreground border border-border",
+        // Role variants
+        "role-admin": "bg-navy-50 text-navy-800 border border-navy-200 dark:bg-navy-900/50 dark:text-navy-200 dark:border-navy-700",
+        "role-student": "bg-info-soft text-info border border-info/20",
+        "role-staff": "bg-warning-soft text-warning border border-warning/20",
+        "role-coordinator": "bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800",
+        // Priority variants
+        "priority-high": "bg-danger-soft text-danger border border-danger/20",
+        "priority-medium": "bg-warning-soft text-warning border border-warning/20",
+        "priority-low": "bg-surface-hover text-muted-foreground border border-border",
+        "priority-urgent": "bg-red-950 text-red-300 border border-red-800",
       },
     },
     defaultVariants: {

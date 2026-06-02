@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/app/providers/auth-provider'
 import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
-import { GraduationCap, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { AxiosError } from 'axios'
 
 export function LoginPage() {
@@ -61,21 +61,28 @@ export function LoginPage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2 text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-          <GraduationCap className="h-6 w-6 text-accent" />
+      {/* Brand */}
+      <div className="space-y-4 text-center">
+        <img
+          src="/logo-cul.png"
+          alt="CUL"
+          className="h-14 w-14 rounded-xl mx-auto object-cover border-2 border-gold-500/30"
+        />
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-primary font-display">
+            Bienvenido
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Ingresa tus credenciales para acceder al portal
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-primary">
-          Bienvenido
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Ingresa tus credenciales para acceder al portal
-        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Correo institucional</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Correo institucional
+          </label>
           <Input
             type="email"
             placeholder="usuario@universidad.edu.co"
@@ -83,18 +90,21 @@ export function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             disabled={isSubmitting}
             autoComplete="email"
+            className="h-11 rounded-lg"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Contraseña</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Contraseña
+          </label>
           <div className="relative">
             <Input
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
+              className="h-11 rounded-lg pr-10"
               disabled={isSubmitting}
               autoComplete="current-password"
             />
@@ -110,15 +120,31 @@ export function LoginPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-danger/20 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+          <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger flex items-center gap-2">
+            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
             {error}
           </div>
         )}
 
-        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+        <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" size="lg" disabled={isSubmitting}>
           {isSubmitting ? 'Ingresando...' : 'Iniciar sesión'}
         </Button>
       </form>
+
+      <div className="pt-6 border-t border-border text-center">
+        <p className="text-sm text-muted-foreground">
+          ¿Problemas para acceder?{' '}
+          <span className="text-primary font-semibold cursor-pointer hover:underline">
+            Contacta soporte TI
+          </span>
+        </p>
+      </div>
+
+      <p className="text-center text-xs text-muted-foreground/60">
+        Sistema de Solicitudes Académicas © 2024
+      </p>
     </div>
   )
 }
