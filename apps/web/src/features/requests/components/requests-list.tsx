@@ -5,6 +5,13 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import {
   FileText,
   Plus,
   Search,
@@ -12,10 +19,13 @@ import {
   ChevronRight,
   ArrowUpRight,
   Clock,
+  X,
+  AlertCircle,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { usePermissions } from '@/shared/hooks/use-permissions'
 import { REQUEST_STATUS_CONFIG } from '@/shared/constants'
+import { FilterChip } from '@/shared/components/filter-chip'
 import type { RequestStatus } from '@/shared/types'
 
 const QUICK_FILTERS: { key: string; label: string; statuses: RequestStatus[] }[] = [
@@ -32,7 +42,7 @@ export function RequestsList() {
   const status = (searchParams.get('status') as RequestStatus) || undefined
   const search = searchParams.get('search') || undefined
 
-  const { data, isLoading } = useRequests({ page, status, search, limit: 20 })
+  const { data, isLoading, isError, refetch } = useRequests({ page, status, search, limit: 20 })
 
   const handleSearch = (value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -98,33 +108,60 @@ export function RequestsList() {
         </div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por título o número de seguimiento..."
-            className="pl-9"
-            defaultValue={search}
-            onBlur={(e) => handleSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch((e.target as HTMLInputElement).value)
-            }}
-          />
+      <div className="space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por título o número de seguimiento..."
+              className="pl-9"
+              defaultValue={search}
+              onBlur={(e) => handleSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch((e.target as HTMLInputElement).value)
+              }}
+            />
+          </div>
+
+          <Select value={status || ''} onValueChange={handleStatusFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Todos los estados" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(REQUEST_STATUS_CONFIG).map(([key, config]) => (
+                <SelectItem key={key} value={key}>
+                  {config.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {(search || status) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchParams({})}
+              className="text-muted-foreground"
+            >
+              <X className="mr-1.5 h-3.5 w-3.5" />
+              Limpiar filtros
+            </Button>
+          )}
         </div>
 
-        <select
-          value={status || ''}
-          onChange={(e) => handleStatusFilter(e.target.value)}
-          className="h-10 rounded-md border border-border bg-surface px-3 pr-8 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-ring"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
-        >
-          <option value="">Todos los estados</option>
-          {Object.entries(REQUEST_STATUS_CONFIG).map(([key, config]) => (
-            <option key={key} value={key}>
-              {config.label}
-            </option>
-          ))}
-        </select>
+        {(search || status) && (
+          <div className="flex flex-wrap gap-2">
+            {search && (
+              <FilterChip label={`Búsqueda: "${search}"`} onRemove={() => handleSearch('')} />
+            )}
+            {status && (
+              <FilterChip
+                label={`Estado: ${REQUEST_STATUS_CONFIG[status]?.label}`}
+                onRemove={() => handleStatusFilter('')}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -132,6 +169,15 @@ export function RequestsList() {
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-16 w-full rounded-lg" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-danger/20 bg-danger-soft py-16 text-center">
+          <AlertCircle className="mb-3 h-10 w-10 text-danger/50" />
+          <h3 className="text-base font-medium text-foreground">Error al cargar solicitudes</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
+            Reintentar
+          </Button>
         </div>
       ) : data?.data.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface py-16 text-center">
@@ -199,7 +245,7 @@ export function RequestsList() {
                 </div>
 
                 <div className="sm:col-span-1 flex justify-end">
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity" />
                 </div>
               </div>
             ))}

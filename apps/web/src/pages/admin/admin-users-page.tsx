@@ -34,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Badge } from '@/shared/components/ui/badge'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Label } from '@/shared/components/ui/label'
+import { DeleteConfirmationDialog } from '@/shared/components/delete-confirmation-dialog'
 import {
   Plus,
   Search,
@@ -47,14 +48,16 @@ import {
   GraduationCap,
   Loader2,
   AlertCircle,
+  X,
 } from 'lucide-react'
 import type { AdminUser, RoleName, CreateUserInput } from '@/shared/types'
+import { FilterChip } from '@/shared/components/filter-chip'
 
-const ROLE_CONFIG: Record<RoleName, { color: string; label: string }> = {
-  ADMIN: { color: 'border-danger/20 bg-danger-soft text-danger', label: 'Admin' },
-  COORDINATOR: { color: 'border-primary/20 bg-primary/5 text-primary', label: 'Coordinador' },
-  STAFF: { color: 'border-warning/20 bg-warning-soft text-warning', label: 'Staff' },
-  STUDENT: { color: 'border-info/20 bg-info-soft text-info', label: 'Estudiante' },
+const ROLE_CONFIG: Record<RoleName, { variant: string; label: string }> = {
+  ADMIN: { variant: 'role-admin', label: 'Admin' },
+  COORDINATOR: { variant: 'role-coordinator', label: 'Coordinador' },
+  STAFF: { variant: 'role-staff', label: 'Staff' },
+  STUDENT: { variant: 'role-student', label: 'Estudiante' },
 }
 
 const createUserSchema = z.object({
@@ -90,7 +93,7 @@ export function AdminUsersPage() {
   const isActiveFilter = searchParams.get('isActive')
   const parsedIsActive = isActiveFilter === 'true' ? true : isActiveFilter === 'false' ? false : undefined
 
-  const { data, isLoading, isError } = useUsers({ page, search, role: roleFilter, isActive: parsedIsActive, limit: 20 })
+  const { data, isLoading, isError, refetch } = useUsers({ page, search, role: roleFilter, isActive: parsedIsActive, limit: 20 })
   const { data: roles } = useRoles()
   const { data: statsData } = useUsersStats()
   const { mutate: create, isPending: creating } = useCreateUser()
@@ -148,42 +151,76 @@ export function AdminUsersPage() {
         <KpiCard icon={GraduationCap} label="Estudiantes" value={kpis.students} color="text-info" loading={isLoading} />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre o documento..."
-            className="pl-9"
-            defaultValue={search}
-            onBlur={(e) => setParam('search', e.target.value || null)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') setParam('search', (e.target as HTMLInputElement).value || null)
-            }}
-          />
+      <div className="space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre o documento..."
+              className="pl-9"
+              defaultValue={search}
+              onBlur={(e) => setParam('search', e.target.value || null)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') setParam('search', (e.target as HTMLInputElement).value || null)
+              }}
+            />
+          </div>
+
+          <Select value={roleFilter ?? ''} onValueChange={(v) => setParam('role', v || null)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todos los roles" />
+            </SelectTrigger>
+            <SelectContent>
+              {roles?.map((r) => (
+                <SelectItem key={r.id} value={r.name}>{ROLE_CONFIG[r.name]?.label ?? r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={isActiveFilter ?? ''} onValueChange={(v) => setParam('isActive', v || null)}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Todos los estados" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Activos</SelectItem>
+              <SelectItem value="false">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(search || roleFilter || isActiveFilter) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchParams({})
+              }}
+              className="text-muted-foreground"
+            >
+              <X className="mr-1.5 h-3.5 w-3.5" />
+              Limpiar filtros
+            </Button>
+          )}
         </div>
 
-        <Select value={roleFilter ?? ''} onValueChange={(v) => setParam('role', v || null)}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Todos los roles" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los roles</SelectItem>
-            {roles?.map((r) => (
-              <SelectItem key={r.id} value={r.name}>{ROLE_CONFIG[r.name]?.label ?? r.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={isActiveFilter ?? ''} onValueChange={(v) => setParam('isActive', v || null)}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Todos los estados" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            <SelectItem value="true">Activos</SelectItem>
-            <SelectItem value="false">Inactivos</SelectItem>
-          </SelectContent>
-        </Select>
+        {(search || roleFilter || isActiveFilter) && (
+          <div className="flex flex-wrap gap-2">
+            {search && (
+              <FilterChip label={`Búsqueda: "${search}"`} onRemove={() => setParam('search', null)} />
+            )}
+            {roleFilter && (
+              <FilterChip
+                label={`Rol: ${ROLE_CONFIG[roleFilter as RoleName]?.label ?? roleFilter}`}
+                onRemove={() => setParam('role', null)}
+              />
+            )}
+            {isActiveFilter && (
+              <FilterChip
+                label={`Estado: ${isActiveFilter === 'true' ? 'Activos' : 'Inactivos'}`}
+                onRemove={() => setParam('isActive', null)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -196,7 +233,10 @@ export function AdminUsersPage() {
         <div className="flex flex-col items-center justify-center rounded-lg border border-danger/20 bg-danger-soft py-16 text-center">
           <AlertCircle className="mb-3 h-10 w-10 text-danger/50" />
           <h3 className="text-base font-medium text-foreground">Error al cargar usuarios</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Intenta recargar la página</p>
+          <p className="mt-1 text-sm text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
+            Reintentar
+          </Button>
         </div>
       ) : users.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface py-16 text-center">
@@ -244,7 +284,7 @@ export function AdminUsersPage() {
                 </div>
 
                 <div className="sm:col-span-1">
-                  <Badge variant="outline" className={ROLE_CONFIG[user.role.name]?.color}>
+                  <Badge variant={ROLE_CONFIG[user.role.name]?.variant as never}>
                     {ROLE_CONFIG[user.role.name]?.label}
                   </Badge>
                 </div>
@@ -253,14 +293,15 @@ export function AdminUsersPage() {
                   <button
                     onClick={() => setToggleTarget(user)}
                     disabled={toggling}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                      user.isActive
-                        ? 'bg-success-soft text-success hover:bg-success-soft/80'
-                        : 'bg-surface-hover text-muted-foreground hover:bg-surface-hover/80'
-                    }`}
+                    className="p-0 cursor-pointer"
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full ${user.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
-                    {user.isActive ? 'Activo' : 'Inactivo'}
+                    <Badge
+                      variant={user.isActive ? 'active' : 'inactive'}
+                      className="cursor-pointer"
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${user.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
+                      {user.isActive ? 'Activo' : 'Inactivo'}
+                    </Badge>
                   </button>
                 </div>
 
@@ -270,11 +311,11 @@ export function AdminUsersPage() {
                   </span>
                 </div>
 
-                <div className="sm:col-span-1 flex items-center gap-1 justify-end">
+                <div className="sm:col-span-1 flex items-center gap-1 justify-end sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
                     onClick={() => setEditTarget(user)}
                     aria-label="Editar usuario"
                   >
@@ -283,7 +324,7 @@ export function AdminUsersPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
+                    className="h-8 w-8 p-0 hover:bg-danger/10 hover:text-danger"
                     onClick={() => setDeleteTarget(user)}
                     disabled={deleting}
                     aria-label="Eliminar usuario"
@@ -367,43 +408,26 @@ export function AdminUsersPage() {
       )}
 
       {deleteTarget && (
-        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Eliminar usuario</DialogTitle>
-              <DialogDescription>
-                ¿Estás seguro de que deseas eliminar a "{deleteTarget.fullName}"?
-                Esta acción no puede deshacerse.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={deleting}
-                onClick={() => {
-                  remove(deleteTarget.id, {
-                    onSuccess: () => {
-                      setDeleteTarget(null)
-                      toast.success('Usuario eliminado')
-                    },
-                    onError: (err) => {
-                      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-                      toast.error(msg || 'Error al eliminar el usuario')
-                      setDeleteTarget(null)
-                    },
-                  })
-                }}
-              >
-                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Eliminar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <DeleteConfirmationDialog
+          open={!!deleteTarget}
+          onOpenChange={() => setDeleteTarget(null)}
+          title="Eliminar usuario"
+          description={`¿Estás seguro de que deseas eliminar a "${deleteTarget.fullName}"? Esta acción no puede deshacerse.`}
+          isPending={deleting}
+          onConfirm={() => {
+            remove(deleteTarget.id, {
+              onSuccess: () => {
+                setDeleteTarget(null)
+                toast.success('Usuario eliminado')
+              },
+              onError: (err) => {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                toast.error(msg || 'Error al eliminar el usuario')
+                setDeleteTarget(null)
+              },
+            })
+          }}
+        />
       )}
 
       {toggleTarget && (
@@ -550,26 +574,26 @@ function CreateUserDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="fullName">Nombre completo *</Label>
-              <Input id="fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} />
-              {errors.fullName && <p className="text-xs text-danger">{errors.fullName.message}</p>}
+              <Input id="fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} autoFocus />
+              {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Correo *</Label>
               <Input id="email" type="email" {...register('email')} className={errors.email ? 'border-danger' : ''} disabled={isPending} />
-              {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-danger mt-1">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="documentNumber">Documento *</Label>
               <Input id="documentNumber" {...register('documentNumber')} className={errors.documentNumber ? 'border-danger' : ''} disabled={isPending} />
-              {errors.documentNumber && <p className="text-xs text-danger">{errors.documentNumber.message}</p>}
+              {errors.documentNumber && <p className="text-xs text-danger mt-1">{errors.documentNumber.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña *</Label>
               <Input id="password" type="password" {...register('password')} className={errors.password ? 'border-danger' : ''} disabled={isPending} />
-              {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
+              {errors.password && <p className="text-xs text-danger mt-1">{errors.password.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -590,7 +614,7 @@ function CreateUserDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.roleId && <p className="text-xs text-danger">{errors.roleId.message}</p>}
+              {errors.roleId && <p className="text-xs text-danger mt-1">{errors.roleId.message}</p>}
             </div>
           </div>
 
@@ -696,20 +720,20 @@ function EditUserDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="edit-fullName">Nombre completo *</Label>
-              <Input id="edit-fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} />
-              {errors.fullName && <p className="text-xs text-danger">{errors.fullName.message}</p>}
+              <Input id="edit-fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} autoFocus />
+              {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-email">Correo *</Label>
               <Input id="edit-email" type="email" {...register('email')} className={errors.email ? 'border-danger' : ''} disabled={isPending} />
-              {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-danger mt-1">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-documentNumber">Documento *</Label>
               <Input id="edit-documentNumber" {...register('documentNumber')} className={errors.documentNumber ? 'border-danger' : ''} disabled={isPending} />
-              {errors.documentNumber && <p className="text-xs text-danger">{errors.documentNumber.message}</p>}
+              {errors.documentNumber && <p className="text-xs text-danger mt-1">{errors.documentNumber.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -730,7 +754,7 @@ function EditUserDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.roleId && <p className="text-xs text-danger">{errors.roleId.message}</p>}
+              {errors.roleId && <p className="text-xs text-danger mt-1">{errors.roleId.message}</p>}
             </div>
           </div>
 

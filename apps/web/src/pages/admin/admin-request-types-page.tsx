@@ -23,6 +23,7 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Badge } from '@/shared/components/ui/badge'
 import { Label } from '@/shared/components/ui/label'
+import { DeleteConfirmationDialog } from '@/shared/components/delete-confirmation-dialog'
 import {
   Plus,
   Pencil,
@@ -42,7 +43,7 @@ const typeSchema = z.object({
 type TypeForm = z.infer<typeof typeSchema>
 
 export function AdminRequestTypesPage() {
-  const { data: types, isLoading, isError } = useAllRequestTypes()
+  const { data: types, isLoading, isError, refetch } = useAllRequestTypes()
   const { mutate: create, isPending: creating } = useCreateRequestType()
   const { mutate: update, isPending: updating } = useUpdateRequestType()
   const { mutate: remove, isPending: deleting } = useDeleteRequestType()
@@ -76,7 +77,10 @@ export function AdminRequestTypesPage() {
         <div className="flex flex-col items-center justify-center rounded-lg border border-danger/20 bg-danger-soft py-16 text-center">
           <AlertCircle className="mb-3 h-10 w-10 text-danger/50" />
           <h3 className="text-base font-medium text-foreground">Error al cargar tipos</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Intenta recargar la página</p>
+          <p className="mt-1 text-sm text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
+            Reintentar
+          </Button>
         </div>
       ) : !types?.length ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface py-16 text-center">
@@ -114,23 +118,16 @@ export function AdminRequestTypesPage() {
               </div>
 
               <div className="sm:col-span-1">
-                <Badge
-                  variant="outline"
-                  className={
-                    type.isActive
-                      ? 'border-success/20 bg-success-soft text-success'
-                      : 'border-muted-foreground/20 bg-surface-hover text-muted-foreground'
-                  }
-                >
+                <Badge variant={type.isActive ? 'active' : 'inactive'}>
                   {type.isActive ? 'Activo' : 'Inactivo'}
                 </Badge>
               </div>
 
-              <div className="sm:col-span-2 flex items-center gap-1 justify-end">
+              <div className="sm:col-span-2 flex items-center gap-1 justify-end sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
                   onClick={() => setEditTarget(type)}
                   aria-label="Editar tipo"
                 >
@@ -139,7 +136,7 @@ export function AdminRequestTypesPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
+                  className="h-8 w-8 p-0 hover:bg-danger/10 hover:text-danger"
                   onClick={() => setDeleteTarget(type)}
                   disabled={deleting}
                   aria-label="Eliminar tipo"
@@ -198,43 +195,27 @@ export function AdminRequestTypesPage() {
       )}
 
       {deleteTarget && (
-        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Desactivar tipo</DialogTitle>
-              <DialogDescription>
-                ¿Estás seguro de que deseas desactivar "{deleteTarget.name}"?
-                El tipo dejará de estar disponible para nuevas solicitudes, pero las existentes no se verán afectadas.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={deleting}
-                onClick={() => {
-                  remove(deleteTarget.id, {
-                    onSuccess: () => {
-                      setDeleteTarget(null)
-                      toast.success('Tipo desactivado')
-                    },
-                    onError: (err) => {
-                      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-                      toast.error(msg || 'Error al desactivar el tipo')
-                      setDeleteTarget(null)
-                    },
-                  })
-                }}
-              >
-                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Desactivar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <DeleteConfirmationDialog
+          open={!!deleteTarget}
+          onOpenChange={() => setDeleteTarget(null)}
+          title="Desactivar tipo"
+          description={`¿Estás seguro de que deseas desactivar "${deleteTarget.name}"? El tipo dejará de estar disponible para nuevas solicitudes, pero las existentes no se verán afectadas.`}
+          isPending={deleting}
+          onConfirm={() => {
+            remove(deleteTarget.id, {
+              onSuccess: () => {
+                setDeleteTarget(null)
+                toast.success('Tipo desactivado')
+              },
+              onError: (err) => {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                toast.error(msg || 'Error al desactivar el tipo')
+                setDeleteTarget(null)
+              },
+            })
+          }}
+          confirmLabel="Desactivar"
+        />
       )}
     </div>
   )
@@ -292,8 +273,9 @@ function TypeDialog({
               {...register('name')}
               className={errors.name ? 'border-danger' : ''}
               disabled={isPending}
+              autoFocus
             />
-            {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-danger mt-1">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -315,7 +297,7 @@ function TypeDialog({
               className={errors.estimatedDays ? 'border-danger' : ''}
               disabled={isPending}
             />
-            {errors.estimatedDays && <p className="text-xs text-danger">{errors.estimatedDays.message}</p>}
+            {errors.estimatedDays && <p className="text-xs text-danger mt-1">{errors.estimatedDays.message}</p>}
           </div>
 
           <DialogFooter>

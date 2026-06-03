@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   /* — Tipografías — */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -94,6 +94,9 @@
   --color-navy-900: #0D1B3E;
   --color-navy-950: #070e1f;
 
+  /* — Accent bar (navy institucional estable) — */
+  --color-accent-bar: #1a2340;
+
   /* — Gold scale — */
   --color-gold-50: #fefce8;
   --color-gold-100: #fef9c3;
@@ -165,61 +168,70 @@
 
 /* — Dark Mode — */
 .dark {
-  --color-background: #0a0f1e;
+  --color-background: #0B1120;
   --color-foreground: #c8d0e0;
 
-  --color-surface: #111827;
-  --color-surface-hover: #1a2236;
+  --color-surface: #131B2E;
+  --color-surface-hover: #1a2540;
 
-  --color-card: #111827;
+  --color-card: #151F35;
   --color-card-foreground: #c8d0e0;
 
-  --color-popover: #111827;
+  --color-popover: #151F35;
   --color-popover-foreground: #c8d0e0;
 
   --color-primary: #e0e4ed;
   --color-primary-hover: #c2c9db;
-  --color-primary-foreground: #0D1B3E;
+  --color-primary-foreground: #0B1120;
 
-  --color-secondary: #1a2236;
+  --color-secondary: #1a2540;
   --color-secondary-foreground: #e0e4ed;
 
   --color-accent: #F5C842;
   --color-accent-hover: #E8A820;
-  --color-accent-foreground: #0D1B3E;
+  --color-accent-foreground: #0B1120;
 
-  --color-muted: #6b7a95;
-  --color-muted-foreground: #8896ab;
+  --color-muted: #4a5568;
+  --color-muted-foreground: #94a3b8;
 
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #1e293b;
-  --color-border-hover: #334155;
-  --color-input: #1e293b;
+  --color-border: #1e2d45;
+  --color-border-hover: #2a3f5f;
+  --color-input: #1e2d45;
   --color-ring: #5b9ef9;
 
-  --color-success-soft: #052e16;
-  --color-success-mid: #052e16;
+  --color-success: #22c55e;
+  --color-success-foreground: #052e16;
+  --color-success-soft: #0a2e1a;
+  --color-success-mid: #0f4228;
   --color-success-border: #166534;
 
-  --color-warning-soft: #451a03;
-  --color-warning-mid: #451a03;
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #451a03;
+  --color-warning-soft: #2e1a05;
+  --color-warning-mid: #4a2a08;
   --color-warning-border: #92400e;
 
-  --color-danger-soft: #450a0a;
-  --color-danger-mid: #450a0a;
+  --color-danger: #f87171;
+  --color-danger-foreground: #450a0a;
+  --color-danger-soft: #2e0a0a;
+  --color-danger-mid: #4a0f0f;
   --color-danger-border: #991b1b;
 
-  --color-info-soft: #0c1e3a;
-  --color-info-mid: #0c1e3a;
+  --color-info: #38bdf8;
+  --color-info-foreground: #0c1e3a;
+  --color-info-soft: #0a1e35;
+  --color-info-mid: #0f2e4a;
   --color-info-border: #075985;
 
-  --color-gold-soft: #452e08;
+  --color-gold: #F5C842;
+  --color-gold-foreground: #0B1120;
+  --color-gold-soft: #2e2208;
   --color-gold-mid: #452e08;
   --color-gold-border: #946814;
 
-  /* Sidebar se mantiene navy en ambos modos */
   --color-sidebar: #0D1B3E;
   --color-sidebar-foreground: #ffffff;
   --color-sidebar-accent: rgba(232, 168, 32, 0.15);
@@ -227,6 +239,8 @@
   --color-sidebar-border: rgba(255, 255, 255, 0.10);
   --color-sidebar-muted: rgba(255, 255, 255, 0.40);
   --color-sidebar-muted-foreground: rgba(255, 255, 255, 0.25);
+
+  --color-accent-bar: #4a5a7a;
 }
 
 /* — Animaciones — */
@@ -238,6 +252,30 @@
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 75ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 225ms; }
+.stagger-5 { animation-delay: 300ms; }
+
+.hover-elevate {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-elevate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .hover-elevate:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* — Scrollbar personalizado — */

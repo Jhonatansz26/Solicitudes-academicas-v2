@@ -9,11 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
-      // FOUC prevention: apply saved theme before first paint
       (function() {
         try {
           var theme = localStorage.getItem('theme');
-          if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          if (theme === 'dark') {
             document.documentElement.classList.add('dark');
           }
         } catch (e) {}
