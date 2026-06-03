@@ -95,7 +95,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     return user;
@@ -137,7 +137,7 @@ export class UsersService {
       select: { id: true },
     });
 
-    const students = studentRole ? roleMap[studentRole.id] ?? 0 : 0;
+    const students = studentRole ? (roleMap[studentRole.id] ?? 0) : 0;
 
     return { total, active, inactive, students };
   }
@@ -148,13 +148,13 @@ export class UsersService {
     });
 
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
 
     if (role.name === 'STUDENT') {
       if (!dto.program || !dto.semester || !dto.studentCode) {
         throw new BadRequestException(
-          'Program, semester, and student code are required for students',
+          'Programa, semestre y código estudiantil son requeridos para estudiantes',
         );
       }
     }
@@ -191,7 +191,9 @@ export class UsersService {
         ...created,
         studentProfile:
           role.name === 'STUDENT'
-            ? await tx.studentProfile.findUnique({ where: { userId: created.id } })
+            ? await tx.studentProfile.findUnique({
+                where: { userId: created.id },
+              })
             : null,
       };
     });
@@ -200,7 +202,12 @@ export class UsersService {
     return user;
   }
 
-  private emitUserCreated(user: { id: string; email: string; fullName: string; role: { name: string } }) {
+  private emitUserCreated(user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: { name: string };
+  }) {
     try {
       this.eventEmitter.emit('user.created', {
         userId: user.id,
@@ -220,7 +227,7 @@ export class UsersService {
     });
 
     if (!existing) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     const effectiveRoleId = dto.roleId ?? existing.roleId;
@@ -229,17 +236,18 @@ export class UsersService {
       : existing.role;
 
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
 
     if (role.name === 'STUDENT') {
       const program = dto.program ?? existing.studentProfile?.program;
       const semester = dto.semester ?? existing.studentProfile?.semester;
-      const studentCode = dto.studentCode ?? existing.studentProfile?.studentCode;
+      const studentCode =
+        dto.studentCode ?? existing.studentProfile?.studentCode;
 
       if (!program || !semester || !studentCode) {
         throw new BadRequestException(
-          'Program, semester, and student code are required for students',
+          'Programa, semestre y código estudiantil son requeridos para estudiantes',
         );
       }
     }
@@ -296,7 +304,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     return this.prisma.user.update({
@@ -317,7 +325,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -338,7 +346,7 @@ export class UsersService {
       await tx.user.delete({ where: { id } });
     });
 
-    return { message: 'User deleted', id };
+    return { message: 'Usuario eliminado', id };
   }
 
   async getMyProfile(userId: string) {
@@ -356,7 +364,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     return user;
@@ -365,7 +373,7 @@ export class UsersService {
   async updateMyProfile(userId: string, dto: UpdateMyProfileDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     return this.prisma.user.update({
@@ -393,12 +401,15 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
-    const isValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    const isValid = await bcrypt.compare(
+      dto.currentPassword,
+      user.passwordHash,
+    );
     if (!isValid) {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
     }
 
     const newHash = await bcrypt.hash(dto.newPassword, 10);

@@ -3,7 +3,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateRequestTypeDto {
   @ApiPropertyOptional({
-    description: 'Name of the request type',
+    description: 'Nombre del tipo de solicitud',
     example: 'Certificado',
     minLength: 1,
   })
@@ -12,7 +12,7 @@ export class UpdateRequestTypeDto {
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'Description of the request type',
+    description: 'Descripción del tipo de solicitud',
     example: 'Solicitud de certificado académico',
   })
   @IsString()
@@ -20,7 +20,7 @@ export class UpdateRequestTypeDto {
   description?: string;
 
   @ApiPropertyOptional({
-    description: 'Estimated number of days to process this type of request',
+    description: 'Días estimados para procesar este tipo de solicitud',
     example: 3,
     minimum: 1,
   })

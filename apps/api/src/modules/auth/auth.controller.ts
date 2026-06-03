@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Body, Res, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Res,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -22,11 +30,12 @@ export class AuthController {
   @Post('login')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({
-    summary: 'Authenticate user and receive tokens',
-    description: 'Validates credentials and returns an access token plus a refresh token stored in an HTTP-only cookie.',
+    summary: 'Autenticar usuario y obtener tokens',
+    description:
+      'Valida las credenciales y retorna un token de acceso junto con un token de renovación almacenado en una cookie HTTP-only.',
   })
   @ApiOkResponse({
-    description: 'Login successful',
+    description: 'Inicio de sesión exitoso',
     schema: {
       example: {
         accessToken: 'eyJhbGciOiJIUzI1NiIs...',
@@ -39,35 +48,41 @@ export class AuthController {
       },
     },
   })
-  @ApiUnauthorizedResponse({ description: 'Invalid email or password' })
-  @ApiForbiddenResponse({ description: 'Account is inactive or suspended' })
-  @ApiTooManyRequestsResponse({ description: 'Too many login attempts — max 5 per minute' })
+  @ApiUnauthorizedResponse({ description: 'Correo o contraseña inválidos' })
+  @ApiForbiddenResponse({ description: 'La cuenta está inactiva o suspendida' })
+  @ApiTooManyRequestsResponse({
+    description: 'Demasiados intentos de inicio de sesión — máx. 5 por minuto',
+  })
   login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(loginDto, res);
   }
 
   @Post('refresh')
   @ApiOperation({
-    summary: 'Refresh access token',
-    description: 'Uses the HTTP-only refresh token cookie to issue a new access token.',
+    summary: 'Renovar token de acceso',
+    description:
+      'Utiliza la cookie HTTP-only de token de renovación para emitir un nuevo token de acceso.',
   })
   @ApiOkResponse({
-    description: 'Token refreshed successfully',
+    description: 'Token renovado exitosamente',
     schema: { example: { accessToken: 'eyJhbGciOiJIUzI1NiIs...' } },
   })
-  @ApiUnauthorizedResponse({ description: 'Invalid or expired refresh token' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de renovación inválido o expirado',
+  })
   refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.refresh(req, res);
   }
 
   @Post('logout')
   @ApiOperation({
-    summary: 'Logout user',
-    description: 'Invalidates the refresh token and clears the HTTP-only cookie.',
+    summary: 'Cerrar sesión',
+    description:
+      'Invalida el token de renovación y elimina la cookie HTTP-only.',
   })
   @ApiOkResponse({
-    description: 'Logged out successfully',
-    schema: { example: { message: 'Logged out successfully' } },
+    description: 'Sesión cerrada exitosamente',
+    schema: { example: { message: 'Sesión cerrada exitosamente' } },
   })
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.logout(req, res);
@@ -77,11 +92,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Get current user profile',
-    description: 'Returns the authenticated user profile including role and student profile if available.',
+    summary: 'Obtener perfil del usuario actual',
+    description:
+      'Retorna el perfil del usuario autenticado incluyendo rol y perfil estudiantil si está disponible.',
   })
   @ApiOkResponse({
-    description: 'User profile returned',
+    description: 'Perfil del usuario obtenido',
     schema: {
       example: {
         id: '550e8400-e29b-41d4-a716-446655440000',
@@ -98,7 +114,9 @@ export class AuthController {
       },
     },
   })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
   me(@Req() req: Request & { user: { id: string } }) {
     return this.authService.getProfile(req.user.id);
   }

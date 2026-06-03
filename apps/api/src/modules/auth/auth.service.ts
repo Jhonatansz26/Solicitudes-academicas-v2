@@ -28,20 +28,27 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('Account is inactive or suspended');
+      throw new ForbiddenException('La cuenta está inactiva o suspendida');
     }
 
-    const passwordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
+    const passwordValid = await bcrypt.compare(
+      loginDto.password,
+      user.passwordHash,
+    );
 
     if (!passwordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role.name);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.role.name,
+    );
 
     await this.prisma.refreshToken.create({
       data: {
@@ -75,7 +82,7 @@ export class AuthService {
     const token = cookies?.[REFRESH_COOKIE_NAME];
 
     if (!token) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException('Token de renovación no encontrado');
     }
 
     const tokenHash = this.hashRefreshToken(token);
@@ -86,12 +93,12 @@ export class AuthService {
     });
 
     if (!stored) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Token de renovación inválido');
     }
 
     if (stored.expiresAt < new Date()) {
       await this.prisma.refreshToken.delete({ where: { id: stored.id } });
-      throw new UnauthorizedException('Refresh token expired');
+      throw new UnauthorizedException('Token de renovación expirado');
     }
 
     await this.prisma.refreshToken.delete({ where: { id: stored.id } });
@@ -127,12 +134,14 @@ export class AuthService {
 
     if (token) {
       const tokenHash = this.hashRefreshToken(token);
-      await this.prisma.refreshToken.deleteMany({ where: { tokenHash } }).catch(() => {});
+      await this.prisma.refreshToken
+        .deleteMany({ where: { tokenHash } })
+        .catch(() => {});
     }
 
     res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth/refresh' });
 
-    return { message: 'Logged out successfully' };
+    return { message: 'Sesión cerrada exitosamente' };
   }
 
   async getProfile(userId: string) {
@@ -142,7 +151,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Usuario no encontrado');
     }
 
     return {
@@ -159,7 +168,10 @@ export class AuthService {
   private async generateTokens(userId: string, email: string, role: string) {
     const accessToken = this.jwtService.sign(
       { sub: userId, email, role },
-      { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '15m' },
+      {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: '15m',
+      },
     );
 
     const refreshToken = randomBytes(40).toString('hex');

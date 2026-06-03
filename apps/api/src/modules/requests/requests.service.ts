@@ -31,7 +31,7 @@ export class RequestsService {
     });
 
     if (!requestType || !requestType.isActive) {
-      throw new NotFoundException('Request type not found or inactive');
+      throw new NotFoundException('Tipo de solicitud no encontrado o inactivo');
     }
 
     const trackingNumber = this.generateTrackingNumber();
@@ -109,7 +109,14 @@ export class RequestsService {
       where: { id },
       include: {
         requestType: true,
-        user: { select: { id: true, fullName: true, email: true, documentNumber: true } },
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            documentNumber: true,
+          },
+        },
         attachments: { orderBy: { createdAt: 'desc' } },
         history: {
           orderBy: { createdAt: 'desc' },
@@ -119,11 +126,11 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Solicitud no encontrada');
     }
 
     if (role === 'STUDENT' && request.userId !== userId) {
-      throw new ForbiddenException('You can only view your own requests');
+      throw new ForbiddenException('Solo puedes ver tus propias solicitudes');
     }
 
     return request;
@@ -136,21 +143,28 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Solicitud no encontrada');
     }
 
     if (request.userId !== userId) {
-      throw new ForbiddenException('You can only edit your own requests');
+      throw new ForbiddenException(
+        'Solo puedes editar tus propias solicitudes',
+      );
     }
 
     if (request.status !== 'DRAFT') {
-      throw new ForbiddenException('Only draft requests can be edited');
+      throw new ForbiddenException(
+        'Solo se pueden editar las solicitudes en estado borrador',
+      );
     }
 
     return this.prisma.request.update({
       where: { id },
       data: { ...dto },
-      include: { requestType: true, user: { select: { id: true, fullName: true, email: true } } },
+      include: {
+        requestType: true,
+        user: { select: { id: true, fullName: true, email: true } },
+      },
     });
   }
 
@@ -161,18 +175,28 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Solicitud no encontrada');
     }
 
     if (request.userId !== userId) {
-      throw new ForbiddenException('You can only submit your own requests');
+      throw new ForbiddenException(
+        'Solo puedes enviar tus propias solicitudes',
+      );
     }
 
     if (request.status !== 'DRAFT') {
-      throw new ConflictException('Only draft requests can be submitted');
+      throw new ConflictException(
+        'Solo se pueden enviar las solicitudes en estado borrador',
+      );
     }
 
-    return this.changeStatusInternal(id, 'SUBMITTED', request.status, userId, null);
+    return this.changeStatusInternal(
+      id,
+      'SUBMITTED',
+      request.status,
+      userId,
+      null,
+    );
   }
 
   async cancel(id: string, userId: string) {
@@ -182,51 +206,90 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Solicitud no encontrada');
     }
 
     if (request.userId !== userId) {
-      throw new ForbiddenException('You can only cancel your own requests');
+      throw new ForbiddenException(
+        'Solo puedes cancelar tus propias solicitudes',
+      );
     }
 
     if (FINAL_STATUSES.includes(request.status)) {
-      throw new ForbiddenException('Cannot cancel a request in a final state');
+      throw new ForbiddenException(
+        'No se puede cancelar una solicitud en estado final',
+      );
     }
 
-    return this.changeStatusInternal(id, 'CANCELLED', request.status, userId, 'Cancelled by user');
+    return this.changeStatusInternal(
+      id,
+      'CANCELLED',
+      request.status,
+      userId,
+      'Cancelled by user',
+    );
   }
 
-  async changeStatus(id: string, dto: ChangeStatusDto, actorId: string, actorRole: RoleName) {
+  async changeStatus(
+    id: string,
+    dto: ChangeStatusDto,
+    actorId: string,
+    actorRole: RoleName,
+  ) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       select: { userId: true, status: true },
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Solicitud no encontrada');
     }
 
     if (FINAL_STATUSES.includes(request.status)) {
-      throw new ForbiddenException(`Request is already in final state '${request.status}'`);
+      throw new ForbiddenException(
+        `La solicitud ya se encuentra en estado final '${request.status}'`,
+      );
     }
 
     if (request.status === dto.newStatus) {
-      throw new ConflictException(`Request is already in state '${dto.newStatus}'`);
+      throw new ConflictException(
+        `La solicitud ya se encuentra en estado '${dto.newStatus}'`,
+      );
     }
 
     if (dto.newStatus === 'REJECTED' && !dto.comment) {
-      throw new BadRequestException('Comment is required when rejecting a request');
+      throw new BadRequestException(
+        'Se requiere un motivo al rechazar una solicitud',
+      );
     }
 
-    if (actorRole === 'STAFF' && dto.newStatus !== 'IN_REVIEW' && dto.newStatus !== 'PENDING_DOCUMENTS') {
-      throw new ForbiddenException('Staff can only move to IN_REVIEW or PENDING_DOCUMENTS');
+    if (
+      actorRole === 'STAFF' &&
+      dto.newStatus !== 'IN_REVIEW' &&
+      dto.newStatus !== 'PENDING_DOCUMENTS'
+    ) {
+      throw new ForbiddenException(
+        "El funcionario solo puede cambiar a 'En revisión' o 'Documentos pendientes'",
+      );
     }
 
-    if (actorRole === 'COORDINATOR' && dto.newStatus !== 'APPROVED' && dto.newStatus !== 'REJECTED') {
-      throw new ForbiddenException('Coordinator can only approve or reject');
+    if (
+      actorRole === 'COORDINATOR' &&
+      dto.newStatus !== 'APPROVED' &&
+      dto.newStatus !== 'REJECTED'
+    ) {
+      throw new ForbiddenException(
+        'El coordinador solo puede aprobar o rechazar',
+      );
     }
 
-    return this.changeStatusInternal(id, dto.newStatus, request.status, actorId, dto.comment ?? null);
+    return this.changeStatusInternal(
+      id,
+      dto.newStatus,
+      request.status,
+      actorId,
+      dto.comment ?? null,
+    );
   }
 
   async getRequestTypes() {
@@ -337,7 +400,7 @@ export class RequestsService {
 
       if (result.count === 0) {
         throw new ConflictException(
-          `Request status changed from '${expectedStatus}' to a different state by another process`,
+          'El estado de la solicitud fue modificado por otro proceso',
         );
       }
 
@@ -350,7 +413,7 @@ export class RequestsService {
       });
 
       if (!request) {
-        throw new NotFoundException('Request not found');
+        throw new NotFoundException('Solicitud no encontrada');
       }
 
       await tx.requestHistory.create({

@@ -24,7 +24,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const res = exception.getResponse();
-      const resObj = typeof res === 'object' ? (res as Record<string, unknown>) : null;
+      const resObj =
+        typeof res === 'object' ? (res as Record<string, unknown>) : null;
       message =
         typeof res === 'string'
           ? res
@@ -39,13 +40,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = mapped.message;
     } else if (exception instanceof Prisma.PrismaClientValidationError) {
       statusCode = HttpStatus.BAD_REQUEST;
-      message = 'Invalid request data';
+      message = 'Datos de entrada inválidos';
     } else if (exception instanceof Prisma.PrismaClientUnknownRequestError) {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      message = 'Error interno del servidor';
     } else {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      message = 'Error interno del servidor';
     }
 
     if (statusCode >= 500) {
@@ -85,39 +86,39 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         return {
           statusCode: HttpStatus.CONFLICT,
           message: target
-            ? `A record with this ${target} already exists`
-            : 'A record with this value already exists',
+            ? `Ya existe un registro con este ${target}`
+            : 'Ya existe un registro con este valor',
         };
       }
       case 'P2025':
         return {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Record not found',
+          message: 'Registro no encontrado',
         };
       case 'P2003':
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Invalid reference to a related record',
+          message: 'Referencia inválida a un registro relacionado',
         };
       case 'P2014':
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Invalid data: violates a required relation',
+          message: 'Datos inválidos: se viola una relación requerida',
         };
       case 'P2006':
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Invalid input data',
+          message: 'Datos de entrada inválidos',
         };
       case 'P2007':
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Invalid data format',
+          message: 'Formato de datos inválido',
         };
       default:
         return {
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Database error',
+          message: 'Error de base de datos',
         };
     }
   }

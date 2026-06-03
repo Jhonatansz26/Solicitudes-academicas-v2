@@ -43,7 +43,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Solicitudes Académicas API')
-    .setDescription('API REST for managing academic requests at the university. Supports student certificate requests, homologations, cancellations, and more with a multi-role approval workflow.')
+    .setDescription(
+      'API REST para la gestión de solicitudes académicas en la universidad. Soporta solicitudes de certificados, homologaciones, cancelaciones y más con un flujo de aprobación multirol.',
+    )
     .setVersion('v1')
     .addBearerAuth(
       {
@@ -51,15 +53,18 @@ async function bootstrap() {
         scheme: 'bearer',
         bearerFormat: 'JWT',
         name: 'JWT',
-        description: 'Enter your JWT access token',
+        description: 'Ingrese su token de acceso JWT',
         in: 'header',
       },
       'JWT-auth',
     )
-    .addTag('Auth', 'Authentication and user management endpoints')
-    .addTag('Requests', 'Academic request CRUD and workflow operations')
-    .addTag('Documents', 'Document attachment upload, download, and management')
-    .addTag('Users', 'User management endpoints (admin only)')
+    .addTag('Auth', 'Autenticación y gestión de usuarios')
+    .addTag(
+      'Requests',
+      'Gestión de solicitudes académicas y flujo de aprobación',
+    )
+    .addTag('Documents', 'Subida, descarga y gestión de documentos adjuntos')
+    .addTag('Users', 'Gestión de usuarios (solo administrador)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

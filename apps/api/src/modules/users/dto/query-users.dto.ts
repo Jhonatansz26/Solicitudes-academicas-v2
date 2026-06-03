@@ -1,11 +1,19 @@
-import { IsEnum, IsOptional, IsString, IsNumber, IsBoolean, Min, Max } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsBoolean,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import { Type } from 'class-transformer';
 
 export class QueryUsersDto {
   @ApiPropertyOptional({
-    description: 'Search by full name or document number',
+    description: 'Buscar por nombre o número de documento',
     example: 'Pérez',
   })
   @IsString()
@@ -13,7 +21,7 @@ export class QueryUsersDto {
   search?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by role name',
+    description: 'Filtrar por rol',
     enum: RoleName,
     example: 'STUDENT',
   })
@@ -22,7 +30,7 @@ export class QueryUsersDto {
   role?: RoleName;
 
   @ApiPropertyOptional({
-    description: 'Filter by active/inactive status',
+    description: 'Filtrar por estado activo/inactivo',
     example: true,
   })
   @IsBoolean()
@@ -31,7 +39,7 @@ export class QueryUsersDto {
   isActive?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Page number (1-indexed)',
+    description: 'Número de página',
     default: 1,
     minimum: 1,
     example: 1,
@@ -43,7 +51,7 @@ export class QueryUsersDto {
   page?: number = 1;
 
   @ApiPropertyOptional({
-    description: 'Items per page (max 100)',
+    description: 'Elementos por página (máx. 100)',
     default: 20,
     minimum: 1,
     maximum: 100,

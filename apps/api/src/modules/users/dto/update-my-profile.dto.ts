@@ -3,7 +3,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateMyProfileDto {
   @ApiPropertyOptional({
-    description: 'User full name',
+    description: 'Nombre completo del usuario',
     example: 'Juan Pérez',
     minLength: 2,
   })
@@ -13,7 +13,7 @@ export class UpdateMyProfileDto {
   fullName?: string;
 
   @ApiPropertyOptional({
-    description: 'User email address',
+    description: 'Correo electrónico del usuario',
     example: 'student@universidad.edu.co',
   })
   @IsEmail()

@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserStatusDto {
   @ApiProperty({
-    description: 'Whether the user account is active (true) or deactivated (false)',
+    description: 'Si la cuenta está activa (true) o desactivada (false)',
     example: true,
   })
   @IsBoolean()

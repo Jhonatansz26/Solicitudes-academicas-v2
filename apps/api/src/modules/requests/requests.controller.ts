@@ -51,24 +51,42 @@ export class RequestsController {
 
   @Post()
   @ApiOperation({
-    summary: 'Create a new request (DRAFT)',
-    description: 'Creates a new academic request in DRAFT status. The student can edit and submit it later.',
+    summary: 'Crear nueva solicitud (Borrador)',
+    description:
+      'Crea una nueva solicitud académica en estado borrador. El estudiante puede editar y enviarla más tarde.',
   })
-  @ApiCreatedResponse({ description: 'Request created successfully' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  @ApiCreatedResponse({ description: 'Solicitud creada exitosamente' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiBadRequestResponse({ description: 'Cuerpo de solicitud inválido' })
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateRequestDto) {
     return this.requestsService.create(req.user.id, dto);
   }
 
   @Get()
   @ApiOperation({
-    summary: 'List requests with pagination',
-    description: 'Students see only their own requests. Staff, coordinators, and admins see all requests.',
+    summary: 'Listar solicitudes con paginación',
+    description:
+      'Los estudiantes solo ven sus propias solicitudes. Funcionarios, coordinadores y administradores ven todas las solicitudes.',
   })
-  @ApiOkResponse({ description: 'Paginated list of requests' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiQuery({ name: 'status', required: false, enum: ['DRAFT', 'SUBMITTED', 'IN_REVIEW', 'PENDING_DOCUMENTS', 'APPROVED', 'REJECTED', 'CANCELLED'] })
+  @ApiOkResponse({ description: 'Lista paginada de solicitudes' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: [
+      'DRAFT',
+      'SUBMITTED',
+      'IN_REVIEW',
+      'PENDING_DOCUMENTS',
+      'APPROVED',
+      'REJECTED',
+      'CANCELLED',
+    ],
+  })
   @ApiQuery({ name: 'requestTypeId', required: false, type: String })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
@@ -80,10 +98,11 @@ export class RequestsController {
 
   @Get('types')
   @ApiOperation({
-    summary: 'List active request types',
-    description: 'Returns all active request types (Certificado, Homologación, etc.) available for creating requests.',
+    summary: 'Listar tipos de solicitud activos',
+    description:
+      'Retorna todos los tipos de solicitud activos (Certificado, Homologación, etc.) disponibles para crear solicitudes.',
   })
-  @ApiOkResponse({ description: 'List of active request types' })
+  @ApiOkResponse({ description: 'Lista de tipos de solicitud activos' })
   getTypes() {
     return this.requestsService.getRequestTypes();
   }
@@ -92,12 +111,15 @@ export class RequestsController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({
-    summary: 'List all request types (admin)',
-    description: 'Returns all request types including inactive ones. Admin only.',
+    summary: 'Listar todos los tipos de solicitud (admin)',
+    description:
+      'Retorna todos los tipos de solicitud incluyendo los inactivos. Solo administrador.',
   })
-  @ApiOkResponse({ description: 'List of all request types' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  @ApiOkResponse({ description: 'Lista de todos los tipos de solicitud' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
   getAllTypes() {
     return this.requestsService.getAllRequestTypes();
   }
@@ -106,14 +128,18 @@ export class RequestsController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({
-    summary: 'Create a request type',
-    description: 'Creates a new request type. Admin only.',
+    summary: 'Crear tipo de solicitud',
+    description: 'Crea un nuevo tipo de solicitud. Solo administrador.',
   })
-  @ApiCreatedResponse({ description: 'Request type created successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiConflictResponse({ description: 'Request type name already exists' })
+  @ApiCreatedResponse({ description: 'Tipo de solicitud creado exitosamente' })
+  @ApiBadRequestResponse({ description: 'Cuerpo de solicitud inválido' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiConflictResponse({
+    description: 'Ya existe un tipo de solicitud con ese nombre',
+  })
   createType(@Body() dto: CreateRequestTypeDto) {
     return this.requestsService.createRequestType(dto);
   }
@@ -122,15 +148,20 @@ export class RequestsController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({
-    summary: 'Update a request type',
-    description: 'Updates an existing request type. Admin only.',
+    summary: 'Actualizar tipo de solicitud',
+    description:
+      'Actualiza un tipo de solicitud existente. Solo administrador.',
   })
-  @ApiOkResponse({ description: 'Request type updated successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'Request type not found' })
-  @ApiConflictResponse({ description: 'Request type name already exists' })
+  @ApiOkResponse({ description: 'Tipo de solicitud actualizado exitosamente' })
+  @ApiBadRequestResponse({ description: 'Cuerpo de solicitud inválido' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Tipo de solicitud no encontrado' })
+  @ApiConflictResponse({
+    description: 'Ya existe un tipo de solicitud con ese nombre',
+  })
   updateType(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRequestTypeDto,
@@ -143,23 +174,30 @@ export class RequestsController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Deactivate a request type',
-    description: 'Soft-deletes a request type by setting isActive to false. Admin only.',
+    summary: 'Desactivar tipo de solicitud',
+    description:
+      'Desactiva un tipo de solicitud estableciendo isActive en false. Solo administrador.',
   })
-  @ApiOkResponse({ description: 'Request type deactivated successfully' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'Request type not found' })
+  @ApiOkResponse({ description: 'Tipo de solicitud desactivado exitosamente' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Tipo de solicitud no encontrado' })
   deleteType(@Param('id', ParseUUIDPipe) id: string) {
     return this.requestsService.deleteRequestType(id);
   }
 
   @Get('stats')
   @ApiOperation({
-    summary: 'Get dashboard statistics',
-    description: 'Returns request counts by status and recent activity. Students see only their own stats; staff and above see global stats.',
+    summary: 'Obtener estadísticas del panel',
+    description:
+      'Retorna conteos de solicitudes por estado y actividad reciente. Los estudiantes solo ven sus propias estadísticas; funcionarios y superiores ven estadísticas globales.',
   })
-  @ApiOkResponse({ description: 'Dashboard statistics with per-status counts and recent activity' })
+  @ApiOkResponse({
+    description:
+      'Estadísticas del panel con conteos por estado y actividad reciente',
+  })
   stats(@Req() req: AuthenticatedRequest) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.getStats(req.user.id, role);
@@ -167,25 +205,37 @@ export class RequestsController {
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get request detail',
-    description: 'Returns full request details including attachments, history, and user information.',
+    summary: 'Obtener detalle de solicitud',
+    description:
+      'Retorna los detalles completos de la solicitud incluyendo adjuntos, historial e información del usuario.',
   })
-  @ApiOkResponse({ description: 'Request detail with attachments and history' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiForbiddenResponse({ description: 'Student can only view their own requests' })
-  findOne(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+  @ApiOkResponse({
+    description: 'Detalle de solicitud con adjuntos e historial',
+  })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiForbiddenResponse({
+    description: 'El estudiante solo puede ver sus propias solicitudes',
+  })
+  findOne(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.findOne(id, req.user.id, role);
   }
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Edit draft request',
-    description: 'Updates title or description of a request. Only allowed in DRAFT status and by the owner.',
+    summary: 'Editar borrador de solicitud',
+    description:
+      'Actualiza el título o descripción de una solicitud. Solo permitido en estado BORRADOR y por el propietario.',
   })
-  @ApiOkResponse({ description: 'Request updated successfully' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiForbiddenResponse({ description: 'Not the owner or request is not in DRAFT status' })
+  @ApiOkResponse({ description: 'Solicitud actualizada exitosamente' })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiForbiddenResponse({
+    description:
+      'No es el propietario o la solicitud no está en estado BORRADOR',
+  })
   update(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -196,26 +246,38 @@ export class RequestsController {
 
   @Post(':id/submit')
   @ApiOperation({
-    summary: 'Submit draft request',
-    description: 'Transitions a request from DRAFT to SUBMITTED. Cannot be undone.',
+    summary: 'Enviar solicitud',
+    description:
+      'Transiciona una solicitud de BORRADOR a ENVIADA. No se puede deshacer.',
   })
-  @ApiOkResponse({ description: 'Request submitted successfully' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiConflictResponse({ description: 'Request is not in DRAFT status' })
-  @ApiForbiddenResponse({ description: 'Not the owner of the request' })
-  submit(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+  @ApiOkResponse({ description: 'Solicitud enviada exitosamente' })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiConflictResponse({
+    description: 'La solicitud no está en estado BORRADOR',
+  })
+  @ApiForbiddenResponse({ description: 'No es el propietario de la solicitud' })
+  submit(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.requestsService.submit(id, req.user.id);
   }
 
   @Post(':id/cancel')
   @ApiOperation({
-    summary: 'Cancel request',
-    description: 'Cancels a request. Not allowed if the request is already in a final state (APPROVED, REJECTED, CANCELLED).',
+    summary: 'Cancelar solicitud',
+    description:
+      'Cancela una solicitud. No permitido si la solicitud ya está en un estado final (APROBADA, RECHAZADA, CANCELADA).',
   })
-  @ApiOkResponse({ description: 'Request cancelled successfully' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiForbiddenResponse({ description: 'Not the owner or request is in a final state' })
-  cancel(@Req() req: AuthenticatedRequest, @Param('id', ParseUUIDPipe) id: string) {
+  @ApiOkResponse({ description: 'Solicitud cancelada exitosamente' })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiForbiddenResponse({
+    description: 'No es el propietario o la solicitud está en un estado final',
+  })
+  cancel(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.requestsService.cancel(id, req.user.id);
   }
 
@@ -223,14 +285,22 @@ export class RequestsController {
   @UseGuards(RolesGuard)
   @Roles('STAFF', 'COORDINATOR', 'ADMIN')
   @ApiOperation({
-    summary: 'Change request status',
-    description: 'Staff can move to IN_REVIEW or PENDING_DOCUMENTS. Coordinators can APPROVE or REJECT. Admins have full control.',
+    summary: 'Cambiar estado de solicitud',
+    description:
+      'Los funcionarios pueden mover a EN_REVISIÓN o DOCUMENTOS_PENDIENTES. Los coordinadores pueden APROBAR o RECHAZAR. Los administradores tienen control total.',
   })
-  @ApiOkResponse({ description: 'Status changed successfully' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiBadRequestResponse({ description: 'Comment is required when rejecting a request' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions or invalid status transition' })
-  @ApiConflictResponse({ description: 'Request is already in the target state or a final state' })
+  @ApiOkResponse({ description: 'Estado cambiado exitosamente' })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiBadRequestResponse({
+    description: 'Se requiere un motivo al rechazar una solicitud',
+  })
+  @ApiForbiddenResponse({
+    description: 'Permisos insuficientes o transición de estado inválida',
+  })
+  @ApiConflictResponse({
+    description:
+      'La solicitud ya está en el estado objetivo o en un estado final',
+  })
   changeStatus(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,

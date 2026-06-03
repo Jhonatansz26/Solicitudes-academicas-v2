@@ -58,8 +58,9 @@ export class DocumentsController {
     }),
   )
   @ApiOperation({
-    summary: 'Upload a document attachment',
-    description: 'Uploads a file and attaches it to a request. Allowed types: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Max size: 10MB. Students can only upload to their own requests in DRAFT or PENDING_DOCUMENTS status. Max 5 attachments per request.',
+    summary: 'Subir documento adjunto',
+    description:
+      'Sube un archivo y lo adjunta a una solicitud. Tipos permitidos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Tamaño máximo: 10MB. Los estudiantes solo pueden subir a sus propias solicitudes en estado BORRADOR o DOCUMENTOS_PENDIENTES. Máximo 5 adjuntos por solicitud.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -70,42 +71,66 @@ export class DocumentsController {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'File to upload (PDF, JPG, PNG, DOC, DOCX, XLS, XLSX, max 10MB)',
+          description:
+            'Archivo a subir (PDF, JPG, PNG, DOC, DOCX, XLS, XLSX, máx. 10MB)',
         },
         requestId: {
           type: 'string',
           format: 'uuid',
-          description: 'ID of the request to attach the file to',
+          description: 'ID de la solicitud para adjuntar el archivo',
           example: '550e8400-e29b-41d4-a716-446655440000',
         },
       },
     },
   })
-  @ApiCreatedResponse({ description: 'Document uploaded successfully' })
-  @ApiTooManyRequestsResponse({ description: 'Upload rate limit exceeded (5 per minute)' })
-  @ApiBadRequestResponse({ description: 'Invalid file type, file size exceeds 10MB, or no file provided' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Not authorized to upload to this request or request not in allowed status' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
-  @ApiConflictResponse({ description: 'Maximum 5 attachments per request reached' })
+  @ApiCreatedResponse({ description: 'Documento subido exitosamente' })
+  @ApiTooManyRequestsResponse({
+    description: 'Límite de subidas excedido (5 por minuto)',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Tipo de archivo inválido, tamaño excede 10MB, o no se proporcionó archivo',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'No autorizado para subir a esta solicitud o solicitud no en estado permitido',
+  })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
+  @ApiConflictResponse({
+    description: 'Se alcanzó el máximo de 5 adjuntos por solicitud',
+  })
   async upload(
     @Req() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UploadDocumentDto,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
-    return this.documentsService.upload(file, body.requestId, req.user.id, role);
+    return this.documentsService.upload(
+      file,
+      body.requestId,
+      req.user.id,
+      role,
+    );
   }
 
   @Get('request/:requestId')
   @ApiOperation({
-    summary: 'List attachments for a request',
-    description: 'Returns all document attachments for a specific request, ordered by creation date (newest first).',
+    summary: 'Listar adjuntos de una solicitud',
+    description:
+      'Retorna todos los adjuntos de documentos para una solicitud específica, ordenados por fecha de creación (más reciente primero).',
   })
-  @ApiOkResponse({ description: 'List of attachments' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Student can only view documents from their own requests' })
-  @ApiNotFoundResponse({ description: 'Request not found' })
+  @ApiOkResponse({ description: 'Lista de adjuntos' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'El estudiante solo puede ver documentos de sus propias solicitudes',
+  })
+  @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
   async findByRequest(
     @Req() req: AuthenticatedRequest,
     @Param('requestId', ParseUUIDPipe) requestId: string,
@@ -116,13 +141,16 @@ export class DocumentsController {
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get attachment metadata',
-    description: 'Returns metadata for a specific document attachment including file name, MIME type, size, and uploader info.',
+    summary: 'Obtener metadatos del adjunto',
+    description:
+      'Retorna los metadatos de un adjunto específico incluyendo nombre del archivo, tipo MIME, tamaño e información del usuario que lo subió.',
   })
-  @ApiOkResponse({ description: 'Attachment metadata' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Not authorized to view this attachment' })
-  @ApiNotFoundResponse({ description: 'Attachment not found' })
+  @ApiOkResponse({ description: 'Metadatos del adjunto' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'No autorizado para ver este adjunto' })
+  @ApiNotFoundResponse({ description: 'Adjunto no encontrado' })
   async findOne(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -133,20 +161,33 @@ export class DocumentsController {
 
   @Get(':id/download')
   @ApiOperation({
-    summary: 'Download an attachment file',
-    description: 'Streams the actual file content for download. Returns the file with its original name and MIME type.',
+    summary: 'Descargar archivo adjunto',
+    description:
+      'Transmite el contenido del archivo para descarga. Retorna el archivo con su nombre original y tipo MIME.',
   })
-  @ApiOkResponse({ description: 'File stream with Content-Disposition header' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Not authorized to download this file' })
-  @ApiNotFoundResponse({ description: 'Attachment or file not found in storage' })
+  @ApiOkResponse({
+    description: 'Flujo de archivo con encabezado Content-Disposition',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({
+    description: 'No autorizado para descargar este archivo',
+  })
+  @ApiNotFoundResponse({
+    description: 'Adjunto o archivo no encontrado en almacenamiento',
+  })
   async download(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
-    const { stream, mimeType, fileName } = await this.documentsService.download(id, req.user.id, role);
+    const { stream, mimeType, fileName } = await this.documentsService.download(
+      id,
+      req.user.id,
+      role,
+    );
 
     res.set({
       'Content-Type': mimeType,
@@ -161,13 +202,18 @@ export class DocumentsController {
   @Roles('STUDENT', 'STAFF', 'COORDINATOR', 'ADMIN')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Delete an attachment',
-    description: 'Deletes a document attachment and its file from storage. Users can only delete their own uploads. Admins can delete any attachment.',
+    summary: 'Eliminar adjunto',
+    description:
+      'Elimina un adjunto de documento y su archivo del almacenamiento. Los usuarios solo pueden eliminar sus propias subidas. Los administradores pueden eliminar cualquier adjunto.',
   })
-  @ApiOkResponse({ description: 'Attachment deleted successfully' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Not authorized to delete this attachment' })
-  @ApiNotFoundResponse({ description: 'Attachment not found' })
+  @ApiOkResponse({ description: 'Adjunto eliminado exitosamente' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({
+    description: 'No autorizado para eliminar este adjunto',
+  })
+  @ApiNotFoundResponse({ description: 'Adjunto no encontrado' })
   async remove(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,

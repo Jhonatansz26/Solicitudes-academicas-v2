@@ -28,23 +28,29 @@ export class ProfileController {
 
   @Get('me')
   @ApiOperation({
-    summary: 'Get current user profile',
-    description: 'Returns the authenticated user profile including role and student profile.',
+    summary: 'Obtener mi perfil',
+    description:
+      'Retorna el perfil del usuario autenticado incluyendo rol y perfil estudiantil.',
   })
-  @ApiOkResponse({ description: 'User profile' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiOkResponse({ description: 'Perfil del usuario' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
   getProfile(@Req() req: AuthenticatedRequest) {
     return this.usersService.getMyProfile(req.user.id);
   }
 
   @Patch('me')
   @ApiOperation({
-    summary: 'Update current user profile',
-    description: 'Updates fullName and/or email of the authenticated user.',
+    summary: 'Actualizar mi perfil',
+    description:
+      'Actualiza el nombre completo y/o correo del usuario autenticado.',
   })
-  @ApiOkResponse({ description: 'Profile updated successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiOkResponse({ description: 'Perfil actualizado exitosamente' })
+  @ApiBadRequestResponse({ description: 'Cuerpo de solicitud inválido' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
   updateProfile(
     @Req() req: AuthenticatedRequest,
     @Body() dto: UpdateMyProfileDto,
@@ -55,13 +61,21 @@ export class ProfileController {
   @Patch('me/password')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({
-    summary: 'Change current user password',
-    description: 'Changes the password of the authenticated user. Requires current password verification.',
+    summary: 'Cambiar mi contraseña',
+    description:
+      'Cambia la contraseña del usuario autenticado. Requiere verificación de la contraseña actual.',
   })
-  @ApiOkResponse({ description: 'Password changed successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body or password too short' })
-  @ApiUnauthorizedResponse({ description: 'Current password is incorrect' })
-  @ApiTooManyRequestsResponse({ description: 'Too many password change attempts — max 5 per minute' })
+  @ApiOkResponse({ description: 'Contraseña cambiada exitosamente' })
+  @ApiBadRequestResponse({
+    description: 'Cuerpo de solicitud inválido o contraseña muy corta',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'La contraseña actual es incorrecta',
+  })
+  @ApiTooManyRequestsResponse({
+    description:
+      'Demasiados intentos de cambio de contraseña — máx. 5 por minuto',
+  })
   changePassword(
     @Req() req: AuthenticatedRequest,
     @Body() dto: ChangeMyPasswordDto,

@@ -50,95 +50,113 @@ export class UsersController {
 
   @Get()
   @ApiOperation({
-    summary: 'List users with pagination',
+    summary: 'Listar usuarios con paginación',
     description:
-      'Returns a paginated list of all users. Supports search by name or document number, and filtering by role and active status.',
+      'Retorna una lista paginada de todos los usuarios. Permite buscar por nombre o número de documento, y filtrar por rol y estado activo.',
   })
-  @ApiOkResponse({ description: 'Paginated list of users' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
+  @ApiOkResponse({ description: 'Lista paginada de usuarios' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
   findAll(@Query() query: QueryUsersDto) {
     return this.usersService.findAll(query);
   }
 
   @Get('roles')
   @ApiOperation({
-    summary: 'List all available roles',
-    description: 'Returns all roles with their IDs. Used for role selection in user creation and filtering.',
+    summary: 'Listar roles disponibles',
+    description:
+      'Retorna todos los roles con sus IDs. Se usa para la selección de roles en la creación y filtrado de usuarios.',
   })
-  @ApiOkResponse({ description: 'List of roles' })
+  @ApiOkResponse({ description: 'Lista de roles' })
   getRoles() {
     return this.usersService.getRoles();
   }
 
   @Get('stats')
   @ApiOperation({
-    summary: 'Get users statistics',
-    description: 'Returns global user counts: total, active, inactive, and students.',
+    summary: 'Obtener estadísticas de usuarios',
+    description:
+      'Retorna conteos globales de usuarios: total, activos, inactivos y estudiantes.',
   })
-  @ApiOkResponse({ description: 'Users statistics' })
+  @ApiOkResponse({ description: 'Estadísticas de usuarios' })
   getStats() {
     return this.usersService.getUsersStats();
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get user detail',
-    description: 'Returns full user details including role and student profile.',
+    summary: 'Obtener detalle de usuario',
+    description:
+      'Retorna los detalles completos de un usuario incluyendo rol y perfil estudiantil.',
   })
-  @ApiOkResponse({ description: 'User detail with role and student profile' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiOkResponse({
+    description: 'Detalle de usuario con rol y perfil estudiantil',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
   @Post()
   @ApiOperation({
-    summary: 'Create a new user',
+    summary: 'Crear nuevo usuario',
     description:
-      'Creates a user with the given role. Students require program, semester, and student code.',
+      'Crea un usuario con el rol indicado. Los estudiantes requieren programa, semestre y código estudiantil.',
   })
-  @ApiCreatedResponse({ description: 'User created successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body or missing student fields' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'Role not found' })
-  @ApiConflictResponse({ description: 'Email already in use' })
+  @ApiCreatedResponse({ description: 'Usuario creado exitosamente' })
+  @ApiBadRequestResponse({
+    description:
+      'Cuerpo de solicitud inválido o campos de estudiante faltantes',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Rol no encontrado' })
+  @ApiConflictResponse({ description: 'Correo electrónico ya en uso' })
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Update user data',
+    summary: 'Actualizar datos de usuario',
     description:
-      'Updates user fields. If changing to a STUDENT role, program, semester, and student code are required.',
+      'Actualiza los campos del usuario. Si se cambia al rol ESTUDIANTE, se requieren programa, semestre y código estudiantil.',
   })
-  @ApiOkResponse({ description: 'User updated successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid request body or missing student fields' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'User or role not found' })
-  @ApiConflictResponse({ description: 'Email already in use' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateUserDto,
-  ) {
+  @ApiOkResponse({ description: 'Usuario actualizado exitosamente' })
+  @ApiBadRequestResponse({
+    description:
+      'Cuerpo de solicitud inválido o campos de estudiante faltantes',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Usuario o rol no encontrado' })
+  @ApiConflictResponse({ description: 'Correo electrónico ya en uso' })
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
   @Patch(':id/status')
   @ApiOperation({
-    summary: 'Activate or deactivate a user',
+    summary: 'Activar o desactivar usuario',
     description:
-      'Toggles the isActive status. Deactivated users cannot log in.',
+      'Alterna el estado isActive. Los usuarios desactivados no pueden iniciar sesión.',
   })
-  @ApiOkResponse({ description: 'User status updated successfully' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiOkResponse({ description: 'Estado de usuario actualizado exitosamente' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
   updateStatus(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
@@ -153,15 +171,20 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Delete a user',
+    summary: 'Eliminar usuario',
     description:
-      'Deletes a user and their associated profiles and tokens. Fails if the user has requests or attachments.',
+      'Elimina un usuario y sus perfiles y tokens asociados. Falla si el usuario tiene solicitudes o adjuntos.',
   })
-  @ApiOkResponse({ description: 'User deleted successfully' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiConflictResponse({ description: 'User has associated records and cannot be deleted' })
+  @ApiOkResponse({ description: 'Usuario eliminado exitosamente' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
+  @ApiConflictResponse({
+    description:
+      'El usuario tiene registros asociados y no puede ser eliminado',
+  })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }

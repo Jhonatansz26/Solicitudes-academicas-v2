@@ -1,11 +1,18 @@
-import { IsEnum, IsOptional, IsString, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RequestStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 
 export class QueryRequestsDto {
   @ApiPropertyOptional({
-    description: 'Filter by request status',
+    description: 'Filtrar por estado de solicitud',
     enum: RequestStatus,
     example: 'SUBMITTED',
   })
@@ -14,7 +21,7 @@ export class QueryRequestsDto {
   status?: RequestStatus;
 
   @ApiPropertyOptional({
-    description: 'Filter by request type ID',
+    description: 'Filtrar por tipo de solicitud',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @IsString()
@@ -22,7 +29,7 @@ export class QueryRequestsDto {
   requestTypeId?: string;
 
   @ApiPropertyOptional({
-    description: 'Search by request title or student full name',
+    description: 'Buscar por título o nombre del estudiante',
     example: 'certificado',
   })
   @IsString()
@@ -30,7 +37,7 @@ export class QueryRequestsDto {
   search?: string;
 
   @ApiPropertyOptional({
-    description: 'Page number (1-indexed)',
+    description: 'Número de página',
     default: 1,
     minimum: 1,
     example: 1,
@@ -42,7 +49,7 @@ export class QueryRequestsDto {
   page?: number = 1;
 
   @ApiPropertyOptional({
-    description: 'Items per page (max 100)',
+    description: 'Elementos por página (máx. 100)',
     default: 20,
     minimum: 1,
     maximum: 100,

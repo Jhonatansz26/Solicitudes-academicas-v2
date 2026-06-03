@@ -28,6 +28,14 @@ enum NotificationChannel {
   SYSTEM
 }
 
+enum OfficialDocumentType {
+  CERTIFICATE
+  TRANSCRIPT
+  RESOLUTION
+  CONSTANCY
+  OTHER
+}
+
 model Role {
   id        String   @id @default(uuid())
   name      RoleName @unique
@@ -56,7 +64,8 @@ model User {
   refreshTokens  RefreshToken[]
   notifications  Notification[]
   requestHistory RequestHistory[]
-  uploadedAttachments  Attachment[]  @relation("AttachmentUploader")
+  uploadedAttachments    Attachment[]       @relation("AttachmentUploader")
+  officialDocuments      OfficialDocument[] @relation("OfficialDocumentGenerator")
 
   @@map("users")
 }
@@ -115,6 +124,7 @@ model Request {
   attachments     Attachment[]
   notifications   Notification[]
   history         RequestHistory[]
+  officialDocuments OfficialDocument[]
 
   @@index([userId])
   @@index([status])
@@ -179,4 +189,30 @@ model RequestHistory {
   @@index([requestId])
   @@index([requestId, createdAt(sort: Desc)])
   @@map("request_history")
+}
+
+model OfficialDocument {
+  id          String               @id @default(uuid())
+  requestId   String               @map("request_id")
+  version     Int                  @default(1)
+  type        OfficialDocumentType
+  snapshotData Json?               @map("snapshot_data")
+  fileName    String               @map("file_name")
+  filePath    String               @map("file_path")
+  fileSize    Int                  @map("file_size")
+  provider    String               @default("local")
+  generatedBy String?              @map("generated_by")
+  notes       String?
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  request     Request              @relation(fields: [requestId], references: [id])
+  generator   User?                @relation("OfficialDocumentGenerator", fields: [generatedBy], references: [id])
+
+  @@unique([requestId, version])
+  @@index([requestId])
+  @@index([requestId, version(sort: Desc)])
+  @@index([type])
+  @@index([createdAt(sort: Desc)])
+  @@map("official_documents")
 }

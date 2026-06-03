@@ -1,9 +1,18 @@
-import { IsEmail, IsString, IsUUID, IsOptional, IsInt, Min, Max, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsUUID,
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  MinLength,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({
-    description: 'User email address',
+    description: 'Correo electrónico del usuario',
     example: 'student@universidad.edu.co',
   })
   @IsEmail()
@@ -11,7 +20,7 @@ export class UpdateUserDto {
   email?: string;
 
   @ApiPropertyOptional({
-    description: 'Full name of the user',
+    description: 'Nombre completo del usuario',
     example: 'Juan Pérez',
     minLength: 2,
   })
@@ -21,7 +30,7 @@ export class UpdateUserDto {
   fullName?: string;
 
   @ApiPropertyOptional({
-    description: 'National identification document number',
+    description: 'Número de documento de identidad',
     example: '1000000001',
     minLength: 5,
   })
@@ -31,7 +40,7 @@ export class UpdateUserDto {
   documentNumber?: string;
 
   @ApiPropertyOptional({
-    description: 'ID of the role to assign',
+    description: 'ID del rol a asignar',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @IsUUID()
@@ -39,7 +48,7 @@ export class UpdateUserDto {
   roleId?: string;
 
   @ApiPropertyOptional({
-    description: 'Academic program (required when changing to STUDENT role)',
+    description: 'Programa académico (requerido al cambiar a rol Estudiante)',
     example: 'Ingeniería de Sistemas',
   })
   @IsString()
@@ -47,7 +56,8 @@ export class UpdateUserDto {
   program?: string;
 
   @ApiPropertyOptional({
-    description: 'Current semester (1-12, required when changing to STUDENT role)',
+    description:
+      'Semestre actual (1-12, requerido al cambiar a rol Estudiante)',
     example: 5,
     minimum: 1,
     maximum: 12,
@@ -59,7 +69,8 @@ export class UpdateUserDto {
   semester?: number;
 
   @ApiPropertyOptional({
-    description: 'Student institutional code (required when changing to STUDENT role)',
+    description:
+      'Código estudiantil institucional (requerido al cambiar a rol Estudiante)',
     example: '20240001',
   })
   @IsString()

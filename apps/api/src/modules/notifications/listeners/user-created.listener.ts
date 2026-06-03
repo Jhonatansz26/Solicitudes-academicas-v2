@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications.service';
 import { welcomeTemplate } from '../email/templates/welcome.template';
+import { ROLE_LABELS } from '../../../common/constants/labels';
 
 interface UserCreatedEvent {
   userId: string;
@@ -23,9 +24,13 @@ export class UserCreatedListener {
   @OnEvent('user.created')
   async handleUserCreated(event: UserCreatedEvent) {
     try {
+      const roleLabel =
+        ROLE_LABELS[event.roleName as keyof typeof ROLE_LABELS] ??
+        event.roleName;
+
       const template = welcomeTemplate({
         fullName: event.fullName,
-        role: event.roleName,
+        role: roleLabel,
       });
 
       await this.emailService.send({
@@ -40,7 +45,9 @@ export class UserCreatedListener {
         sent: true,
       });
     } catch (err) {
-      this.logger.error(`Failed to send welcome email to ${event.email}: ${err}`);
+      this.logger.error(
+        `Failed to send welcome email to ${event.email}: ${err}`,
+      );
 
       try {
         await this.notificationsService.createEmailRecord({

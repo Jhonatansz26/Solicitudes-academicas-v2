@@ -3,14 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ChangeMyPasswordDto {
   @ApiProperty({
-    description: 'Current password for verification',
+    description: 'Contraseña actual para verificación',
     example: 'OldPass123!',
   })
   @IsString()
   currentPassword: string;
 
   @ApiProperty({
-    description: 'New password (minimum 8 characters)',
+    description: 'Nueva contraseña (mínimo 8 caracteres)',
     example: 'NewPass456!',
     minLength: 8,
   })

@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateRequestDto {
   @ApiProperty({
-    description: 'ID of the request type (Certificado, Homologación, etc.)',
+    description: 'ID del tipo de solicitud (Certificado, Homologación, etc.)',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @IsString()
@@ -11,7 +11,7 @@ export class CreateRequestDto {
   requestTypeId: string;
 
   @ApiProperty({
-    description: 'Title of the request',
+    description: 'Título de la solicitud',
     example: 'Solicitud de certificado de estudio',
     minLength: 1,
   })
@@ -20,8 +20,9 @@ export class CreateRequestDto {
   title: string;
 
   @ApiPropertyOptional({
-    description: 'Additional details or context for the request',
-    example: 'Necesito el certificado para trámite de transferencia universitaria',
+    description: 'Detalles adicionales de la solicitud',
+    example:
+      'Necesito el certificado para trámite de transferencia universitaria',
   })
   @IsString()
   @IsOptional()

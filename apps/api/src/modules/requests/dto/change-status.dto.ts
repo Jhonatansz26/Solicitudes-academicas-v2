@@ -4,7 +4,7 @@ import { RequestStatus } from '@prisma/client';
 
 export class ChangeStatusDto {
   @ApiProperty({
-    description: 'New status to assign to the request',
+    description: 'Nuevo estado para la solicitud',
     enum: RequestStatus,
     example: 'IN_REVIEW',
   })
@@ -12,7 +12,8 @@ export class ChangeStatusDto {
   newStatus: RequestStatus;
 
   @ApiPropertyOptional({
-    description: 'Comment explaining the status change (required when status is REJECTED)',
+    description:
+      'Comentario explicando el cambio de estado (requerido al rechazar)',
     example: 'Documentación incompleta, falta récord académico',
   })
   @IsString()

@@ -3,7 +3,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateRequestDto {
   @ApiPropertyOptional({
-    description: 'Updated request title',
+    description: 'Título actualizado de la solicitud',
     example: 'Solicitud de certificado de estudio - Urgente',
   })
   @IsString()
@@ -11,7 +11,7 @@ export class UpdateRequestDto {
   title?: string;
 
   @ApiPropertyOptional({
-    description: 'Updated request description',
+    description: 'Descripción actualizada de la solicitud',
     example: 'Se requiere con urgencia para fecha límite del viernes',
   })
   @IsString()
