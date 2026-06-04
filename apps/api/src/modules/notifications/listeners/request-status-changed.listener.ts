@@ -112,7 +112,9 @@ export class RequestStatusChangedListener {
         );
       }
     } catch (err) {
-      this.logger.error(`Failed to notify staff for request ${event.requestId}: ${err}`);
+      this.logger.error(
+        `Failed to notify staff for request ${event.requestId}: ${err}`,
+      );
     }
   }
 

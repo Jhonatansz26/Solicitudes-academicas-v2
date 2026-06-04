@@ -1,8 +1,8 @@
 export interface RequestRejectedData {
-  studentName: string
-  trackingNumber: string
-  requestType: string
-  reason: string
+  studentName: string;
+  trackingNumber: string;
+  requestType: string;
+  reason: string;
 }
 
 export function requestRejectedTemplate(data: RequestRejectedData) {
@@ -36,5 +36,5 @@ export function requestRejectedTemplate(data: RequestRejectedData) {
   </div>
 </body>
 </html>`,
-  }
+  };
 }

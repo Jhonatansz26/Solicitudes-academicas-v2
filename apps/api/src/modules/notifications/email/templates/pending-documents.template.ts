@@ -1,8 +1,8 @@
 export interface PendingDocumentsData {
-  studentName: string
-  trackingNumber: string
-  requestType: string
-  comment: string | null
+  studentName: string;
+  trackingNumber: string;
+  requestType: string;
+  comment: string | null;
 }
 
 export function pendingDocumentsTemplate(data: PendingDocumentsData) {
@@ -36,5 +36,5 @@ export function pendingDocumentsTemplate(data: PendingDocumentsData) {
   </div>
 </body>
 </html>`,
-  }
+  };
 }

@@ -13,13 +13,17 @@ export class EmailService implements IEmailProvider {
     if (apiKey) {
       this.resend = new Resend(apiKey);
     } else {
-      this.logger.warn('RESEND_API_KEY not configured — emails will be skipped');
+      this.logger.warn(
+        'RESEND_API_KEY not configured — emails will be skipped',
+      );
     }
   }
 
   async send(options: EmailOptions): Promise<void> {
     if (!this.resend) {
-      this.logger.warn(`Email skipped (no API key): "${options.subject}" → ${options.to}`);
+      this.logger.warn(
+        `Email skipped (no API key): "${options.subject}" → ${options.to}`,
+      );
       return;
     }
 
@@ -41,7 +45,9 @@ export class EmailService implements IEmailProvider {
 
       this.logger.log(`Email sent: "${options.subject}" → ${options.to}`);
     } catch (err) {
-      this.logger.error(`Failed to send email "${options.subject}" → ${options.to}: ${err}`);
+      this.logger.error(
+        `Failed to send email "${options.subject}" → ${options.to}: ${err}`,
+      );
       throw err;
     }
   }

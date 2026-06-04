@@ -1,6 +1,6 @@
 export interface WelcomeData {
-  fullName: string
-  role: string
+  fullName: string;
+  role: string;
 }
 
 export function welcomeTemplate(data: WelcomeData) {
@@ -32,5 +32,5 @@ export function welcomeTemplate(data: WelcomeData) {
   </div>
 </body>
 </html>`,
-  }
+  };
 }

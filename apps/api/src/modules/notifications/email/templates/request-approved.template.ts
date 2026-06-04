@@ -1,7 +1,7 @@
 export interface RequestApprovedData {
-  studentName: string
-  trackingNumber: string
-  requestType: string
+  studentName: string;
+  trackingNumber: string;
+  requestType: string;
 }
 
 export function requestApprovedTemplate(data: RequestApprovedData) {
@@ -34,5 +34,5 @@ export function requestApprovedTemplate(data: RequestApprovedData) {
   </div>
 </body>
 </html>`,
-  }
+  };
 }

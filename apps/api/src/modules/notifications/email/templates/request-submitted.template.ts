@@ -1,7 +1,7 @@
 export interface RequestSubmittedData {
-  studentName: string
-  trackingNumber: string
-  requestType: string
+  studentName: string;
+  trackingNumber: string;
+  requestType: string;
 }
 
 export function requestSubmittedTemplate(data: RequestSubmittedData) {
@@ -34,5 +34,5 @@ export function requestSubmittedTemplate(data: RequestSubmittedData) {
   </div>
 </body>
 </html>`,
-  }
+  };
 }
