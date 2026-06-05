@@ -1,0 +1,197 @@
+import { useOfficialDocuments, useDownloadOfficialDocument } from '@/features/requests/hooks/use-official-documents'
+import { formatFileSize } from '@/shared/utils/file'
+import { Button } from '@/shared/components/ui/button'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { Badge } from '@/shared/components/ui/badge'
+import {
+  FileBadge,
+  Download,
+  Eye,
+  Calendar,
+  User,
+  AlertCircle,
+} from 'lucide-react'
+
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  CERTIFICATE: 'Certificado',
+  CONSTANCY: 'Constancia',
+}
+
+const DOCUMENT_TYPE_COLORS: Record<string, string> = {
+  CERTIFICATE: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  CONSTANCY: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+}
+
+interface OfficialDocumentsSectionProps {
+  requestId: string
+}
+
+export function OfficialDocumentsSection({ requestId }: OfficialDocumentsSectionProps) {
+  const { data, isLoading, error } = useOfficialDocuments(requestId)
+  const { download } = useDownloadOfficialDocument()
+
+  const handleDownload = async (documentId: string, fileName: string) => {
+    try {
+      await download(requestId, documentId, fileName)
+    } catch {
+      // Error handled silently — could add toast notification
+    }
+  }
+
+  const handleView = async (documentId: string) => {
+    try {
+      const response = await fetch(
+        `/api/requests/${requestId}/official-documents/${documentId}/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`,
+          },
+        }
+      )
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      window.URL.revokeObjectURL(url)
+    } catch {
+      // Error handled silently — could add toast notification
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-surface">
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-2">
+            <FileBadge className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium text-foreground">Documentos Oficiales</h3>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="space-y-3">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return null
+  }
+
+  const documents = data?.data ?? []
+  const hasDocuments = documents.length > 0
+
+  if (!hasDocuments) {
+    return null
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-surface">
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center gap-2">
+          <FileBadge className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium text-foreground">Documentos Oficiales</h3>
+          {documents.length > 0 && (
+            <span className="text-xs text-muted-foreground">({documents.length})</span>
+          )}
+        </div>
+      </div>
+
+      <div className="p-6">
+        <div className="space-y-2">
+          {documents.map((doc) => {
+            const typeLabel = DOCUMENT_TYPE_LABELS[doc.type] || doc.type
+            const typeColor = DOCUMENT_TYPE_COLORS[doc.type] || 'bg-muted text-muted-foreground'
+
+            return (
+              <div
+                key={doc.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-surface-hover"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="shrink-0">
+                    <FileBadge className="h-5 w-5 text-primary" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-foreground">
+                        {typeLabel}
+                      </p>
+                      <Badge variant="secondary" className={`text-xs font-normal ${typeColor}`}>
+                        v{doc.version}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(doc.createdAt)}
+                      </span>
+                      <span>·</span>
+                      <span>{formatFileSize(doc.fileSize)}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {doc.generator?.fullName || '—'}
+                      </span>
+                    </div>
+
+                    {doc.notes && (
+                      <p className="text-xs text-muted-foreground mt-1.5 italic">
+                        {doc.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0 ml-3 sm:ml-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => handleView(doc.id)}
+                    title="Ver PDF"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => handleDownload(doc.id, doc.fileName)}
+                    title="Descargar PDF"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {error && (
+        <div className="px-6 pb-4">
+          <div className="flex items-start gap-2 rounded-lg border border-danger/20 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>Error al cargar los documentos oficiales</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}

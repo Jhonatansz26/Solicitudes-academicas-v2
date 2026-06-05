@@ -6,6 +6,7 @@ import { AdminRoute } from './admin-route'
 import { LoginPage } from '@/pages/login/login-page'
 import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
+import { DocumentsPage } from '@/pages/documents/documents-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { AdminRequestTypesPage } from '@/pages/admin/admin-request-types-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
@@ -56,7 +57,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/dashboard/documents',
-        element: <Navigate to="/dashboard/requests" replace />,
+        element: <DocumentsPage />,
       },
       {
         path: '/dashboard/settings',

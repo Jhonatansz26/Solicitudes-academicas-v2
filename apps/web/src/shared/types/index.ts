@@ -58,6 +58,32 @@ export interface Attachment {
   updatedAt: string
 }
 
+export type OfficialDocumentType = 'CERTIFICATE' | 'CONSTANCY'
+
+export interface OfficialDocument {
+  id: string
+  requestId: string
+  version: number
+  type: OfficialDocumentType
+  fileName: string
+  filePath: string
+  fileSize: number
+  provider: string
+  notes: string | null
+  generatedBy: string
+  createdAt: string
+  generator?: { id: string; fullName: string; email: string }
+  request?: { id: string; trackingNumber: string; title: string; status: string }
+}
+
+export interface OfficialDocumentsResponse {
+  data: OfficialDocument[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export interface RequestHistory {
   id: string
   requestId: string

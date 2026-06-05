@@ -1,60 +1,294 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { useState } from 'react'
+import { useAllOfficialDocuments, useDownloadOfficialDocumentById } from '@/features/requests/hooks/use-official-documents'
+import { formatFileSize } from '@/shared/utils/file'
 import { Button } from '@/shared/components/ui/button'
-import { FileText, Upload, Download, Trash2 } from 'lucide-react'
+import { Input } from '@/shared/components/ui/input'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { Badge } from '@/shared/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import {
+  FileBadge,
+  Download,
+  Eye,
+  Calendar,
+  User,
+  Search,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const mockDocuments = [
-  { id: 'DOC-001', name: 'certificado_notas.pdf', size: '2.4 MB', date: '2024-01-15', type: 'PDF' },
-  { id: 'DOC-002', name: 'record_academico.pdf', size: '1.8 MB', date: '2024-01-10', type: 'PDF' },
-  { id: 'DOC-003', name: 'carta_motivacion.docx', size: '340 KB', date: '2024-01-08', type: 'DOC' },
-]
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  CERTIFICATE: 'Certificado',
+  CONSTANCY: 'Constancia',
+}
+
+const DOCUMENT_TYPE_COLORS: Record<string, string> = {
+  CERTIFICATE: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  CONSTANCY: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Borrador',
+  SUBMITTED: 'Enviada',
+  IN_REVIEW: 'En revisión',
+  PENDING_DOCUMENTS: 'Docs pendientes',
+  APPROVED: 'Aprobada',
+  REJECTED: 'Rechazada',
+  CANCELLED: 'Cancelada',
+}
 
 export function DocumentsPage() {
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
+  const [search, setSearch] = useState('')
+  const [activeSearch, setActiveSearch] = useState('')
+  const [type, setType] = useState<string>('')
+
+  const { data, isLoading } = useAllOfficialDocuments({
+    page,
+    limit,
+    type: type || undefined,
+    search: activeSearch || undefined,
+  })
+
+  const { download } = useDownloadOfficialDocumentById()
+
+  const handleSearch = () => {
+    setActiveSearch(search)
+    setPage(1)
+  }
+
+  const handleDownload = async (documentId: string, fileName: string) => {
+    try {
+      await download(documentId, fileName)
+    } catch {
+      // Error handled silently
+    }
+  }
+
+  const handleView = async (documentId: string) => {
+    try {
+      const response = await fetch(
+        `/api/official-documents/${documentId}/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`,
+          },
+        }
+      )
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      window.URL.revokeObjectURL(url)
+    } catch {
+      // Error handled silently
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1>Documentos</h1>
+        <h1 className="text-2xl font-bold text-foreground">Documentos Oficiales</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Gestión de archivos adjuntos a tus solicitudes
+          Centro de documentos oficiales generados por el sistema
         </p>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Archivos adjuntos</CardTitle>
-          <Button size="sm" variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Subir archivo
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {mockDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-surface-hover"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/5">
-                    <FileText className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground">{doc.size} Â· {doc.date}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground">
-                    <Download className="h-4 w-4" />
-                  </button>
-                  <button className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+      {/* Filters */}
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por solicitud, tracking o generador..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-9"
+              />
+            </div>
+            <Button size="sm" onClick={handleSearch}>
+              Buscar
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          <Select value={type} onValueChange={(v) => { setType(v); setPage(1) }}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Tipo de documento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="CERTIFICATE">Certificado</SelectItem>
+              <SelectItem value="CONSTANCY">Constancia</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Results */}
+      <div className="rounded-lg border border-border bg-surface">
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileBadge className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium text-foreground">Documentos generados</h3>
+            {data && (
+              <span className="text-xs text-muted-foreground">({data.total} total)</span>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6">
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : data?.data.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
+              <p className="text-sm font-medium text-foreground">Sin documentos oficiales</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Los documentos oficiales se generan automáticamente cuando una solicitud es aprobada
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {data?.data.map((doc) => {
+                const typeLabel = DOCUMENT_TYPE_LABELS[doc.type] || doc.type
+                const typeColor = DOCUMENT_TYPE_COLORS[doc.type] || 'bg-muted text-muted-foreground'
+                const statusLabel = (doc.request?.status && STATUS_LABELS[doc.request.status]) || doc.request?.status || '—'
+
+                return (
+                  <div
+                    key={doc.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-surface-hover"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="shrink-0">
+                        <FileBadge className="h-5 w-5 text-primary" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium text-foreground">
+                            {typeLabel}
+                          </p>
+                          <Badge variant="secondary" className={`text-xs font-normal ${typeColor}`}>
+                            v{doc.version}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {statusLabel}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
+                          <Link
+                            to={`/dashboard/requests/${doc.request?.id}`}
+                            className="hover:text-foreground transition-colors"
+                          >
+                            {doc.request?.title || '—'}
+                          </Link>
+                          <span>·</span>
+                          <span className="font-mono">{doc.request?.trackingNumber}</span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(doc.createdAt)}
+                          </span>
+                          <span>·</span>
+                          <span>{formatFileSize(doc.fileSize)}</span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {doc.generator?.fullName || '—'}
+                          </span>
+                        </div>
+
+                        {doc.notes && (
+                          <p className="text-xs text-muted-foreground mt-1.5 italic">
+                            {doc.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0 ml-3 sm:ml-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleView(doc.id)}
+                        title="Ver PDF"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleDownload(doc.id, doc.fileName)}
+                        title="Descargar PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {data && data.totalPages > 1 && (
+          <div className="p-6 border-t border-border flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Mostrando {((data.page - 1) * data.limit) + 1}–{Math.min(data.page * data.limit, data.total)} de {data.total}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Página {data.page} de {data.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.page >= data.totalPages}
+                onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }

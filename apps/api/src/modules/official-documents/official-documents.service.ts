@@ -15,7 +15,7 @@ import { STORAGE_PROVIDER } from '../documents/documents.module';
 import { PdfService } from './pdf.service';
 import { GenerateDocumentDto } from './dto/generate-document.dto';
 
-import { RoleName, Prisma } from '@prisma/client';
+import { RoleName } from '@prisma/client';
 
 @Injectable()
 export class OfficialDocumentsService {
@@ -154,6 +154,68 @@ export class OfficialDocumentsService {
     });
 
     return document;
+  }
+
+  async findAllGlobal(
+    requesterId: string,
+    role: RoleName,
+    page: number,
+    limit: number,
+    type?: string,
+    search?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+
+    if (role === 'STUDENT') {
+      where.request = { userId: requesterId };
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (search) {
+      where.OR = [
+        { request: { title: { contains: search, mode: 'insensitive' } } },
+        {
+          request: {
+            trackingNumber: { contains: search, mode: 'insensitive' },
+          },
+        },
+        { generator: { fullName: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.officialDocument.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          generator: { select: { id: true, fullName: true, email: true } },
+          request: {
+            select: {
+              id: true,
+              trackingNumber: true,
+              title: true,
+              status: true,
+            },
+          },
+        },
+      }),
+      this.prisma.officialDocument.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getLatest(requestId: string, requesterId: string, role: RoleName) {

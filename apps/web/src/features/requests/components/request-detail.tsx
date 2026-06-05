@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRequest, useSubmitRequest, useCancelRequest } from '@/features/requests/hooks/use-requests'
+import { useOfficialDocuments } from '@/features/requests/hooks/use-official-documents'
 import { DocumentsSection } from '@/features/requests/components/documents-section'
+import { OfficialDocumentsSection } from '@/features/requests/components/official-documents-section'
 import { ReviewPanel } from '@/features/requests/components/review-panel'
 import { AwaitingDocumentsBanner } from '@/features/requests/components/awaiting-documents-banner'
 import { StatusBadge } from '@/features/requests/components/status-badge'
@@ -34,6 +36,7 @@ export function RequestDetail() {
   const { data: request, isLoading } = useRequest(id || '')
   const { mutate: submit, isPending: submitting } = useSubmitRequest()
   const { mutate: cancel, isPending: cancelling } = useCancelRequest()
+  const { data: officialDocs } = useOfficialDocuments(id || '')
   const [confirmAction, setConfirmAction] = useState<'submit' | 'cancel' | null>(null)
 
   const isOwner = request?.userId === user?.id
@@ -208,6 +211,10 @@ export function RequestDetail() {
       </div>
 
       {id && isReviewer && <ReviewPanel requestId={id} currentStatus={request.status} />}
+
+      {id && (officialDocs?.data?.length ?? 0) > 0 && (
+        <OfficialDocumentsSection requestId={id} />
+      )}
 
       <div data-documents-section>
         {id && <DocumentsSection requestId={id} />}
