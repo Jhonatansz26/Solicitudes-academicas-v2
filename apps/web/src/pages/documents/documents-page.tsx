@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAllOfficialDocuments, useDownloadOfficialDocumentById } from '@/features/requests/hooks/use-official-documents'
 import { formatFileSize } from '@/shared/utils/file'
+import { api } from '@/shared/api'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -50,12 +51,12 @@ export function DocumentsPage() {
   const [limit] = useState(20)
   const [search, setSearch] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
-  const [type, setType] = useState<string>('')
+  const [type, setType] = useState<string>('ALL')
 
   const { data, isLoading } = useAllOfficialDocuments({
     page,
     limit,
-    type: type || undefined,
+    type: type === 'ALL' ? undefined : type,
     search: activeSearch || undefined,
   })
 
@@ -76,20 +77,15 @@ export function DocumentsPage() {
 
   const handleView = async (documentId: string) => {
     try {
-      const response = await fetch(
+      const response = await api.get(
         `/api/official-documents/${documentId}/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`,
-          },
-        }
+        { responseType: 'blob' }
       )
-      const blob = await response.blob()
+      const blob = new Blob([response.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       window.open(url, '_blank')
-      window.URL.revokeObjectURL(url)
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      console.error('Ver PDF failed:', err)
     }
   }
 
@@ -126,7 +122,7 @@ export function DocumentsPage() {
               <SelectValue placeholder="Tipo de documento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="ALL">Todos</SelectItem>
               <SelectItem value="CERTIFICATE">Certificado</SelectItem>
               <SelectItem value="CONSTANCY">Constancia</SelectItem>
             </SelectContent>

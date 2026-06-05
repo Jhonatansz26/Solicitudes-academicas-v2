@@ -1,5 +1,6 @@
 import { useOfficialDocuments, useDownloadOfficialDocument } from '@/features/requests/hooks/use-official-documents'
 import { formatFileSize } from '@/shared/utils/file'
+import { api } from '@/shared/api'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Badge } from '@/shared/components/ui/badge'
@@ -40,18 +41,13 @@ export function OfficialDocumentsSection({ requestId }: OfficialDocumentsSection
 
   const handleView = async (documentId: string) => {
     try {
-      const response = await fetch(
+      const response = await api.get(
         `/api/requests/${requestId}/official-documents/${documentId}/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`,
-          },
-        }
+        { responseType: 'blob' }
       )
-      const blob = await response.blob()
+      const blob = new Blob([response.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       window.open(url, '_blank')
-      window.URL.revokeObjectURL(url)
     } catch {
       // Error handled silently — could add toast notification
     }
