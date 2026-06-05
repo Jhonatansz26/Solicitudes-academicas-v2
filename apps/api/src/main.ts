@@ -41,40 +41,42 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Solicitudes Académicas API')
-    .setDescription(
-      'API REST para la gestión de solicitudes académicas en la universidad. Soporta solicitudes de certificados, homologaciones, cancelaciones y más con un flujo de aprobación multirol.',
-    )
-    .setVersion('v1')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Ingrese su token de acceso JWT',
-      },
-      'bearer',
-    )
-    .addTag('Auth', 'Autenticación y gestión de usuarios')
-    .addTag(
-      'Requests',
-      'Gestión de solicitudes académicas y flujo de aprobación',
-    )
-    .addTag('Documents', 'Subida, descarga y gestión de documentos adjuntos')
-    .addTag('Users', 'Gestión de usuarios (solo administrador)')
-    .build();
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Solicitudes Académicas API')
+      .setDescription(
+        'API REST para la gestión de solicitudes académicas en la universidad. Soporta solicitudes de certificados, homologaciones, cancelaciones y más con un flujo de aprobación multirol.',
+      )
+      .setVersion('v1')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Ingrese su token de acceso JWT',
+        },
+        'bearer',
+      )
+      .addTag('Auth', 'Autenticación y gestión de usuarios')
+      .addTag(
+        'Requests',
+        'Gestión de solicitudes académicas y flujo de aprobación',
+      )
+      .addTag('Documents', 'Subida, descarga y gestión de documentos adjuntos')
+      .addTag('Users', 'Gestión de usuarios (solo administrador)')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
-    customSiteTitle: 'Solicitudes Académicas API — Docs',
-    swaggerOptions: {
-      persistAuthorization: true,
-      defaultModelsExpandDepth: 2,
-      displayRequestDuration: true,
-      filter: true,
-    },
-  });
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document, {
+      customSiteTitle: 'Solicitudes Académicas API — Docs',
+      swaggerOptions: {
+        persistAuthorization: true,
+        defaultModelsExpandDepth: 2,
+        displayRequestDuration: true,
+        filter: true,
+      },
+    });
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

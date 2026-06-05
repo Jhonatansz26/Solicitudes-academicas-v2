@@ -257,7 +257,7 @@ export class RequestsService {
       );
     }
 
-    if (dto.newStatus === 'REJECTED' && !dto.comment) {
+    if (dto.newStatus === 'REJECTED' && !dto.comment?.trim()) {
       throw new BadRequestException(
         'Se requiere un motivo al rechazar una solicitud',
       );
@@ -288,7 +288,7 @@ export class RequestsService {
       dto.newStatus,
       request.status,
       actorId,
-      dto.comment ?? null,
+      dto.comment?.trim() ?? null,
     );
   }
 
