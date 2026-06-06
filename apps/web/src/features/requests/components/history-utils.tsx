@@ -26,7 +26,7 @@ const STATUS_ICONS: Record<string, { icon: ReactNode; color: string; label: stri
   DRAFT: { icon: <FileText className="h-4 w-4" />, color: 'text-muted-foreground', label: 'Borrador creado' },
   SUBMITTED: { icon: <Send className="h-4 w-4" />, color: 'text-info', label: 'Solicitud enviada' },
   IN_REVIEW: { icon: <FileSearch className="h-4 w-4" />, color: 'text-warning', label: 'En revisión' },
-  PENDING_DOCUMENTS: { icon: <Upload className="h-4 w-4" />, color: 'text-warning', label: 'Documentos pendientes' },
+  PENDING_DOCUMENTS: { icon: <Upload className="h-4 w-4" />, color: 'text-warning', label: 'Docs. pendientes' },
   APPROVED: { icon: <CheckCircle className="h-4 w-4" />, color: 'text-success', label: 'Aprobada' },
   REJECTED: { icon: <XCircle className="h-4 w-4" />, color: 'text-danger', label: 'Rechazada' },
   CANCELLED: { icon: <X className="h-4 w-4" />, color: 'text-muted-foreground', label: 'Cancelada' },

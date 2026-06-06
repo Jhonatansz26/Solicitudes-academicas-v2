@@ -56,7 +56,7 @@ export function AdminRequestTypesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Tipos de Solicitud</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Tipos de Solicitud</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Administra los tipos de solicitud disponibles en el sistema
           </p>

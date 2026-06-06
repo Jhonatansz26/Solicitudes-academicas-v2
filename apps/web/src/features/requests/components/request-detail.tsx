@@ -78,7 +78,7 @@ export function RequestDetail() {
   const lastComment = request.history?.find((h) => h.comment)?.comment ?? undefined
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/requests')}>
@@ -143,129 +143,135 @@ export function RequestDetail() {
         />
       )}
 
-      <div className="rounded-lg border border-border bg-surface">
-        <div className="p-6 border-b border-border space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {request.trackingNumber}
-                </span>
-                <StatusBadge status={request.status} />
-              </div>
-              <h2 className="text-xl font-semibold text-foreground">{request.title}</h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <FileText className="h-3 w-3" />
-                Tipo
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                {request.requestType?.name || '—'}
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                Creada
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                {formatDate(request.createdAt)}
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <User className="h-3 w-3" />
-                Solicitante
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                {request.user?.fullName || '—'}
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                Actualizada
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                {formatDate(request.updatedAt)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {request.description && (
-          <div className="p-6 border-b border-border">
-            <h3 className="text-sm font-medium text-foreground mb-2">Descripción</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {request.description}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {id && isReviewer && <ReviewPanel requestId={id} currentStatus={request.status} />}
-
-      {id && (officialDocs?.data?.length ?? 0) > 0 && (
-        <OfficialDocumentsSection requestId={id} />
-      )}
-
-      <div data-documents-section>
-        {id && <DocumentsSection requestId={id} />}
-      </div>
-
-      <div className="rounded-lg border border-border bg-surface">
-        <div className="p-6 border-b border-border">
-          <h3 className="text-sm font-medium text-foreground">Historial de cambios</h3>
-        </div>
-
-        <div className="p-6">
-          {request.history && request.history.length > 0 ? (
-            <div className="space-y-0">
-              {request.history.map((entry, index) => (
-                <div key={entry.id} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getHistoryColor(entry.newStatus)} bg-surface border border-border`}>
-                      {getHistoryIcon(entry.newStatus)}
-                    </div>
-                    {index < (request.history?.length ?? 0) - 1 && (
-                      <div className="w-px flex-1 bg-border my-1" />
-                    )}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="flex-1 space-y-6 min-w-0 lg:max-w-[calc(100%-340px)]">
+          <div className="rounded-lg border border-border bg-surface">
+            <div className="p-6 border-b border-border space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {request.trackingNumber}
+                    </span>
+                    <StatusBadge status={request.status} />
                   </div>
-                  <div className="pb-6 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-foreground">
-                        {getHistoryLabel(entry.newStatus)}
-                      </span>
-                      {entry.previousStatus && entry.previousStatus !== entry.newStatus && (
-                        <span className="text-xs text-muted-foreground">
-                          (de {entry.previousStatus})
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDateTime(entry.createdAt)}
-                    </p>
-                    {entry.comment && (
-                      <div className="mt-2 rounded-md bg-surface-hover px-3 py-2 text-xs text-muted-foreground">
-                        {entry.comment}
-                      </div>
-                    )}
-                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">{request.title}</h2>
                 </div>
-              ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <FileText className="h-3 w-3" />
+                    Tipo
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {request.requestType?.name || '—'}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    Creada
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatDate(request.createdAt)}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    Solicitante
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {request.user?.fullName || '—'}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    Actualizada
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatDate(request.updatedAt)}
+                  </p>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay historial disponible
-            </p>
+
+            {request.description && (
+              <div className="p-6 border-b border-border">
+                <h3 className="text-sm font-medium text-foreground mb-2">Descripción</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {request.description}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {id && (officialDocs?.data?.length ?? 0) > 0 && (
+            <OfficialDocumentsSection requestId={id} />
           )}
+
+          <div data-documents-section>
+            {id && <DocumentsSection requestId={id} />}
+          </div>
+        </div>
+
+        <div className="w-full space-y-6 lg:w-[320px] lg:shrink-0">
+          {id && isReviewer && <ReviewPanel requestId={id} currentStatus={request.status} />}
+
+          <div className="rounded-lg border border-border bg-surface">
+            <div className="p-6 border-b border-border">
+              <h3 className="text-sm font-medium text-foreground">Historial de cambios</h3>
+            </div>
+
+            <div className="p-6">
+              {request.history && request.history.length > 0 ? (
+                <div className="space-y-0">
+                  {request.history.map((entry, index) => (
+                    <div key={entry.id} className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getHistoryColor(entry.newStatus)} bg-surface border border-border`}>
+                          {getHistoryIcon(entry.newStatus)}
+                        </div>
+                        {index < (request.history?.length ?? 0) - 1 && (
+                          <div className="w-px flex-1 bg-border my-1" />
+                        )}
+                      </div>
+                      <div className="pb-6 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-foreground">
+                            {getHistoryLabel(entry.newStatus)}
+                          </span>
+                          {entry.previousStatus && entry.previousStatus !== entry.newStatus && (
+                            <span className="text-xs text-muted-foreground">
+                              (desde {getHistoryLabel(entry.previousStatus)})
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatDateTime(entry.createdAt)}
+                        </p>
+                        {entry.comment && (
+                          <div className="mt-2 rounded-md bg-surface-hover px-3 py-2 text-xs text-muted-foreground">
+                            {entry.comment}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay historial disponible
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

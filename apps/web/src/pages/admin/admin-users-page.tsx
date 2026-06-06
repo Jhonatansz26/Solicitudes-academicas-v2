@@ -52,6 +52,7 @@ import {
 } from 'lucide-react'
 import type { AdminUser, RoleName, CreateUserInput } from '@/shared/types'
 import { FilterChip } from '@/shared/components/filter-chip'
+import { cn } from '@/shared/lib/utils'
 
 const ROLE_CONFIG: Record<RoleName, { variant: string; label: string }> = {
   ADMIN: { variant: 'role-admin', label: 'Admin' },
@@ -133,7 +134,7 @@ export function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Usuarios</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Usuarios</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gestiona los usuarios del sistema
           </p>
@@ -145,10 +146,10 @@ export function AdminUsersPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard icon={Users} label="Total usuarios" value={kpis.total} color="text-primary" loading={isLoading} />
-        <KpiCard icon={UserCheck} label="Activos" value={kpis.active} color="text-success" loading={isLoading} />
-        <KpiCard icon={UserX} label="Inactivos" value={kpis.inactive} color="text-muted-foreground" loading={isLoading} />
-        <KpiCard icon={GraduationCap} label="Estudiantes" value={kpis.students} color="text-info" loading={isLoading} />
+        <KpiCard icon={Users} label="Total usuarios" value={kpis.total} variant="primary" loading={isLoading} />
+        <KpiCard icon={UserCheck} label="Activos" value={kpis.active} variant="success" loading={isLoading} />
+        <KpiCard icon={UserX} label="Inactivos" value={kpis.inactive} variant="danger" loading={isLoading} />
+        <KpiCard icon={GraduationCap} label="Estudiantes" value={kpis.students} variant="info" loading={isLoading} />
       </div>
 
       <div className="space-y-3">
@@ -478,30 +479,57 @@ export function AdminUsersPage() {
   )
 }
 
+const kpiVariantStyles = {
+  primary: {
+    bar: 'bg-primary',
+    iconBg: 'bg-primary/10 dark:bg-navy-900/50',
+    iconColor: 'text-primary dark:text-navy-200',
+  },
+  success: {
+    bar: 'bg-success',
+    iconBg: 'bg-success-soft',
+    iconColor: 'text-success',
+  },
+  danger: {
+    bar: 'bg-danger',
+    iconBg: 'bg-danger-soft',
+    iconColor: 'text-danger',
+  },
+  info: {
+    bar: 'bg-info',
+    iconBg: 'bg-info-soft',
+    iconColor: 'text-info',
+  },
+}
+
 function KpiCard({
   icon: Icon,
   label,
   value,
-  color,
+  variant,
   loading,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: number
-  color: string
+  variant: keyof typeof kpiVariantStyles
   loading?: boolean
 }) {
+  const styles = kpiVariantStyles[variant]
   return (
-    <Card>
+    <Card className="overflow-hidden">
+      <div className={cn('h-1.5 w-full', styles.bar)} />
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className={`h-4 w-4 ${color}`} />
+        <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', styles.iconBg)}>
+          <Icon className={cn('h-4 w-4', styles.iconColor)} />
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <Skeleton className="h-8 w-12" />
         ) : (
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-3xl font-display font-bold tracking-tight text-foreground">{value}</p>
         )}
       </CardContent>
     </Card>

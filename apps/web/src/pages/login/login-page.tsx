@@ -143,7 +143,7 @@ export function LoginPage() {
       </div>
 
       <p className="text-center text-xs text-muted-foreground/60">
-        Sistema de Solicitudes Académicas © 2024
+        Sistema de Solicitudes Académicas © {new Date().getFullYear()}
       </p>
     </div>
   )

@@ -12,27 +12,27 @@ interface StatCardProps {
 
 const variantStyles = {
   primary: {
-    bar: 'bg-accent-bar',
+    bar: 'bg-primary',
     iconBg: 'bg-primary/10 dark:bg-navy-900/50',
     iconColor: 'text-primary dark:text-navy-200',
   },
   warning: {
-    bar: 'bg-accent-bar',
+    bar: 'bg-warning',
     iconBg: 'bg-warning-soft',
     iconColor: 'text-warning',
   },
   success: {
-    bar: 'bg-accent-bar',
+    bar: 'bg-success',
     iconBg: 'bg-success-soft',
     iconColor: 'text-success',
   },
   danger: {
-    bar: 'bg-accent-bar',
+    bar: 'bg-danger',
     iconBg: 'bg-danger-soft',
     iconColor: 'text-danger',
   },
   info: {
-    bar: 'bg-accent-bar',
+    bar: 'bg-info',
     iconBg: 'bg-info-soft',
     iconColor: 'text-info',
   },

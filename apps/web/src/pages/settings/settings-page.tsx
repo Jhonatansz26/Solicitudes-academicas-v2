@@ -138,7 +138,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-8">
       <div className="animate-fade-in-up">
-        <h1 className="font-display text-2xl font-bold tracking-tight">Configuración</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Configuración</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Gestiona tu perfil, seguridad y preferencias
         </p>

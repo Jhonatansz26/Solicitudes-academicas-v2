@@ -170,9 +170,9 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatFileSize(doc.fileSize)}</span>
-                      <span>Â·</span>
+                      <span>·</span>
                       <span>{getFileTypeLabel(doc.mimeType)}</span>
-                      <span>Â·</span>
+                      <span>·</span>
                       <span>{formatDate(doc.createdAt)}</span>
                     </div>
                   </div>

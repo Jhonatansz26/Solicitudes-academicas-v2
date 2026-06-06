@@ -20,7 +20,7 @@ export function DashboardPage() {
   const roleLabel = user?.role ? roleLabels[user.role] || user.role : ''
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="animate-fade-in-up">
         <h1 className="font-display text-3xl font-bold tracking-tight">
           Centro de Control
@@ -99,7 +99,7 @@ export function DashboardPage() {
 function StatCardSkeleton() {
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="h-1.5 w-full bg-accent-bar/30 animate-pulse" />
+      <div className="h-1.5 w-full bg-primary/20 animate-pulse" />
       <div className="p-6 space-y-4">
         <div className="h-12 w-12 rounded-xl bg-muted animate-pulse" />
         <div className="h-10 w-20 rounded bg-muted animate-pulse" />

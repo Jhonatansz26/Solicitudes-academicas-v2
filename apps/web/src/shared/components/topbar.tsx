@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, ChevronRight, User, LogOut } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
 import { ThemeToggle } from '@/shared/components/theme-toggle'
@@ -53,10 +53,23 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const currentPath = location.pathname
-  const label = routeLabels[currentPath] || 'Dashboard'
-
+  
   const initials = user?.fullName ? getInitials(user.fullName) : 'U'
   const gradient = user?.fullName ? getUserGradient(user.fullName) : 'from-navy-700 to-blue-500'
+
+  const getBreadcrumb = () => {
+    if (currentPath === '/dashboard') {
+      return <><span className="text-muted-foreground">Portal</span><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base">Dashboard</span></>
+    }
+    
+    if (currentPath.startsWith('/dashboard/requests/')) {
+      const requestId = currentPath.split('/dashboard/requests/')[1]
+      return <><Link to="/dashboard/requests" className="text-muted-foreground hover:text-foreground transition-colors">Solicitudes</Link><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base max-w-[200px] truncate" title={requestId}>{requestId}</span></>
+    }
+    
+    const label = routeLabels[currentPath] || 'Dashboard'
+    return <><Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Portal</Link><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base">{label}</span></>
+  }
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-surface/95 backdrop-blur-md px-4 md:px-6">
@@ -69,11 +82,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </button>
 
         <nav className="flex items-center gap-1.5 text-sm">
-          <span className="text-muted-foreground">Portal</span>
-          <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-          <span className="font-display font-bold text-primary text-base">
-            {label}
-          </span>
+          {getBreadcrumb()}
         </nav>
       </div>
 
@@ -82,13 +91,19 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                'ml-1 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white bg-gradient-to-br transition-all hover:ring-2 hover:ring-primary/30',
-                gradient
-              )}
-            >
-              {initials}
+            <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-hover">
+              <div className="hidden text-right md:block">
+                <p className="text-sm font-semibold text-foreground leading-tight">{user?.fullName}</p>
+                <p className="text-xs text-muted-foreground leading-tight">{user?.email}</p>
+              </div>
+              <div
+                className={cn(
+                  'flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white bg-gradient-to-br transition-all hover:ring-2 hover:ring-primary/30',
+                  gradient
+                )}
+              >
+                {initials}
+              </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

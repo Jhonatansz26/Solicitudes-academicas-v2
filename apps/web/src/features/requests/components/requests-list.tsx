@@ -26,7 +26,32 @@ import { useNavigate } from 'react-router-dom'
 import { usePermissions } from '@/shared/hooks/use-permissions'
 import { REQUEST_STATUS_CONFIG } from '@/shared/constants'
 import { FilterChip } from '@/shared/components/filter-chip'
+import { cn } from '@/shared/lib/utils'
 import type { RequestStatus } from '@/shared/types'
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function getAvatarGradient(name: string): string {
+  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const gradients = [
+    'from-indigo-500 to-purple-500',
+    'from-cyan-500 to-teal-500',
+    'from-emerald-500 to-green-500',
+    'from-amber-500 to-yellow-500',
+    'from-red-500 to-rose-500',
+    'from-navy-700 to-blue-500',
+    'from-violet-500 to-purple-500',
+    'from-gold-500 to-amber-500',
+  ]
+  return gradients[hash % gradients.length]
+}
 
 const QUICK_FILTERS: { key: string; label: string; statuses: RequestStatus[] }[] = [
   { key: 'pending_review', label: 'Pendientes', statuses: ['SUBMITTED', 'IN_REVIEW'] },
@@ -70,7 +95,7 @@ export function RequestsList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Solicitudes</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Solicitudes</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gestión y seguimiento de solicitudes académicas
           </p>
@@ -199,12 +224,11 @@ export function RequestsList() {
         <>
           <div className="rounded-lg border border-border bg-surface overflow-hidden">
             <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <div className="col-span-2">Tracking</div>
-              <div className="col-span-4">Título</div>
-              <div className="col-span-2">Tipo</div>
+              <div className="col-span-4">Solicitud</div>
+              <div className="col-span-2">Solicitante</div>
               <div className="col-span-2">Estado</div>
-              <div className="col-span-1">Fecha</div>
-              <div className="col-span-1"></div>
+              <div className="col-span-2">Fecha</div>
+              <div className="col-span-2"></div>
             </div>
 
             {data?.data.map((req) => (
@@ -213,38 +237,51 @@ export function RequestsList() {
                 className="group grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 px-4 py-3.5 border-b border-border last:border-0 items-center transition-colors hover:bg-surface-hover cursor-pointer"
                 onClick={() => navigate(`/dashboard/requests/${req.id}`)}
               >
-                <div className="sm:col-span-2">
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {req.trackingNumber}
-                  </span>
-                </div>
-
                 <div className="sm:col-span-4">
-                  <p className="text-sm font-medium text-foreground truncate">{req.title}</p>
-                  {req.description && (
-                    <p className="text-xs text-muted-foreground truncate sm:hidden">
-                      {req.description}
-                    </p>
-                  )}
+                  <p className="text-sm font-semibold text-foreground truncate">{req.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {req.trackingNumber}
+                    </span>
+                    {req.requestType?.name && (
+                      <span className="text-xs text-muted-foreground bg-surface-hover px-1.5 py-0.5 rounded">
+                        {req.requestType.name}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <span className="text-sm text-muted-foreground">
-                    {req.requestType?.name || '—'}
-                  </span>
+                  {req.user ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white bg-gradient-to-br',
+                          getAvatarGradient(req.user.fullName)
+                        )}
+                      >
+                        {getInitials(req.user.fullName)}
+                      </div>
+                      <span className="text-sm text-foreground truncate">
+                        {req.user.fullName.split(' ')[0]}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
                   <StatusBadge status={req.status} />
                 </div>
 
-                <div className="sm:col-span-1">
+                <div className="sm:col-span-2">
                   <span className="text-xs text-muted-foreground">
                     {formatDate(req.createdAt)}
                   </span>
                 </div>
 
-                <div className="sm:col-span-1 flex justify-end">
+                <div className="sm:col-span-2 flex justify-end">
                   <ArrowUpRight className="h-4 w-4 text-muted-foreground sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity" />
                 </div>
               </div>

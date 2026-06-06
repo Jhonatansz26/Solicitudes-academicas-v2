@@ -29,7 +29,7 @@ const badgeVariants = cva(
         // Role variants
         "role-admin": "bg-primary/10 text-primary border border-primary/20 dark:bg-navy-900/60 dark:text-gold-400 dark:border-gold-700/50",
         "role-student": "bg-info-soft text-info border border-info/20",
-        "role-staff": "bg-warning-soft text-warning border border-warning/20",
+        "role-staff": "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800",
         "role-coordinator": "bg-primary/10 text-primary border border-primary/20 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800",
         // State variants
         active: "bg-success-soft text-success border border-success/20",

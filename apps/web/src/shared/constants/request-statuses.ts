@@ -17,13 +17,13 @@ export const REQUEST_STATUS_CONFIG: Record<
     border: 'border-info/20',
   },
   IN_REVIEW: {
-    label: 'En revisiÃ³n',
+    label: 'En revisión',
     color: 'text-warning',
     bg: 'bg-warning-soft',
     border: 'border-warning/20',
   },
   PENDING_DOCUMENTS: {
-    label: 'Pendiente documentos',
+    label: 'Docs. pendientes',
     color: 'text-warning',
     bg: 'bg-warning-soft',
     border: 'border-warning/20',
