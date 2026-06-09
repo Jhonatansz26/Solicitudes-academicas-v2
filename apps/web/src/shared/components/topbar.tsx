@@ -53,52 +53,52 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const currentPath = location.pathname
-  
+
   const initials = user?.fullName ? getInitials(user.fullName) : 'U'
   const gradient = user?.fullName ? getUserGradient(user.fullName) : 'from-navy-700 to-blue-500'
 
   const getBreadcrumb = () => {
     if (currentPath === '/dashboard') {
-      return <><span className="text-muted-foreground">Portal</span><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base">Dashboard</span></>
+      return <><span className="text-slate-500 dark:text-slate-400 text-xs font-medium">Portal Académico</span><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">Dashboard</span></>
     }
-    
+
     if (currentPath.startsWith('/dashboard/requests/')) {
       const requestId = currentPath.split('/dashboard/requests/')[1]
-      return <><Link to="/dashboard/requests" className="text-muted-foreground hover:text-foreground transition-colors">Solicitudes</Link><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base max-w-[200px] truncate" title={requestId}>{requestId}</span></>
+      return <><Link to="/dashboard/requests" className="text-slate-500 dark:text-slate-400 text-xs font-medium hover:text-foreground transition-colors">Solicitudes</Link><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm max-w-[200px] truncate" title={requestId}>{requestId}</span></>
     }
-    
+
     const label = routeLabels[currentPath] || 'Dashboard'
-    return <><Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Portal</Link><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="font-display font-bold text-primary text-base">{label}</span></>
+    return <><Link to="/dashboard" className="text-slate-500 dark:text-slate-400 text-xs font-medium hover:text-foreground transition-colors">Portal Académico</Link><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">{label}</span></>
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-surface/95 backdrop-blur-md px-4 md:px-6">
+    <header className="w-full flex items-center justify-between glass-panel rounded-2xl p-4 shadow-premium-sm">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-md p-1.5 text-muted-foreground hover:bg-surface-hover lg:hidden"
+          className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-5 w-5" />
         </button>
 
-        <nav className="flex items-center gap-1.5 text-sm">
+        <nav className="hidden sm:flex items-center gap-2 text-xs font-medium">
           {getBreadcrumb()}
         </nav>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-hover">
+            <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
               <div className="hidden text-right md:block">
-                <p className="text-sm font-semibold text-foreground leading-tight">{user?.fullName}</p>
-                <p className="text-xs text-muted-foreground leading-tight">{user?.email}</p>
+                <p className="text-sm font-semibold text-[#0d1b3e] dark:text-white leading-tight">{user?.fullName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{user?.email}</p>
               </div>
               <div
                 className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white bg-gradient-to-br transition-all hover:ring-2 hover:ring-primary/30',
+                  'flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white bg-gradient-to-br transition-all hover:ring-2 hover:ring-primary/30',
                   gradient
                 )}
               >

@@ -11,8 +11,8 @@ export function FilterChip({ label, onRemove, className }: FilterChipProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground transition-colors',
-        'hover:bg-surface-hover',
+        'inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground shadow-sm transition-colors',
+        'hover:border-border-hover hover:bg-surface-hover',
         className,
       )}
     >
