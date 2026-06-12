@@ -7,10 +7,10 @@ export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-background p-3 md:p-4 lg:p-6 gap-6 relative overflow-x-hidden">
+    <div className="flex min-h-screen bg-background p-2 sm:p-4 lg:p-6 gap-4 lg:gap-6 relative overflow-x-hidden">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex flex-1 flex-col gap-6 min-w-0">
+      <div className="flex flex-1 flex-col gap-4 lg:gap-6 min-w-0">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="flex-1 w-full min-w-0">

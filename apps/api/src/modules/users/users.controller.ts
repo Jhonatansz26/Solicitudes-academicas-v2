@@ -85,6 +85,32 @@ export class UsersController {
     return this.usersService.getUsersStats();
   }
 
+  @Get(':id/request-stats')
+  @ApiOperation({
+    summary: 'Estadísticas de solicitudes de un usuario',
+    description:
+      'Retorna el total de solicitudes, aprobadas, borradores y pendientes de un usuario específico.',
+  })
+  @ApiOkResponse({ description: 'Estadísticas de solicitudes del usuario' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
+  getUserRequestStats(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.getUserRequestStats(id);
+  }
+
+  @Get(':id/activity')
+  @ApiOperation({
+    summary: 'Actividad reciente de un usuario',
+    description:
+      'Retorna las últimas actividades del usuario: solicitudes creadas, cambios de estado, documentos subidos y documentos oficiales generados.',
+  })
+  @ApiOkResponse({ description: 'Lista de actividades recientes' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
+  getUserActivity(
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.usersService.getUserActivity(id);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener detalle de usuario',

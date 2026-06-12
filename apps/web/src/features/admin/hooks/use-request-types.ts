@@ -4,17 +4,28 @@ import {
   createRequestType,
   updateRequestType,
   deleteRequestType,
+  fetchRequestTypeStats,
 } from '@/features/admin/api/request-types-api'
 
 export const requestTypesKeys = {
   all: ['request-types'] as const,
   admin: () => [...requestTypesKeys.all, 'admin'] as const,
+  stats: (id: string) => [...requestTypesKeys.all, 'stats', id] as const,
 }
 
 export function useAllRequestTypes() {
   return useQuery({
     queryKey: requestTypesKeys.admin(),
     queryFn: fetchAllRequestTypes,
+  })
+}
+
+export function useRequestTypeStats(typeId: string) {
+  return useQuery({
+    queryKey: requestTypesKeys.stats(typeId),
+    queryFn: () => fetchRequestTypeStats(typeId),
+    enabled: !!typeId,
+    staleTime: 2 * 60 * 1000,
   })
 }
 

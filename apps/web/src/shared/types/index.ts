@@ -92,6 +92,7 @@ export interface RequestHistory {
   userId: string | null
   comment: string | null
   createdAt: string
+  user?: { id: string; fullName: string } | null
 }
 
 export interface Request {

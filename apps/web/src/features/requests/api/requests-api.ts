@@ -69,3 +69,23 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   const { data } = await api.get<DashboardStats>('/api/requests/stats')
   return data
 }
+
+export interface AcademicStats {
+  certificatesIssued: number
+  homologationsApproved: number
+  requestsFinalized: number
+  cancellations: number
+  averageResponseTime: number
+  processedThisWeek: number
+  overdueCases: number
+  sla: number
+  expiringSoon: number
+  pendingOver5Days: number
+  pendingSignature: number
+  pendingDocuments: number
+}
+
+export async function fetchAcademicStats(): Promise<AcademicStats> {
+  const { data } = await api.get<AcademicStats>('/api/requests/academic-stats')
+  return data
+}

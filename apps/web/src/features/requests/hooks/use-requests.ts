@@ -4,12 +4,14 @@ import {
   fetchRequest,
   fetchRequestTypes,
   fetchDashboardStats,
+  fetchAcademicStats,
   createRequest,
   submitRequest,
   cancelRequest,
   changeRequestStatus,
   type RequestsQuery,
   type ChangeStatusInput,
+  type AcademicStats,
 } from '@/features/requests/api/requests-api'
 
 export const requestsKeys = {
@@ -19,6 +21,7 @@ export const requestsKeys = {
   types: () => [...requestsKeys.all, 'types'] as const,
   details: () => [...requestsKeys.all, 'detail'] as const,
   detail: (id: string) => [...requestsKeys.details(), id] as const,
+  academicStats: () => [...requestsKeys.all, 'academic-stats'] as const,
 }
 
 export function useRequests(query: RequestsQuery) {
@@ -41,6 +44,14 @@ export function useDashboardStats() {
     queryKey: ['dashboard', 'stats'],
     queryFn: fetchDashboardStats,
     staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useAcademicStats() {
+  return useQuery<AcademicStats>({
+    queryKey: requestsKeys.academicStats(),
+    queryFn: fetchAcademicStats,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

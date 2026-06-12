@@ -32,3 +32,14 @@ export async function deleteRequestType(id: string): Promise<RequestType> {
   const { data } = await api.delete<RequestType>(`/api/requests/types/${id}`)
   return data
 }
+
+export interface RequestTypeStats {
+  total: number
+  thisMonth: number
+  approvalRate: number
+}
+
+export async function fetchRequestTypeStats(typeId: string): Promise<RequestTypeStats> {
+  const { data } = await api.get<RequestTypeStats>(`/api/requests/types/${typeId}/stats`)
+  return data
+}

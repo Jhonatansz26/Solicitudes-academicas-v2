@@ -115,6 +115,13 @@ export class RequestsService {
             fullName: true,
             email: true,
             documentNumber: true,
+            studentProfile: {
+              select: {
+                program: true,
+                semester: true,
+                studentCode: true,
+              },
+            },
           },
         },
         attachments: { orderBy: { createdAt: 'desc' } },
@@ -343,6 +350,47 @@ export class RequestsService {
     });
   }
 
+  async getRequestTypeStats(typeId: string) {
+    const type = await this.prisma.requestType.findUnique({ where: { id: typeId } });
+    if (!type) {
+      throw new NotFoundException('Tipo de solicitud no encontrado');
+    }
+
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [total, thisMonth, byStatus] = await Promise.all([
+      this.prisma.request.count({ where: { requestTypeId: typeId } }),
+      this.prisma.request.count({
+        where: {
+          requestTypeId: typeId,
+          createdAt: { gte: firstDayOfMonth },
+        },
+      }),
+      this.prisma.request.groupBy({
+        by: ['status'],
+        where: { requestTypeId: typeId },
+        _count: { status: true },
+      }),
+    ]);
+
+    const counts: Record<string, number> = {};
+    for (const entry of byStatus) {
+      counts[entry.status] = entry._count.status;
+    }
+
+    const approved = counts['APPROVED'] || 0;
+    const finalized =
+      approved + (counts['REJECTED'] || 0) + (counts['CANCELLED'] || 0);
+    const approvalRate = finalized > 0 ? (approved / finalized) * 100 : 0;
+
+    return {
+      total,
+      thisMonth,
+      approvalRate: Math.round(approvalRate * 10) / 10,
+    };
+  }
+
   async getStats(userId: string, role: RoleName) {
     const where = role === 'STUDENT' ? { userId } : {};
 
@@ -382,6 +430,149 @@ export class RequestsService {
       rejected: counts['REJECTED'] || 0,
       cancelled: counts['CANCELLED'] || 0,
       recentActivity,
+    };
+  }
+
+  async getAcademicStats() {
+    const now = new Date();
+    const finalStatuses: RequestStatus[] = ['APPROVED', 'REJECTED', 'CANCELLED'];
+
+    // Start of current week (Monday)
+    const startOfWeek = new Date(now);
+    const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ...
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(now.getDate() - daysToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // 1. Indicadores Académicos (4 parallel counts)
+    const [certificatesIssued, homologationsApproved, requestsFinalized, cancellations] =
+      await Promise.all([
+        this.prisma.request.count({
+          where: {
+            status: 'APPROVED',
+            requestType: { name: 'Certificado' },
+          },
+        }),
+        this.prisma.request.count({
+          where: {
+            status: 'APPROVED',
+            requestType: { name: 'Homologación' },
+          },
+        }),
+        this.prisma.request.count({
+          where: { status: { in: finalStatuses } },
+        }),
+        this.prisma.request.count({
+          where: { status: 'CANCELLED' },
+        }),
+      ]);
+
+    // 2. Rendimiento Operativo
+    // Load finalized requests with minimal data for averageResponseTime and sla
+    const finalizedRequests = await this.prisma.request.findMany({
+      where: { status: { in: finalStatuses } },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+        requestType: { select: { estimatedDays: true } },
+      },
+    });
+
+    let averageResponseTime = 0;
+    let sla = 0;
+
+    if (finalizedRequests.length > 0) {
+      let totalDays = 0;
+      let withinSLA = 0;
+
+      for (const req of finalizedRequests) {
+        const days =
+          (req.updatedAt.getTime() - req.createdAt.getTime()) /
+          (1000 * 60 * 60 * 24);
+        totalDays += days;
+        if (days <= req.requestType.estimatedDays) {
+          withinSLA++;
+        }
+      }
+
+      averageResponseTime =
+        Math.round((totalDays / finalizedRequests.length) * 10) / 10;
+      sla =
+        Math.round((withinSLA / finalizedRequests.length) * 1000) / 10;
+    }
+
+    // processedThisWeek
+    const processedThisWeek = await this.prisma.request.count({
+      where: {
+        status: { in: finalStatuses },
+        updatedAt: { gte: startOfWeek },
+      },
+    });
+
+    // overdueCases and expiringSoon - combined query for efficiency
+    const activeRequests = await this.prisma.request.findMany({
+      where: { status: { notIn: finalStatuses } },
+      select: {
+        createdAt: true,
+        requestType: { select: { estimatedDays: true } },
+      },
+    });
+
+    let overdueCases = 0;
+    let expiringSoon = 0;
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+
+    for (const req of activeRequests) {
+      const daysSinceCreation =
+        (now.getTime() - req.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      const deadlineMs =
+        req.createdAt.getTime() +
+        req.requestType.estimatedDays * 24 * 60 * 60 * 1000;
+      const timeToDeadline = deadlineMs - now.getTime();
+
+      if (daysSinceCreation > req.requestType.estimatedDays) {
+        overdueCases++;
+      } else if (timeToDeadline < twentyFourHoursInMs && timeToDeadline > 0) {
+        expiringSoon++;
+      }
+    }
+
+    // 3. Alertas (3 parallel counts)
+    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+
+    const [pendingOver5Days, pendingSignature, pendingDocuments] =
+      await Promise.all([
+        this.prisma.request.count({
+          where: {
+            status: { notIn: finalStatuses },
+            requestType: { name: 'Homologación' },
+            createdAt: { lte: fiveDaysAgo },
+          },
+        }),
+        this.prisma.request.count({
+          where: {
+            status: 'APPROVED',
+            officialDocuments: { none: {} },
+          },
+        }),
+        this.prisma.request.count({
+          where: { status: 'PENDING_DOCUMENTS' },
+        }),
+      ]);
+
+    return {
+      certificatesIssued,
+      homologationsApproved,
+      requestsFinalized,
+      cancellations,
+      averageResponseTime,
+      processedThisWeek,
+      overdueCases,
+      sla,
+      expiringSoon,
+      pendingOver5Days,
+      pendingSignature,
+      pendingDocuments,
     };
   }
 

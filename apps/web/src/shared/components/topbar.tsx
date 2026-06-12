@@ -59,16 +59,16 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
   const getBreadcrumb = () => {
     if (currentPath === '/dashboard') {
-      return <><span className="text-slate-500 dark:text-slate-400 text-xs font-medium">Portal Académico</span><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">Dashboard</span></>
+      return <><span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Portal Académico</span><ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">Dashboard</span></>
     }
 
     if (currentPath.startsWith('/dashboard/requests/')) {
       const requestId = currentPath.split('/dashboard/requests/')[1]
-      return <><Link to="/dashboard/requests" className="text-slate-500 dark:text-slate-400 text-xs font-medium hover:text-foreground transition-colors">Solicitudes</Link><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm max-w-[200px] truncate" title={requestId}>{requestId}</span></>
+      return <><Link to="/dashboard/requests" className="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-foreground transition-colors">Solicitudes</Link><ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm max-w-[200px] truncate" title={requestId}>{requestId}</span></>
     }
 
     const label = routeLabels[currentPath] || 'Dashboard'
-    return <><Link to="/dashboard" className="text-slate-500 dark:text-slate-400 text-xs font-medium hover:text-foreground transition-colors">Portal Académico</Link><ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">{label}</span></>
+    return <><Link to="/dashboard" className="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-foreground transition-colors">Portal Académico</Link><ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" /><span className="font-display font-semibold text-[#0d1b3e] dark:text-white text-sm">{label}</span></>
   }
 
   return (

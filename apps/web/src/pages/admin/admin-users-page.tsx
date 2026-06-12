@@ -8,11 +8,25 @@ import {
   useUsers,
   useRoles,
   useUsersStats,
+  useUserRequestStats,
+  useUserActivity,
   useCreateUser,
   useUpdateUser,
   useUpdateUserStatus,
   useDeleteUser,
 } from '@/features/admin/hooks/use-users'
+import {
+  DetailDrawer,
+  DrawerHeader,
+  DrawerBody,
+  DrawerFooter,
+  DrawerSection,
+  DrawerDetailRow,
+  DrawerStatPill,
+  DrawerEmptyState,
+  DrawerActivityItem,
+} from '@/shared/components/detail-drawer'
+import { KpiCard } from '@/shared/components/kpi-card'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import {
@@ -30,11 +44,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/shared/components/ui/dropdown-menu'
 import { Badge } from '@/shared/components/ui/badge'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Label } from '@/shared/components/ui/label'
 import { DeleteConfirmationDialog } from '@/shared/components/delete-confirmation-dialog'
+import { FilterChip } from '@/shared/components/filter-chip'
 import {
   Plus,
   Search,
@@ -49,9 +69,10 @@ import {
   Loader2,
   AlertCircle,
   X,
+  MoreVertical,
+  Eye,
 } from 'lucide-react'
 import type { AdminUser, RoleName, CreateUserInput } from '@/shared/types'
-import { FilterChip } from '@/shared/components/filter-chip'
 import { cn } from '@/shared/lib/utils'
 
 const ROLE_CONFIG: Record<RoleName, { variant: string; label: string }> = {
@@ -85,6 +106,30 @@ const editUserSchema = z.object({
 type CreateUserForm = z.infer<typeof createUserSchema>
 type EditUserForm = z.infer<typeof editUserSchema>
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function getAvatarGradient(name: string): string {
+  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const gradients = [
+    'from-indigo-500 to-purple-500',
+    'from-cyan-500 to-teal-500',
+    'from-emerald-500 to-green-500',
+    'from-amber-500 to-yellow-500',
+    'from-red-500 to-rose-500',
+    'from-navy-700 to-blue-500',
+    'from-violet-500 to-purple-500',
+    'from-gold-500 to-amber-500',
+  ]
+  return gradients[hash % gradients.length]
+}
+
 export function AdminUsersPage() {
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -106,6 +151,9 @@ export function AdminUsersPage() {
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
   const [toggleTarget, setToggleTarget] = useState<AdminUser | null>(null)
+  const [drawerUser, setDrawerUser] = useState<AdminUser | null>(null)
+  const { data: userRequestStats } = useUserRequestStats(drawerUser?.id ?? '')
+  const { data: userActivity, isLoading: activityLoading } = useUserActivity(drawerUser?.id ?? '')
 
   const setParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams)
@@ -130,35 +178,77 @@ export function AdminUsersPage() {
     students: statsData?.students ?? 0,
   }
 
+  const hasActiveFilters = search || roleFilter || isActiveFilter
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Usuarios</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona los usuarios del sistema
-          </p>
+    <div className="space-y-5">
+      {/* Compact Hero */}
+      <div className="glass-panel rounded-2xl p-5 border-l-4 border-l-gold-500 shadow-premium-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="space-y-1 min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Directorio Institucional
+            </p>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground leading-tight">
+              Usuarios del Sistema
+            </h1>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Gestión de cuentas, roles y permisos del portal académico
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              Nuevo usuario
+            </Button>
+          </div>
         </div>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo usuario
-        </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard icon={Users} label="Total usuarios" value={kpis.total} variant="primary" loading={isLoading} />
-        <KpiCard icon={UserCheck} label="Activos" value={kpis.active} variant="success" loading={isLoading} />
-        <KpiCard icon={UserX} label="Inactivos" value={kpis.inactive} variant="danger" loading={isLoading} />
-        <KpiCard icon={GraduationCap} label="Estudiantes" value={kpis.students} variant="info" loading={isLoading} />
+      {/* KPI Strip */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Total Usuarios"
+          value={kpis.total}
+          icon={Users}
+          variant="primary"
+          trend="En el sistema"
+          loading={isLoading && !statsData}
+        />
+        <KpiCard
+          label="Activos"
+          value={kpis.active}
+          icon={UserCheck}
+          variant="success"
+          trend="Con acceso"
+          loading={isLoading && !statsData}
+        />
+        <KpiCard
+          label="Inactivos"
+          value={kpis.inactive}
+          icon={UserX}
+          variant="danger"
+          trend="Sin acceso"
+          loading={isLoading && !statsData}
+        />
+        <KpiCard
+          label="Estudiantes"
+          value={kpis.students}
+          icon={GraduationCap}
+          variant="info"
+          trend="Ing. Sistemas"
+          loading={isLoading && !statsData}
+        />
       </div>
 
-      <div className="space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      {/* Toolbar */}
+      <div className="glass-panel rounded-xl p-3.5 shadow-premium-sm">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre o documento..."
-              className="pl-9"
+              placeholder="Buscar por nombre, correo o documento..."
+              className="pl-9 h-8 text-sm"
               defaultValue={search}
               onBlur={(e) => setParam('search', e.target.value || null)}
               onKeyDown={(e) => {
@@ -168,7 +258,7 @@ export function AdminUsersPage() {
           </div>
 
           <Select value={roleFilter ?? ''} onValueChange={(v) => setParam('role', v || null)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px] h-8 text-sm">
               <SelectValue placeholder="Todos los roles" />
             </SelectTrigger>
             <SelectContent>
@@ -179,7 +269,7 @@ export function AdminUsersPage() {
           </Select>
 
           <Select value={isActiveFilter ?? ''} onValueChange={(v) => setParam('isActive', v || null)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[150px] h-8 text-sm">
               <SelectValue placeholder="Todos los estados" />
             </SelectTrigger>
             <SelectContent>
@@ -188,23 +278,21 @@ export function AdminUsersPage() {
             </SelectContent>
           </Select>
 
-          {(search || roleFilter || isActiveFilter) && (
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setSearchParams({})
-              }}
-              className="text-muted-foreground"
+              onClick={() => setSearchParams({})}
+              className="h-8 text-xs text-muted-foreground"
             >
-              <X className="mr-1.5 h-3.5 w-3.5" />
-              Limpiar filtros
+              <X className="mr-1 h-3 w-3" />
+              Limpiar
             </Button>
           )}
         </div>
 
-        {(search || roleFilter || isActiveFilter) && (
-          <div className="flex flex-wrap gap-2">
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-border">
             {search && (
               <FilterChip label={`Búsqueda: "${search}"`} onRemove={() => setParam('search', null)} />
             )}
@@ -224,36 +312,36 @@ export function AdminUsersPage() {
         )}
       </div>
 
+      {/* Table */}
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
         </div>
       ) : isError ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-danger/20 bg-danger-soft py-16 text-center">
-          <AlertCircle className="mb-3 h-10 w-10 text-danger/50" />
-          <h3 className="text-base font-medium text-foreground">Error al cargar usuarios</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-danger-soft py-14 text-center glass-panel">
+          <AlertCircle className="mb-3 h-9 w-9 text-danger/50" />
+          <h3 className="text-sm font-medium text-foreground">Error al cargar usuarios</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
             Reintentar
           </Button>
         </div>
       ) : users.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface py-16 text-center">
-          <Users className="mb-3 h-10 w-10 text-muted-foreground/50" />
-          <h3 className="text-base font-medium text-foreground">No se encontraron usuarios</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {search || roleFilter || isActiveFilter
-              ? 'Intenta cambiar los filtros de búsqueda'
-              : 'Crea el primer usuario del sistema'}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface py-14 text-center glass-panel">
+          <Users className="mb-3 h-9 w-9 text-muted-foreground/50" />
+          <h3 className="text-sm font-medium text-foreground">No se encontraron usuarios</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {hasActiveFilters ? 'Intenta cambiar los filtros de búsqueda' : 'Crea el primer usuario del sistema'}
           </p>
         </div>
       ) : (
         <>
-          <div className="rounded-lg border border-border bg-surface overflow-hidden">
-            <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <div className="col-span-3">Nombre</div>
+          <div className="rounded-xl border border-border bg-surface overflow-hidden glass-panel">
+            {/* Table Header */}
+            <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-4 py-2.5 border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-surface-hover/50">
+              <div className="col-span-3">Usuario</div>
               <div className="col-span-3">Correo</div>
               <div className="col-span-2">Documento</div>
               <div className="col-span-1">Rol</div>
@@ -262,43 +350,60 @@ export function AdminUsersPage() {
               <div className="col-span-1"></div>
             </div>
 
+            {/* Table Rows */}
             {users.map((user) => (
               <div
                 key={user.id}
-                className="group grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 px-4 py-3.5 border-b border-border last:border-0 items-center transition-colors hover:bg-surface-hover"
+                className="group grid grid-cols-12 gap-3 px-4 py-3 border-b border-border border-l-2 border-l-transparent last:border-0 items-center transition-all duration-150 hover:bg-gold-50/30 hover:border-l-gold-500 dark:hover:bg-gold-500/[0.04] cursor-pointer"
+                onClick={() => setDrawerUser(user)}
               >
-                <div className="sm:col-span-3">
-                  <p className="text-sm font-medium text-foreground">{user.fullName}</p>
-                  {user.studentProfile && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user.studentProfile.program} — Semestre {user.studentProfile.semester}
-                    </p>
-                  )}
+                <div className="col-span-12 sm:col-span-3 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white bg-gradient-to-br',
+                        getAvatarGradient(user.fullName)
+                      )}
+                    >
+                      {getInitials(user.fullName)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">{user.fullName}</p>
+                      {user.studentProfile && (
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {user.studentProfile.program} — Sem. {user.studentProfile.semester}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="sm:col-span-3">
-                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                <div className="col-span-12 sm:col-span-3 min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <span className="text-sm font-mono text-muted-foreground">{user.documentNumber}</span>
+                <div className="col-span-6 sm:col-span-2">
+                  <span className="text-xs font-mono text-muted-foreground">{user.documentNumber}</span>
                 </div>
 
-                <div className="sm:col-span-1">
-                  <Badge variant={ROLE_CONFIG[user.role.name]?.variant as never}>
+                <div className="col-span-4 sm:col-span-1">
+                  <Badge variant={ROLE_CONFIG[user.role.name]?.variant as never} className="text-[10px]">
                     {ROLE_CONFIG[user.role.name]?.label}
                   </Badge>
                 </div>
 
-                <div className="sm:col-span-1">
+                <div className="col-span-6 sm:col-span-1">
                   <button
-                    onClick={() => setToggleTarget(user)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setToggleTarget(user)
+                    }}
                     disabled={toggling}
                     className="p-0 cursor-pointer"
                   >
                     <Badge
                       variant={user.isActive ? 'active' : 'inactive'}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-[10px]"
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${user.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
                       {user.isActive ? 'Activo' : 'Inactivo'}
@@ -306,53 +411,66 @@ export function AdminUsersPage() {
                   </button>
                 </div>
 
-                <div className="sm:col-span-1">
-                  <span className="text-xs text-muted-foreground">
+                <div className="col-span-4 sm:col-span-1">
+                  <span className="text-[10px] text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
 
-                <div className="sm:col-span-1 flex items-center gap-1 justify-end sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
-                    onClick={() => setEditTarget(user)}
-                    aria-label="Editar usuario"
+                <div className="col-span-2 sm:col-span-1 flex justify-end">
+                  <div
+                    className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-danger/10 hover:text-danger"
-                    onClick={() => setDeleteTarget(user)}
-                    disabled={deleting}
-                    aria-label="Eliminar usuario"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon-xs" className="h-7 w-7">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36">
+                        <DropdownMenuItem onClick={() => setDrawerUser(user)}>
+                          <Eye className="mr-2 h-3.5 w-3.5" />
+                          Ver detalle
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditTarget(user)}>
+                          <Pencil className="mr-2 h-3.5 w-3.5" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteTarget(user)}
+                          className="text-danger focus:text-danger"
+                          disabled={deleting}
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Pagination */}
           {data && data.totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Mostrando {users.length} de {data.total} usuarios
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => handlePageChange(page - 1)}
+                  className="h-7 text-xs"
                 >
                   <ChevronLeft className="mr-1 h-3 w-3" />
                   Anterior
                 </Button>
-                <span className="text-sm text-muted-foreground px-2">
+                <span className="text-xs text-muted-foreground px-2">
                   Página {page} de {data.totalPages}
                 </span>
                 <Button
@@ -360,6 +478,7 @@ export function AdminUsersPage() {
                   size="sm"
                   disabled={page >= data.totalPages}
                   onClick={() => handlePageChange(page + 1)}
+                  className="h-7 text-xs"
                 >
                   Siguiente
                   <ChevronRight className="ml-1 h-3 w-3" />
@@ -370,6 +489,118 @@ export function AdminUsersPage() {
         </>
       )}
 
+      {/* Detail Drawer */}
+      <DetailDrawer open={!!drawerUser} onClose={() => setDrawerUser(null)}>
+        {drawerUser && (
+          <>
+            <DrawerHeader
+              eyebrow="Perfil de Usuario"
+              title={drawerUser.fullName}
+              subtitle={drawerUser.email}
+              badges={
+                <>
+                  <Badge variant={ROLE_CONFIG[drawerUser.role.name]?.variant as never} className="text-[10px]">
+                    {ROLE_CONFIG[drawerUser.role.name]?.label}
+                  </Badge>
+                  <Badge variant={drawerUser.isActive ? 'active' : 'inactive'} className="text-[10px]">
+                    <span className={`h-1.5 w-1.5 rounded-full ${drawerUser.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
+                    {drawerUser.isActive ? 'Activo' : 'Inactivo'}
+                  </Badge>
+                </>
+              }
+              onClose={() => setDrawerUser(null)}
+            />
+            <DrawerBody>
+              <DrawerSection title="Datos Básicos">
+                <DrawerDetailRow label="Documento" value={<span className="font-mono">{drawerUser.documentNumber}</span>} />
+                {drawerUser.studentProfile && (
+                  <>
+                    <DrawerDetailRow label="Programa" value={drawerUser.studentProfile.program} />
+                    <DrawerDetailRow label="Semestre" value={drawerUser.studentProfile.semester.toString()} />
+                    <DrawerDetailRow label="Código" value={<span className="font-mono">{drawerUser.studentProfile.studentCode}</span>} />
+                  </>
+                )}
+                <DrawerDetailRow label="Rol asignado" value={ROLE_CONFIG[drawerUser.role.name]?.label ?? drawerUser.role.name} />
+                <DrawerDetailRow
+                  label="Fecha registro"
+                  value={new Date(drawerUser.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                />
+              </DrawerSection>
+
+              <DrawerSection title="Solicitudes Creadas">
+                <div className="flex gap-2 flex-wrap">
+                  <DrawerStatPill value={userRequestStats?.total ?? 0} label="Total" />
+                  <DrawerStatPill value={userRequestStats?.approved ?? 0} label="Aprobadas" valueColor="text-success" />
+                  <DrawerStatPill value={userRequestStats?.draft ?? 0} label="Borradores" valueColor="text-muted-foreground" />
+                  <DrawerStatPill value={userRequestStats?.pending ?? 0} label="Pendientes" valueColor="text-warning" />
+                </div>
+                {(userRequestStats?.total ?? 0) === 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-2">Sin solicitudes registradas aún</p>
+                )}
+              </DrawerSection>
+
+              <DrawerSection title="Actividad Reciente">
+                {activityLoading ? (
+                  <div className="space-y-2.5">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="flex items-start gap-2.5 py-2">
+                        <Skeleton className="h-2 w-2 rounded-full shrink-0 mt-1.5" />
+                        <div className="flex-1 space-y-1.5">
+                          <Skeleton className="h-3 w-3/4" />
+                          <Skeleton className="h-2.5 w-1/3" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : userActivity && userActivity.length > 0 ? (
+                  userActivity.slice(0, 5).map((item) => (
+                    <DrawerActivityItem
+                      key={item.id}
+                      color={
+                        item.type === 'request_created' ? 'bg-info' :
+                        item.type === 'status_changed' ? 'bg-warning' :
+                        item.type === 'document_uploaded' ? 'bg-primary' :
+                        'bg-success'
+                      }
+                      text={item.description}
+                      time={formatRelativeTime(item.createdAt)}
+                    />
+                  ))
+                ) : (
+                  <DrawerEmptyState text="Sin actividad registrada" />
+                )}
+              </DrawerSection>
+            </DrawerBody>
+            <DrawerFooter>
+              <Button
+                variant="gold"
+                size="sm"
+                className="flex-1"
+                onClick={() => {
+                  setDrawerUser(null)
+                  setEditTarget(drawerUser)
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Editar usuario
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-danger border-danger/30 hover:bg-danger/10"
+                onClick={() => {
+                  setDrawerUser(null)
+                  setToggleTarget(drawerUser)
+                }}
+              >
+                {drawerUser.isActive ? 'Desactivar' : 'Activar'}
+              </Button>
+            </DrawerFooter>
+          </>
+        )}
+      </DetailDrawer>
+
+      {/* Create User Dialog */}
       <CreateUserDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -388,6 +619,7 @@ export function AdminUsersPage() {
         }}
       />
 
+      {/* Edit User Dialog */}
       {editTarget && (
         <EditUserDialog
           user={editTarget}
@@ -408,6 +640,7 @@ export function AdminUsersPage() {
         />
       )}
 
+      {/* Delete Confirmation */}
       {deleteTarget && (
         <DeleteConfirmationDialog
           open={!!deleteTarget}
@@ -431,6 +664,7 @@ export function AdminUsersPage() {
         />
       )}
 
+      {/* Toggle Status Dialog */}
       {toggleTarget && (
         <Dialog open={!!toggleTarget} onOpenChange={() => setToggleTarget(null)}>
           <DialogContent>
@@ -476,63 +710,6 @@ export function AdminUsersPage() {
         </Dialog>
       )}
     </div>
-  )
-}
-
-const kpiVariantStyles = {
-  primary: {
-    bar: 'bg-primary',
-    iconBg: 'bg-primary/10 dark:bg-navy-900/50',
-    iconColor: 'text-primary dark:text-navy-200',
-  },
-  success: {
-    bar: 'bg-success',
-    iconBg: 'bg-success-soft',
-    iconColor: 'text-success',
-  },
-  danger: {
-    bar: 'bg-danger',
-    iconBg: 'bg-danger-soft',
-    iconColor: 'text-danger',
-  },
-  info: {
-    bar: 'bg-info',
-    iconBg: 'bg-info-soft',
-    iconColor: 'text-info',
-  },
-}
-
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  variant,
-  loading,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  value: number
-  variant: keyof typeof kpiVariantStyles
-  loading?: boolean
-}) {
-  const styles = kpiVariantStyles[variant]
-  return (
-    <Card className="overflow-hidden">
-      <div className={cn('h-1.5 w-full', styles.bar)} />
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', styles.iconBg)}>
-          <Icon className={cn('h-4 w-4', styles.iconColor)} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <Skeleton className="h-8 w-12" />
-        ) : (
-          <p className="text-3xl font-display font-bold tracking-tight text-foreground">{value}</p>
-        )}
-      </CardContent>
-    </Card>
   )
 }
 
@@ -816,4 +993,17 @@ function EditUserDialog({
       </DialogContent>
     </Dialog>
   )
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return 'Ahora'
+  if (minutes < 60) return `Hace ${minutes} min`
+  if (hours < 24) return `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+  if (days < 30) return `Hace ${days} ${days === 1 ? 'día' : 'días'}`
+  return new Date(dateStr).toLocaleDateString('es-CO')
 }

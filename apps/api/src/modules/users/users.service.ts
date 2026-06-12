@@ -142,6 +142,175 @@ export class UsersService {
     return { total, active, inactive, students };
   }
 
+  async getUserRequestStats(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const byStatus = await this.prisma.request.groupBy({
+      by: ['status'],
+      where: { userId },
+      _count: { status: true },
+    });
+
+    const counts: Record<string, number> = {};
+    for (const entry of byStatus) {
+      counts[entry.status] = entry._count.status;
+    }
+
+    return {
+      total: Object.values(counts).reduce((a, b) => a + b, 0),
+      approved: counts['APPROVED'] || 0,
+      draft: counts['DRAFT'] || 0,
+      pending:
+        (counts['SUBMITTED'] || 0) +
+        (counts['IN_REVIEW'] || 0) +
+        (counts['PENDING_DOCUMENTS'] || 0),
+    };
+  }
+
+  async getUserActivity(userId: string, limit = 10) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const [requests, history, attachments, officialDocs] = await Promise.all([
+      this.prisma.request.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          trackingNumber: true,
+          title: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.requestHistory.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          newStatus: true,
+          comment: true,
+          createdAt: true,
+          request: {
+            select: { id: true, trackingNumber: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.attachment.findMany({
+        where: { uploadedBy: userId },
+        select: {
+          id: true,
+          originalName: true,
+          createdAt: true,
+          request: {
+            select: { id: true, trackingNumber: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.officialDocument.findMany({
+        where: { generatedBy: userId },
+        select: {
+          id: true,
+          type: true,
+          createdAt: true,
+          request: {
+            select: { id: true, trackingNumber: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+    ]);
+
+    type ActivityItem = {
+      id: string;
+      type:
+        | 'request_created'
+        | 'status_changed'
+        | 'document_uploaded'
+        | 'document_generated';
+      description: string;
+      requestId?: string;
+      trackingNumber?: string;
+      createdAt: string;
+    };
+
+    const items: ActivityItem[] = [];
+
+    for (const req of requests) {
+      items.push({
+        id: `req-${req.id}`,
+        type: 'request_created',
+        description: `Solicitud "${req.title}" creada`,
+        requestId: req.id,
+        trackingNumber: req.trackingNumber,
+        createdAt: req.createdAt.toISOString(),
+      });
+    }
+
+    for (const h of history) {
+      items.push({
+        id: `hist-${h.id}`,
+        type: 'status_changed',
+        description: `Estado cambiado a ${h.newStatus}`,
+        requestId: h.request?.id,
+        trackingNumber: h.request?.trackingNumber,
+        createdAt: h.createdAt.toISOString(),
+      });
+    }
+
+    for (const att of attachments) {
+      items.push({
+        id: `att-${att.id}`,
+        type: 'document_uploaded',
+        description: `Documento "${att.originalName}" cargado`,
+        requestId: att.request?.id,
+        trackingNumber: att.request?.trackingNumber,
+        createdAt: att.createdAt.toISOString(),
+      });
+    }
+
+    for (const doc of officialDocs) {
+      const typeLabel =
+        doc.type === 'CERTIFICATE'
+          ? 'Certificado'
+          : doc.type === 'CONSTANCY'
+            ? 'Constancia'
+            : 'Documento oficial';
+      items.push({
+        id: `doc-${doc.id}`,
+        type: 'document_generated',
+        description: `${typeLabel} generado`,
+        requestId: doc.request?.id,
+        trackingNumber: doc.request?.trackingNumber,
+        createdAt: doc.createdAt.toISOString(),
+      });
+    }
+
+    items.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return items.slice(0, limit);
+  }
+
   async create(dto: CreateUserDto) {
     const role = await this.prisma.role.findUnique({
       where: { id: dto.roleId },

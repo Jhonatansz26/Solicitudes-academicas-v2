@@ -188,6 +188,24 @@ export class RequestsController {
     return this.requestsService.deleteRequestType(id);
   }
 
+  @Get('types/:id/stats')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Estadísticas de uso de un tipo de solicitud',
+    description:
+      'Retorna el total de solicitudes, solicitudes del mes y tasa de aprobación para un tipo específico. Solo administrador.',
+  })
+  @ApiOkResponse({ description: 'Estadísticas del tipo de solicitud' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  @ApiNotFoundResponse({ description: 'Tipo de solicitud no encontrado' })
+  getTypeStats(@Param('id', ParseUUIDPipe) id: string) {
+    return this.requestsService.getRequestTypeStats(id);
+  }
+
   @Get('stats')
   @ApiOperation({
     summary: 'Obtener estadísticas del panel',
@@ -201,6 +219,23 @@ export class RequestsController {
   stats(@Req() req: AuthenticatedRequest) {
     const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
     return this.requestsService.getStats(req.user.id, role);
+  }
+
+  @Get('academic-stats')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'COORDINATOR', 'STAFF')
+  @ApiOperation({
+    summary: 'Estadísticas académicas para el Dashboard',
+    description:
+      'Retorna métricas reales de indicadores académicos, rendimiento operativo y alertas. Solo ADMIN, COORDINATOR y STAFF.',
+  })
+  @ApiOkResponse({ description: 'Estadísticas académicas' })
+  @ApiUnauthorizedResponse({
+    description: 'Token de acceso ausente o inválido',
+  })
+  @ApiForbiddenResponse({ description: 'Permisos insuficientes' })
+  getAcademicStats() {
+    return this.requestsService.getAcademicStats();
   }
 
   @Get(':id')

@@ -8,7 +8,10 @@ import {
   deleteUser,
   fetchRoles,
   fetchUsersStats,
+  fetchUserRequestStats,
+  fetchUserActivity,
   type UsersQuery,
+  type UserActivity,
 } from '@/features/admin/api/users-api'
 
 export const usersKeys = {
@@ -49,6 +52,24 @@ export function useUsersStats() {
     queryKey: usersKeys.stats(),
     queryFn: fetchUsersStats,
     staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useUserRequestStats(userId: string) {
+  return useQuery({
+    queryKey: [...usersKeys.all, 'request-stats', userId],
+    queryFn: () => fetchUserRequestStats(userId),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useUserActivity(userId: string) {
+  return useQuery<UserActivity[]>({
+    queryKey: [...usersKeys.all, 'activity', userId],
+    queryFn: () => fetchUserActivity(userId),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

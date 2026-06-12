@@ -62,3 +62,35 @@ export async function fetchUsersStats(): Promise<UsersStats> {
   const { data } = await api.get<UsersStats>('/api/users/stats')
   return data
 }
+
+export interface UserRequestStats {
+  total: number
+  approved: number
+  draft: number
+  pending: number
+}
+
+export async function fetchUserRequestStats(userId: string): Promise<UserRequestStats> {
+  const { data } = await api.get<UserRequestStats>(`/api/users/${userId}/request-stats`)
+  return data
+}
+
+export type ActivityType =
+  | 'request_created'
+  | 'status_changed'
+  | 'document_uploaded'
+  | 'document_generated'
+
+export interface UserActivity {
+  id: string
+  type: ActivityType
+  description: string
+  requestId?: string
+  trackingNumber?: string
+  createdAt: string
+}
+
+export async function fetchUserActivity(userId: string, limit = 10): Promise<UserActivity[]> {
+  const { data } = await api.get<UserActivity[]>(`/api/users/${userId}/activity?limit=${limit}`)
+  return data
+}
