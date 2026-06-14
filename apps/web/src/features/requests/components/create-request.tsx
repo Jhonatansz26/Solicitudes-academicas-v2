@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { useCreateRequest, useRequestTypes } from '@/features/requests/hooks/use-requests'
+import { usePermissions } from '@/shared/hooks/use-permissions'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
@@ -17,8 +19,15 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
 const createSchema = z.object({
-  title: z.string().min(3, 'El título debe tener al menos 3 caracteres').max(200, 'El título es demasiado largo'),
-  description: z.string().max(1000, 'La descripción es demasiado larga').optional().or(z.literal('')),
+  title: z
+    .string()
+    .min(3, 'El título debe tener al menos 3 caracteres')
+    .max(200, 'El título es demasiado largo'),
+  description: z
+    .string()
+    .max(1000, 'La descripción es demasiado larga')
+    .optional()
+    .or(z.literal('')),
   requestTypeId: z.string().min(1, 'Selecciona un tipo de solicitud'),
 })
 
@@ -26,8 +35,15 @@ type CreateForm = z.infer<typeof createSchema>
 
 export function CreateRequest() {
   const navigate = useNavigate()
+  const { canCreateRequest } = usePermissions()
   const { data: types, isLoading: loadingTypes } = useRequestTypes()
   const { mutate: create, isPending } = useCreateRequest()
+
+  useEffect(() => {
+    if (!canCreateRequest()) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [canCreateRequest, navigate])
 
   const {
     register,

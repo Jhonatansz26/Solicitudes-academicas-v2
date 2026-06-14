@@ -41,7 +41,7 @@ export class OfficialDocumentsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles('STAFF', 'COORDINATOR', 'ADMIN')
+  @Roles('COORDINATOR', 'ADMIN')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Generar documento oficial' })
   @ApiResponse({ status: 201, description: 'Documento generado exitosamente' })
@@ -51,7 +51,8 @@ export class OfficialDocumentsController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Solo funcionarios pueden generar documentos',
+    description:
+      'Solo COORDINATOR y ADMIN pueden generar documentos oficiales finales. STAFF y STUDENT bloqueados.',
   })
   @ApiResponse({ status: 404, description: 'Solicitud no encontrada' })
   async generate(
@@ -59,7 +60,7 @@ export class OfficialDocumentsController {
     @Param('requestId') requestId: string,
     @Body() dto: GenerateDocumentDto,
   ) {
-    const role = req.user.role as 'STAFF' | 'COORDINATOR' | 'ADMIN';
+    const role = req.user.role as 'COORDINATOR' | 'ADMIN';
     return this.officialDocumentsService.generate(
       requestId,
       dto,

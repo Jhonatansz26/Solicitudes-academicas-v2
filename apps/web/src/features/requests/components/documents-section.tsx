@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useRequestDocuments, useUploadDocument, useDeleteDocument } from '@/features/requests/hooks/use-documents'
 import { downloadDocument } from '@/features/requests/api/documents-api'
 import { formatFileSize, getFileIcon, getFileTypeLabel } from '@/shared/utils/file'
+import { usePermissions } from '@/shared/hooks/use-permissions'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
@@ -21,6 +22,7 @@ import {
   AlertCircle,
   Paperclip,
 } from 'lucide-react'
+import type { RequestStatus } from '@/shared/types'
 
 const ALLOWED_TYPES = [
   'application/pdf',
@@ -36,15 +38,24 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 interface DocumentsSectionProps {
   requestId: string
+  requestStatus: RequestStatus
+  requestUserId: string
 }
 
-export function DocumentsSection({ requestId }: DocumentsSectionProps) {
+export function DocumentsSection({
+  requestId,
+  requestStatus,
+  requestUserId,
+}: DocumentsSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { data: documents, isLoading } = useRequestDocuments(requestId)
   const { mutate: upload, isPending: uploading } = useUploadDocument()
   const { mutate: deleteDoc, isPending: deleting } = useDeleteDocument()
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const { canUploadToRequest, canDeleteAttachment } = usePermissions()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; uploadedBy: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const canUpload = canUploadToRequest(requestUserId, requestStatus)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -111,21 +122,23 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
           className="absolute w-0 h-0 opacity-0 pointer-events-none"
           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
           onChange={handleFileSelect}
-          disabled={uploading}
+          disabled={uploading || !canUpload}
         />
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Upload className="mr-2 h-4 w-4" />
-          )}
-          {uploading ? 'Subiendo...' : 'Subir archivo'}
-        </Button>
+        {canUpload && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            {uploading ? 'Subiendo...' : 'Subir archivo'}
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -154,51 +167,66 @@ export function DocumentsSection({ requestId }: DocumentsSectionProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            {documents?.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-surface-hover"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="shrink-0">
-                    {getFileIcon(doc.mimeType)}
-                  </div>
+            {documents?.map((doc) => {
+              const canDelete = canDeleteAttachment(
+                doc.uploadedBy,
+                requestUserId,
+                requestStatus,
+              )
+              return (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-surface-hover"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="shrink-0">
+                      {getFileIcon(doc.mimeType)}
+                    </div>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {doc.originalName}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{formatFileSize(doc.fileSize)}</span>
-                      <span>·</span>
-                      <span>{getFileTypeLabel(doc.mimeType)}</span>
-                      <span>·</span>
-                      <span>{formatDate(doc.createdAt)}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {doc.originalName}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatFileSize(doc.fileSize)}</span>
+                        <span>·</span>
+                        <span>{getFileTypeLabel(doc.mimeType)}</span>
+                        <span>·</span>
+                        <span>{formatDate(doc.createdAt)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-1 shrink-0 ml-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleDownload(doc.id, doc.originalName)}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
-                    onClick={() => setDeleteTarget({ id: doc.id, name: doc.originalName })}
-                    disabled={deleting}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0 ml-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleDownload(doc.id, doc.originalName)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: doc.id,
+                            name: doc.originalName,
+                            uploadedBy: doc.uploadedBy,
+                          })
+                        }
+                        disabled={deleting}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

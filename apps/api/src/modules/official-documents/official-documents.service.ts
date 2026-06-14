@@ -16,6 +16,10 @@ import { PdfService } from './pdf.service';
 import { GenerateDocumentDto } from './dto/generate-document.dto';
 
 import { RoleName } from '@prisma/client';
+import {
+  RBAC_ERROR_MESSAGES,
+  canActorGenerateOfficialDocuments,
+} from '../../common/rbac/request-workflow.rules';
 
 @Injectable()
 export class OfficialDocumentsService {
@@ -32,6 +36,14 @@ export class OfficialDocumentsService {
     userId: string,
     role: RoleName,
   ) {
+    if (!canActorGenerateOfficialDocuments(role)) {
+      throw new ForbiddenException(
+        role === 'STAFF'
+          ? RBAC_ERROR_MESSAGES.STAFF_CANNOT_GENERATE_OFFICIAL
+          : 'No tienes permisos para generar documentos oficiales.',
+      );
+    }
+
     const request = await this.prisma.request.findUnique({
       where: { id: requestId },
       include: {
@@ -48,13 +60,14 @@ export class OfficialDocumentsService {
 
     if (request.status !== 'APPROVED') {
       throw new BadRequestException(
-        `Solo se pueden generar documentos para solicitudes aprobadas. Estado actual: ${request.status}`,
+        RBAC_ERROR_MESSAGES.CANNOT_GENERATE_DOCS_NON_APPROVED +
+          ` Estado actual: ${request.status}`,
       );
     }
 
     if (!request.user.studentProfile) {
       throw new BadRequestException(
-        'El estudiante no tiene perfil académico registrado',
+        RBAC_ERROR_MESSAGES.CANNOT_GENERATE_DOCS_MISSING_PROFILE,
       );
     }
 

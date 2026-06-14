@@ -12,6 +12,13 @@ import { LocalStorage } from './storage/local.storage';
 import { RoleName } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
+import {
+  RBAC_ERROR_MESSAGES,
+  STUDENT_UPLOAD_ALLOWED_STATES,
+  canActorDeleteDocuments,
+  canActorUploadDocuments,
+  isFinalStatus,
+} from '../../common/rbac/request-workflow.rules';
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -55,6 +62,16 @@ export class DocumentsService {
     userId: string,
     role: RoleName,
   ) {
+    if (!canActorUploadDocuments(role)) {
+      throw new ForbiddenException(
+        role === 'STAFF'
+          ? RBAC_ERROR_MESSAGES.STAFF_CANNOT_UPLOAD
+          : role === 'COORDINATOR'
+            ? RBAC_ERROR_MESSAGES.COORDINATOR_CANNOT_UPLOAD
+            : 'No tienes permisos para subir documentos.',
+      );
+    }
+
     if (!file) {
       throw new BadRequestException('No se proporcionó ningún archivo');
     }
@@ -70,19 +87,25 @@ export class DocumentsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    if (role === 'STUDENT' && request.userId !== userId) {
+    if (isFinalStatus(request.status)) {
       throw new ForbiddenException(
-        'Solo puedes subir documentos a tus propias solicitudes',
+        RBAC_ERROR_MESSAGES.CANNOT_UPLOAD_IN_FINAL_STATE(request.status),
       );
     }
 
-    if (role === 'STUDENT') {
-      const allowedStatuses = ['DRAFT', 'PENDING_DOCUMENTS'];
-      if (!allowedStatuses.includes(request.status)) {
-        throw new ForbiddenException(
-          `No se pueden subir documentos a una solicitud en estado '${request.status}'. Solo se permite en estados BORRADOR o DOCUMENTOS PENDIENTES`,
-        );
-      }
+    if (role === 'STUDENT' && request.userId !== userId) {
+      throw new ForbiddenException(
+        RBAC_ERROR_MESSAGES.CANNOT_UPLOAD_OTHER_REQUESTS,
+      );
+    }
+
+    if (
+      role === 'STUDENT' &&
+      !STUDENT_UPLOAD_ALLOWED_STATES.includes(request.status)
+    ) {
+      throw new ForbiddenException(
+        `El estudiante solo puede subir documentos en estado DRAFT o PENDING_DOCUMENTS. Estado actual: ${request.status}.`,
+      );
     }
 
     const attachmentCount = await this.prisma.attachment.count({
@@ -217,6 +240,16 @@ export class DocumentsService {
   }
 
   async remove(id: string, userId: string, role: RoleName) {
+    if (!canActorDeleteDocuments(role)) {
+      throw new ForbiddenException(
+        role === 'STAFF'
+          ? RBAC_ERROR_MESSAGES.STAFF_CANNOT_DELETE
+          : role === 'COORDINATOR'
+            ? RBAC_ERROR_MESSAGES.COORDINATOR_CANNOT_DELETE
+            : 'No tienes permisos para eliminar documentos.',
+      );
+    }
+
     const attachment = await this.prisma.attachment.findUnique({
       where: { id },
       include: { request: { select: { userId: true, status: true } } },
@@ -226,25 +259,25 @@ export class DocumentsService {
       throw new NotFoundException('Adjunto no encontrado');
     }
 
-    if (role !== 'ADMIN' && attachment.uploadedBy !== userId) {
+    if (isFinalStatus(attachment.request.status)) {
       throw new ForbiddenException(
-        'Solo puedes eliminar tus propias subidas. El administrador puede eliminar cualquier adjunto',
+        RBAC_ERROR_MESSAGES.CANNOT_DELETE_IN_FINAL_STATE(
+          attachment.request.status,
+        ),
       );
     }
 
-    const BLOCKED_DELETE_STATUSES: string[] = [
-      'IN_REVIEW',
-      'APPROVED',
-      'REJECTED',
-      'CANCELLED',
-    ];
-    if (
-      role !== 'ADMIN' &&
-      BLOCKED_DELETE_STATUSES.includes(attachment.request.status)
-    ) {
-      throw new ForbiddenException(
-        `No se pueden eliminar documentos de una solicitud en estado '${attachment.request.status}'`,
-      );
+    if (role === 'STUDENT') {
+      if (attachment.request.userId !== userId) {
+        throw new ForbiddenException(
+          'Solo puedes eliminar documentos de tus propias solicitudes.',
+        );
+      }
+      if (attachment.uploadedBy !== userId) {
+        throw new ForbiddenException(
+          RBAC_ERROR_MESSAGES.CANNOT_DELETE_OTHER_USERS_DOCUMENTS,
+        );
+      }
     }
 
     await this.prisma.$transaction(async (tx) => {

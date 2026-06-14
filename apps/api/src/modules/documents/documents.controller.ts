@@ -51,6 +51,8 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post('upload')
+  @UseGuards(RolesGuard)
+  @Roles('STUDENT', 'ADMIN')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -60,7 +62,7 @@ export class DocumentsController {
   @ApiOperation({
     summary: 'Subir documento adjunto',
     description:
-      'Sube un archivo y lo adjunta a una solicitud. Tipos permitidos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Tamaño máximo: 10MB. Los estudiantes solo pueden subir a sus propias solicitudes en estado BORRADOR o DOCUMENTOS_PENDIENTES. Máximo 5 adjuntos por solicitud.',
+      'Sube un archivo y lo adjunta a una solicitud. Tipos permitidos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Tamaño máximo: 10MB. Solo STUDENT y ADMIN pueden subir. STUDENT solo a sus propias solicitudes en estado DRAFT o PENDING_DOCUMENTS. ADMIN puede subir a cualquier solicitud en estado no final. STAFF y COORDINATOR no pueden subir. Máximo 5 adjuntos por solicitud.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -96,7 +98,7 @@ export class DocumentsController {
   })
   @ApiForbiddenResponse({
     description:
-      'No autorizado para subir a esta solicitud o solicitud no en estado permitido',
+      'Solo STUDENT y ADMIN pueden subir. STAFF y COORDINATOR bloqueados.',
   })
   @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
   @ApiConflictResponse({
@@ -107,7 +109,7 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UploadDocumentDto,
   ) {
-    const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
+    const role = req.user.role as 'STUDENT' | 'ADMIN';
     return this.documentsService.upload(
       file,
       body.requestId,
@@ -199,26 +201,27 @@ export class DocumentsController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles('STUDENT', 'STAFF', 'COORDINATOR', 'ADMIN')
+  @Roles('STUDENT', 'ADMIN')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Eliminar adjunto',
     description:
-      'Elimina un adjunto de documento y su archivo del almacenamiento. Los usuarios solo pueden eliminar sus propias subidas. Los administradores pueden eliminar cualquier adjunto.',
+      'Elimina un adjunto de documento y su archivo del almacenamiento. Solo STUDENT (sobre propias subidas) y ADMIN pueden eliminar. STAFF y COORDINATOR no pueden eliminar documentos. Bloqueado en estados finales.',
   })
   @ApiOkResponse({ description: 'Adjunto eliminado exitosamente' })
   @ApiUnauthorizedResponse({
     description: 'Token de acceso ausente o inválido',
   })
   @ApiForbiddenResponse({
-    description: 'No autorizado para eliminar este adjunto',
+    description:
+      'Solo STUDENT y ADMIN pueden eliminar. STAFF y COORDINATOR bloqueados.',
   })
   @ApiNotFoundResponse({ description: 'Adjunto no encontrado' })
   async remove(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
+    const role = req.user.role as 'STUDENT' | 'ADMIN';
     return this.documentsService.remove(id, req.user.id, role);
   }
 }

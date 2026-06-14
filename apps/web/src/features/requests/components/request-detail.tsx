@@ -32,7 +32,12 @@ export function RequestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { isReviewer } = usePermissions()
+  const {
+    isReviewer,
+    canSubmitRequest,
+    canCancelRequest,
+    canChangeStatus,
+  } = usePermissions()
   const { data: request, isLoading } = useRequest(id || '')
   const { mutate: submit, isPending: submitting } = useSubmitRequest()
   const { mutate: cancel, isPending: cancelling } = useCancelRequest()
@@ -40,8 +45,14 @@ export function RequestDetail() {
   const [confirmAction, setConfirmAction] = useState<'submit' | 'cancel' | null>(null)
 
   const isOwner = request?.userId === user?.id
-  const canSubmit = isOwner && request?.status === 'DRAFT'
-  const canCancel = isOwner && !['APPROVED', 'REJECTED', 'CANCELLED'].includes(request?.status || '')
+  const canSubmit =
+    !!request &&
+    canSubmitRequest(request.userId, request.status)
+  const canCancel =
+    !!request &&
+    canCancelRequest(request.userId, request.status)
+  const canShowReviewPanel =
+    isReviewer && !!request && canChangeStatus(request.status)
 
   const handleAction = () => {
     if (!id) return
@@ -217,12 +228,20 @@ export function RequestDetail() {
           )}
 
           <div data-documents-section>
-            {id && <DocumentsSection requestId={id} />}
+            {id && (
+              <DocumentsSection
+                requestId={id}
+                requestStatus={request.status}
+                requestUserId={request.userId}
+              />
+            )}
           </div>
         </div>
 
         <div className="w-full space-y-6 lg:w-[320px] lg:shrink-0">
-          {id && isReviewer && <ReviewPanel requestId={id} currentStatus={request.status} />}
+          {id && canShowReviewPanel && (
+            <ReviewPanel requestId={id} currentStatus={request.status} />
+          )}
 
           <div className="rounded-lg border border-border bg-surface">
             <div className="p-6 border-b border-border">

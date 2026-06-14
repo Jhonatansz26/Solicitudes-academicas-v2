@@ -3,6 +3,7 @@ import { AuthLayout } from '../layouts/auth-layout'
 import { DashboardLayout } from '../layouts/dashboard-layout'
 import { ProtectedRoute } from './protected-route'
 import { AdminRoute } from './admin-route'
+import { RoleGuard } from './role-guard'
 import { LoginPage } from '@/pages/login/login-page'
 import { DashboardPage } from '@/pages/dashboard/dashboard-page'
 import { RequestsPage } from '@/pages/requests/requests-page'
@@ -41,7 +42,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/dashboard/requests/new',
-        element: <CreateRequest />,
+        element: (
+          <RoleGuard allow={['STUDENT', 'ADMIN']}>
+            <CreateRequest />
+          </RoleGuard>
+        ),
       },
       {
         path: '/dashboard/requests/:id',

@@ -50,18 +50,27 @@ export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles('STUDENT', 'ADMIN')
   @ApiOperation({
     summary: 'Crear nueva solicitud (Borrador)',
     description:
-      'Crea una nueva solicitud académica en estado borrador. El estudiante puede editar y enviarla más tarde.',
+      'Crea una nueva solicitud académica en estado borrador. STUDENT solo puede crear para sí mismo. ADMIN puede crear para cualquier estudiante activo.',
   })
   @ApiCreatedResponse({ description: 'Solicitud creada exitosamente' })
   @ApiUnauthorizedResponse({
     description: 'Token de acceso ausente o inválido',
   })
+  @ApiForbiddenResponse({
+    description: 'Solo STUDENT y ADMIN pueden crear solicitudes',
+  })
   @ApiBadRequestResponse({ description: 'Cuerpo de solicitud inválido' })
-  create(@Req() req: AuthenticatedRequest, @Body() dto: CreateRequestDto) {
-    return this.requestsService.create(req.user.id, dto);
+  create(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: CreateRequestDto,
+  ) {
+    const role = req.user.role as 'STUDENT' | 'ADMIN';
+    return this.requestsService.create(req.user.id, role, dto);
   }
 
   @Get()
@@ -263,27 +272,28 @@ export class RequestsController {
   @ApiOperation({
     summary: 'Editar borrador de solicitud',
     description:
-      'Actualiza el título o descripción de una solicitud. Solo permitido en estado BORRADOR y por el propietario.',
+      'Actualiza el título o descripción de una solicitud. STUDENT solo puede editar propias en DRAFT. STAFF/COORDINATOR/ADMIN pueden editar propias; ADMIN puede editar metadata de cualquier solicitud no final.',
   })
   @ApiOkResponse({ description: 'Solicitud actualizada exitosamente' })
   @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
   @ApiForbiddenResponse({
     description:
-      'No es el propietario o la solicitud no está en estado BORRADOR',
+      'No es el propietario, la solicitud está en estado final, o el rol no tiene permisos',
   })
   update(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRequestDto,
   ) {
-    return this.requestsService.update(id, req.user.id, dto);
+    const role = req.user.role as 'STUDENT' | 'STAFF' | 'COORDINATOR' | 'ADMIN';
+    return this.requestsService.update(id, req.user.id, role, dto);
   }
 
   @Post(':id/submit')
   @ApiOperation({
     summary: 'Enviar solicitud',
     description:
-      'Transiciona una solicitud de BORRADOR a ENVIADA. No se puede deshacer.',
+      'Transiciona una solicitud de BORRADOR a ENVIADA. STUDENT solo puede enviar propias. ADMIN puede enviar cualquier solicitud en DRAFT.',
   })
   @ApiOkResponse({ description: 'Solicitud enviada exitosamente' })
   @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
@@ -295,14 +305,15 @@ export class RequestsController {
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.requestsService.submit(id, req.user.id);
+    const role = req.user.role as 'STUDENT' | 'ADMIN';
+    return this.requestsService.submit(id, req.user.id, role);
   }
 
   @Post(':id/cancel')
   @ApiOperation({
     summary: 'Cancelar solicitud',
     description:
-      'Cancela una solicitud. No permitido si la solicitud ya está en un estado final (APROBADA, RECHAZADA, CANCELADA).',
+      'Cancela una solicitud. STUDENT solo puede cancelar propias. ADMIN puede cancelar cualquier solicitud no final.',
   })
   @ApiOkResponse({ description: 'Solicitud cancelada exitosamente' })
   @ApiNotFoundResponse({ description: 'Solicitud no encontrada' })
@@ -313,7 +324,8 @@ export class RequestsController {
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.requestsService.cancel(id, req.user.id);
+    const role = req.user.role as 'STUDENT' | 'ADMIN';
+    return this.requestsService.cancel(id, req.user.id, role);
   }
 
   @Patch(':id/status')

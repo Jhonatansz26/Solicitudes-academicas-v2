@@ -15,8 +15,14 @@ import { ChangeStatusDto } from './dto/change-status.dto';
 import { QueryRequestsDto } from './dto/query-requests.dto';
 import { RequestStatus, RoleName } from '@prisma/client';
 import { randomBytes } from 'crypto';
-
-const FINAL_STATUSES: RequestStatus[] = ['APPROVED', 'REJECTED', 'CANCELLED'];
+import {
+  FINAL_STATUSES,
+  RBAC_ERROR_MESSAGES,
+  isFinalStatus,
+  isTransitionAllowedByWorkflow,
+  isTransitionAllowedForRole,
+  canActorCreateRequest,
+} from '../../common/rbac/request-workflow.rules';
 
 @Injectable()
 export class RequestsService {
@@ -25,7 +31,51 @@ export class RequestsService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async create(userId: string, dto: CreateRequestDto) {
+  async create(actorId: string, actorRole: RoleName, dto: CreateRequestDto) {
+    if (!canActorCreateRequest(actorRole)) {
+      throw new ForbiddenException(RBAC_ERROR_MESSAGES.CANNOT_CREATE_REQUEST);
+    }
+
+    let userId: string;
+
+    if (actorRole === 'STUDENT') {
+      if (dto.userId && dto.userId !== actorId) {
+        throw new ForbiddenException(
+          RBAC_ERROR_MESSAGES.CANNOT_CREATE_FOR_TARGET_ROLE,
+        );
+      }
+      userId = actorId;
+    } else {
+      if (!dto.userId) {
+        throw new BadRequestException(
+          'El administrador debe especificar el userId del estudiante para quien crea la solicitud.',
+        );
+      }
+
+      const target = await this.prisma.user.findUnique({
+        where: { id: dto.userId },
+        select: {
+          id: true,
+          isActive: true,
+          role: { select: { name: true } },
+        },
+      });
+
+      if (!target || !target.isActive) {
+        throw new BadRequestException(
+          'El usuario objetivo no existe o esta inactivo.',
+        );
+      }
+
+      if (target.role.name !== 'STUDENT') {
+        throw new ForbiddenException(
+          RBAC_ERROR_MESSAGES.CANNOT_CREATE_FOR_TARGET_ROLE,
+        );
+      }
+
+      userId = dto.userId;
+    }
+
     const requestType = await this.prisma.requestType.findUnique({
       where: { id: dto.requestTypeId },
     });
@@ -143,7 +193,12 @@ export class RequestsService {
     return request;
   }
 
-  async update(id: string, userId: string, dto: UpdateRequestDto) {
+  async update(
+    id: string,
+    actorId: string,
+    actorRole: RoleName,
+    dto: UpdateRequestDto,
+  ) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       select: { userId: true, status: true },
@@ -153,16 +208,18 @@ export class RequestsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    if (request.userId !== userId) {
+    if (isFinalStatus(request.status)) {
       throw new ForbiddenException(
-        'Solo puedes editar tus propias solicitudes',
+        RBAC_ERROR_MESSAGES.REQUEST_IN_FINAL_STATE(request.status),
       );
     }
 
-    if (request.status !== 'DRAFT') {
-      throw new ForbiddenException(
-        'Solo se pueden editar las solicitudes en estado borrador',
-      );
+    if (actorRole !== 'ADMIN' && request.userId !== actorId) {
+      throw new ForbiddenException(RBAC_ERROR_MESSAGES.CANNOT_EDIT_OTHER_REQUESTS);
+    }
+
+    if (actorRole === 'STUDENT' && request.status !== 'DRAFT') {
+      throw new ForbiddenException(RBAC_ERROR_MESSAGES.CANNOT_EDIT_NON_DRAFT);
     }
 
     return this.prisma.request.update({
@@ -175,7 +232,7 @@ export class RequestsService {
     });
   }
 
-  async submit(id: string, userId: string) {
+  async submit(id: string, actorId: string, actorRole: RoleName) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       select: { userId: true, status: true },
@@ -185,28 +242,32 @@ export class RequestsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    if (request.userId !== userId) {
+    if (isFinalStatus(request.status)) {
       throw new ForbiddenException(
-        'Solo puedes enviar tus propias solicitudes',
+        RBAC_ERROR_MESSAGES.REQUEST_IN_FINAL_STATE(request.status),
+      );
+    }
+
+    if (actorRole !== 'ADMIN' && request.userId !== actorId) {
+      throw new ForbiddenException(
+        RBAC_ERROR_MESSAGES.CANNOT_SUBMIT_OTHER_REQUESTS,
       );
     }
 
     if (request.status !== 'DRAFT') {
-      throw new ConflictException(
-        'Solo se pueden enviar las solicitudes en estado borrador',
-      );
+      throw new ConflictException(RBAC_ERROR_MESSAGES.CANNOT_SUBMIT_NON_DRAFT);
     }
 
     return this.changeStatusInternal(
       id,
       'SUBMITTED',
       request.status,
-      userId,
+      actorId,
       null,
     );
   }
 
-  async cancel(id: string, userId: string) {
+  async cancel(id: string, actorId: string, actorRole: RoleName) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       select: { userId: true, status: true },
@@ -216,15 +277,13 @@ export class RequestsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    if (request.userId !== userId) {
-      throw new ForbiddenException(
-        'Solo puedes cancelar tus propias solicitudes',
-      );
+    if (isFinalStatus(request.status)) {
+      throw new ForbiddenException(RBAC_ERROR_MESSAGES.CANNOT_CANCEL_FINAL);
     }
 
-    if (FINAL_STATUSES.includes(request.status)) {
+    if (actorRole !== 'ADMIN' && request.userId !== actorId) {
       throw new ForbiddenException(
-        'No se puede cancelar una solicitud en estado final',
+        RBAC_ERROR_MESSAGES.CANNOT_CANCEL_OTHER_REQUESTS,
       );
     }
 
@@ -232,7 +291,7 @@ export class RequestsService {
       id,
       'CANCELLED',
       request.status,
-      userId,
+      actorId,
       'Cancelled by user',
     );
   }
@@ -252,42 +311,38 @@ export class RequestsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    if (FINAL_STATUSES.includes(request.status)) {
+    if (isFinalStatus(request.status)) {
       throw new ForbiddenException(
-        `La solicitud ya se encuentra en estado final '${request.status}'`,
+        RBAC_ERROR_MESSAGES.REQUEST_IN_FINAL_STATE(request.status),
       );
     }
 
     if (request.status === dto.newStatus) {
       throw new ConflictException(
-        `La solicitud ya se encuentra en estado '${dto.newStatus}'`,
+        RBAC_ERROR_MESSAGES.REQUEST_ALREADY_IN_STATE(dto.newStatus),
+      );
+    }
+
+    if (actorRole === 'STUDENT') {
+      throw new ForbiddenException(
+        'Los estudiantes no pueden cambiar el estado de las solicitudes.',
+      );
+    }
+
+    if (!isTransitionAllowedByWorkflow(request.status, dto.newStatus)) {
+      throw new BadRequestException(
+        RBAC_ERROR_MESSAGES.INVALID_TRANSITION(request.status, dto.newStatus),
+      );
+    }
+
+    if (!isTransitionAllowedForRole(request.status, dto.newStatus, actorRole)) {
+      throw new ForbiddenException(
+        this.buildRoleTransitionError(actorRole, request.status, dto.newStatus),
       );
     }
 
     if (dto.newStatus === 'REJECTED' && !dto.comment?.trim()) {
-      throw new BadRequestException(
-        'Se requiere un motivo al rechazar una solicitud',
-      );
-    }
-
-    if (
-      actorRole === 'STAFF' &&
-      dto.newStatus !== 'IN_REVIEW' &&
-      dto.newStatus !== 'PENDING_DOCUMENTS'
-    ) {
-      throw new ForbiddenException(
-        "El funcionario solo puede cambiar a 'En revisión' o 'Documentos pendientes'",
-      );
-    }
-
-    if (
-      actorRole === 'COORDINATOR' &&
-      dto.newStatus !== 'APPROVED' &&
-      dto.newStatus !== 'REJECTED'
-    ) {
-      throw new ForbiddenException(
-        'El coordinador solo puede aprobar o rechazar',
-      );
+      throw new BadRequestException(RBAC_ERROR_MESSAGES.REJECTION_REQUIRES_COMMENT);
     }
 
     return this.changeStatusInternal(
@@ -297,6 +352,32 @@ export class RequestsService {
       actorId,
       dto.comment?.trim() ?? null,
     );
+  }
+
+  private buildRoleTransitionError(
+    actorRole: RoleName,
+    from: RequestStatus,
+    to: RequestStatus,
+  ): string {
+    if (actorRole === 'STAFF') {
+      if (to === 'APPROVED' || to === 'REJECTED') {
+        return RBAC_ERROR_MESSAGES.STAFF_CANNOT_APPROVE;
+      }
+      return `El funcionario no puede transicionar de ${from} a ${to}. Solo puede operar el flujo de revision documental.`;
+    }
+    if (actorRole === 'COORDINATOR') {
+      if (to === 'PENDING_DOCUMENTS') {
+        return RBAC_ERROR_MESSAGES.COORDINATOR_CANNOT_REQUEST_DOCS;
+      }
+      if (from !== 'IN_REVIEW' && (to === 'APPROVED' || to === 'REJECTED')) {
+        return `El coordinador solo puede aprobar o rechazar solicitudes en estado IN_REVIEW. Estado actual: ${from}.`;
+      }
+      return `El coordinador no puede transicionar de ${from} a ${to}. Solo puede aprobar o rechazar solicitudes en revision.`;
+    }
+    if (actorRole === 'ADMIN') {
+      return `El administrador no puede transicionar de ${from} a ${to} aunque tiene permisos operativos; debe respetar el workflow institucional.`;
+    }
+    return `Transicion no permitida para el rol ${actorRole}: ${from} -> ${to}.`;
   }
 
   async getRequestTypes() {
