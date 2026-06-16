@@ -78,11 +78,11 @@ export function KpiCard({
     return (
       <Card className={cn('overflow-hidden gap-0 py-0', className)}>
         <div className="h-1.5 w-full bg-muted animate-pulse" />
-        <CardContent className="space-y-4 p-6">
-          <div className="h-12 w-12 rounded-xl bg-muted animate-pulse" />
+        <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-muted animate-pulse" />
           <div className="space-y-2">
-            <div className="h-10 w-24 rounded bg-muted animate-pulse" />
-            <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+            <div className="h-8 sm:h-10 w-20 sm:w-24 rounded bg-muted animate-pulse" />
+            <div className="h-3 sm:h-4 w-24 sm:w-32 rounded bg-muted animate-pulse" />
           </div>
           <div className="h-2 w-full rounded-full bg-muted animate-pulse" />
         </CardContent>
@@ -105,10 +105,10 @@ export function KpiCard({
       }}
     >
       <div className={cn('h-[3px] w-full', styles.strip)} />
-      <CardContent className="space-y-4 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1.5 min-w-0">
-            <p className={cn('text-3xl font-bold tracking-tight leading-none', styles.valueText)}>
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
+            <p className={cn('text-2xl sm:text-3xl font-bold tracking-tight leading-none', styles.valueText)}>
               {value}
             </p>
             <p className="text-sm text-muted-foreground">{label}</p>
@@ -117,8 +117,8 @@ export function KpiCard({
             )}
           </div>
 
-          <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl', styles.iconBg)}>
-            <Icon className={cn('h-5 w-5', styles.iconText)} />
+          <div className={cn('flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl shrink-0', styles.iconBg)}>
+            <Icon className={cn('h-4 w-4 sm:h-5 sm:w-5', styles.iconText)} />
           </div>
         </div>
 

@@ -41,7 +41,7 @@ export function DeleteConfirmationDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto h-10 sm:h-9">
             {cancelLabel}
           </Button>
           <Button
@@ -49,6 +49,7 @@ export function DeleteConfirmationDialog({
             size="sm"
             disabled={isPending}
             onClick={onConfirm}
+            className="w-full sm:w-auto h-10 sm:h-9"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {confirmLabel}

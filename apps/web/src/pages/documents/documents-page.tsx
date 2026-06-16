@@ -97,42 +97,42 @@ export function DocumentsPage() {
       searchPlaceholder="Buscar por solicitud, tracking o generador..."
       onSearchChange={(v) => setSearch(v)}
       onSearchSubmit={() => handleSearch()}
-      filters={
-        <>
-          <Select
-            value={type}
-            onValueChange={(v) => {
-              setType(v)
-              setPage(1)
-            }}
-          >
-            <SelectTrigger className="h-9 w-[180px]">
-              <SelectValue placeholder="Tipo de documento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Todos los tipos</SelectItem>
-              <SelectItem value="CERTIFICATE">Certificado</SelectItem>
-              <SelectItem value="CONSTANCY">Constancia</SelectItem>
-            </SelectContent>
-          </Select>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearch('')
-                setActiveSearch('')
-                setType('ALL')
+        filters={
+          <>
+            <Select
+              value={type}
+              onValueChange={(v) => {
+                setType(v)
                 setPage(1)
               }}
-              className="h-9"
             >
-              <X className="mr-1 h-3 w-3" />
-              Limpiar
-            </Button>
-          )}
-        </>
-      }
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[180px]">
+                <SelectValue placeholder="Tipo de documento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos los tipos</SelectItem>
+                <SelectItem value="CERTIFICATE">Certificado</SelectItem>
+                <SelectItem value="CONSTANCY">Constancia</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearch('')
+                  setActiveSearch('')
+                  setType('ALL')
+                  setPage(1)
+                }}
+                className="h-10 sm:h-9 w-full sm:w-auto"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Limpiar
+              </Button>
+            )}
+          </>
+        }
       activeFilters={
         <>
           {activeSearch && (
@@ -267,7 +267,7 @@ export function DocumentsPage() {
                 aria-label="Ver PDF"
               >
                 <Eye className="h-3.5 w-3.5" />
-                <span className="text-xs">Ver</span>
+                <span className="text-xs hidden sm:inline">Ver</span>
               </Button>
               <Button
                 variant="default"
@@ -277,7 +277,7 @@ export function DocumentsPage() {
                 aria-label="Descargar PDF"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span className="text-xs">Descargar</span>
+                <span className="text-xs hidden sm:inline">Descargar</span>
               </Button>
             </div>
           ),

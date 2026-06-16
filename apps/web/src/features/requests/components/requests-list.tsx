@@ -253,7 +253,7 @@ export function RequestsList() {
             <button
               type="button"
               onClick={(e) => e.stopPropagation()}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="h-9 w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               aria-label="Acciones de la solicitud"
             >
               <MoreVertical className="h-4 w-4" />
@@ -456,6 +456,7 @@ export function RequestsList() {
               variant="gold"
               size="sm"
               onClick={() => navigate('/dashboard/requests/new')}
+              className="h-10 sm:h-9 w-full sm:w-auto"
             >
               <Plus className="h-3.5 w-3.5" />
               Nueva solicitud
@@ -468,7 +469,7 @@ export function RequestsList() {
         filters={
           <>
             <Select value={status ?? 'all'} onValueChange={handleStatusFilter}>
-              <SelectTrigger className="h-9 w-[170px]">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[170px]">
                 <SelectValue placeholder="Todos los estados" />
               </SelectTrigger>
               <SelectContent>
@@ -481,7 +482,7 @@ export function RequestsList() {
               </SelectContent>
             </Select>
             <Select value={requestTypeId ?? 'all'} onValueChange={handleTypeFilter}>
-              <SelectTrigger className="h-9 w-[170px]">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[170px]">
                 <SelectValue placeholder="Tipo de solicitud" />
               </SelectTrigger>
               <SelectContent>
@@ -494,7 +495,7 @@ export function RequestsList() {
               </SelectContent>
             </Select>
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 sm:h-9 w-full sm:w-auto">
                 <X className="mr-1 h-3 w-3" />
                 Limpiar
               </Button>
@@ -537,6 +538,7 @@ export function RequestsList() {
               variant="gold"
               size="sm"
               onClick={() => navigate('/dashboard/requests/new')}
+              className="h-10 sm:h-9"
             >
               <Plus className="mr-2 h-3.5 w-3.5" />
               Crear solicitud

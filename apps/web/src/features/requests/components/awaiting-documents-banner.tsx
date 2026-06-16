@@ -13,10 +13,10 @@ export function AwaitingDocumentsBanner({
   isOwner,
 }: AwaitingDocumentsBannerProps) {
   return (
-    <div className="rounded-lg border border-warning/30 bg-warning-soft/50 p-4 space-y-3">
+    <div className="rounded-2xl border border-warning/30 bg-warning-soft/50 p-4 space-y-3">
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           <h4 className="text-sm font-semibold text-warning">
             Documentos pendientes
           </h4>
@@ -34,7 +34,11 @@ export function AwaitingDocumentsBanner({
 
       {isOwner && onUploadClick && (
         <div className="flex justify-end">
-          <Button size="sm" onClick={onUploadClick}>
+          <Button
+            size="sm"
+            onClick={onUploadClick}
+            className="h-10 sm:h-9 w-full sm:w-auto"
+          >
             <Upload className="mr-2 h-4 w-4" />
             Subir documentos
           </Button>

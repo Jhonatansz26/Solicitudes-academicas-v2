@@ -18,7 +18,6 @@ export function StaffDashboard() {
   const { user } = useAuth()
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
 
-  // Cola operativa: SUBMITTED + IN_REVIEW
   const { data: queueData, isLoading: queueLoading } = useRequests({
     page: 1,
     limit: 8,
@@ -51,12 +50,10 @@ export function StaffDashboard() {
     })) ?? []),
   ]
 
-  // SLA: items > 3 días en cola
   const slaItems = queueItems
     .filter((r) => Date.now() - new Date(r.createdAt).getTime() > 3 * 24 * 60 * 60 * 1000)
     .slice(0, 3)
 
-  // Actividad reciente: combinar los más recientes de queue
   const activityItems: ActivityItem[] = queueItems.slice(0, 5).map((req) => ({
     id: req.id,
     title: req.title,
@@ -86,7 +83,7 @@ export function StaffDashboard() {
   const totalQueue = (stats?.submitted ?? 0) + (stats?.inReview ?? 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <DashboardHero
         eyebrow="Funcionario de registro"
         title={`Hola, ${firstName}`}
@@ -134,7 +131,7 @@ export function StaffDashboard() {
         />
       </KpiGrid>
 
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">
           <RequestListPreview
             title="Bandeja operativa"
@@ -149,7 +146,7 @@ export function StaffDashboard() {
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           <QuickActions title="Acciones rápidas" actions={quickActions} columns={1} />
 
           {activityItems.length > 0 && (
@@ -164,7 +161,7 @@ export function StaffDashboard() {
 
       {slaItems.length > 0 && (
         <Widget title="Solicitudes con SLA cercano" description="Más de 3 días en cola">
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 -mx-1">
             {slaItems.map((item) => {
               const days = Math.floor(
                 (Date.now() - new Date(item.createdAt).getTime()) / (1000 * 60 * 60 * 24),
@@ -174,9 +171,9 @@ export function StaffDashboard() {
                   <button
                     type="button"
                     onClick={() => navigate(`/dashboard/requests/${item.id}`)}
-                    className="w-full flex items-center gap-3 rounded-lg p-2.5 hover:bg-muted/40 transition-colors text-left"
+                    className="w-full flex items-center gap-3 rounded-lg p-2.5 min-h-[56px] hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-soft text-warning shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning-soft text-warning shrink-0">
                       <Clock className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -187,9 +184,12 @@ export function StaffDashboard() {
                         {item.primary} · {item.secondary}
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
+                    <div className="text-right shrink-0 hidden xs:block">
                       <p className="text-eyebrow font-semibold text-warning">{days}d</p>
                       <p className="text-eyebrow text-muted-foreground">en cola</p>
+                    </div>
+                    <div className="text-right shrink-0 xs:hidden">
+                      <p className="text-eyebrow font-semibold text-warning">{days}d</p>
                     </div>
                     <ArrowRight
                       className="h-4 w-4 text-muted-foreground shrink-0"

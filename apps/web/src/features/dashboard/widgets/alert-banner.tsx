@@ -50,37 +50,51 @@ export function AlertBanner({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl border p-4 sm:p-5',
+        'flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border p-3.5 sm:p-4 sm:p-5',
         styles.wrap,
         className,
       )}
       role="alert"
     >
-      <div
-        className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-xl shrink-0 bg-surface',
-          styles.iconColor,
-        )}
-      >
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        {description && (
-          <p className="text-eyebrow text-muted-foreground mt-0.5">{description}</p>
-        )}
+      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+        <div
+          className={cn(
+            'flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl shrink-0 bg-surface',
+            styles.iconColor,
+          )}
+        >
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground leading-tight">{title}</p>
+          {description && (
+            <p className="text-eyebrow text-muted-foreground mt-0.5 leading-relaxed">
+              {description}
+            </p>
+          )}
+        </div>
       </div>
       {actionLabel && (actionHref || onAction) && (
-        <div className="shrink-0">
+        <div className="shrink-0 sm:shrink-0">
           {actionHref ? (
-            <Button asChild size="sm" variant="outline">
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="w-full sm:w-auto h-10 sm:h-8 bg-surface"
+            >
               <Link to={actionHref}>
                 {actionLabel}
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
               </Link>
             </Button>
           ) : (
-            <Button size="sm" variant="outline" onClick={onAction}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onAction}
+              className="w-full sm:w-auto h-10 sm:h-8 bg-surface"
+            >
               {actionLabel}
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>

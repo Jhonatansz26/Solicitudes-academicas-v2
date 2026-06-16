@@ -77,7 +77,7 @@ export function RequestListPreview({
     return (
       <div className={cn('rounded-2xl border border-border bg-surface overflow-hidden', className)}>
         {(title || viewAllHref || createHref) && (
-          <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
+          <header className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border">
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-foreground">{title}</h2>
               {description && (
@@ -88,7 +88,7 @@ export function RequestListPreview({
         )}
         <div className="p-3 space-y-2">
           {Array.from({ length: skeletonRows }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <Skeleton key={i} className="h-16 sm:h-16 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -99,7 +99,7 @@ export function RequestListPreview({
     return (
       <div className={cn('rounded-2xl border border-border bg-surface overflow-hidden', className)}>
         {(title || viewAllHref || createHref) && (
-          <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
+          <header className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border">
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-foreground">{title}</h2>
               {description && (
@@ -128,21 +128,26 @@ export function RequestListPreview({
   return (
     <div className={cn('rounded-2xl border border-border bg-surface overflow-hidden', className)}>
       {(title || viewAllHref || createHref) && (
-        <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <header className="flex items-center justify-between gap-2 sm:gap-3 px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>
             {description && (
-              <p className="text-eyebrow text-muted-foreground mt-0.5">{description}</p>
+              <p className="text-eyebrow text-muted-foreground mt-0.5 truncate">
+                {description}
+              </p>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {createHref && createLabel && (
-              <Button asChild size="sm" variant="gold">
-                <Link to={createHref}>{createLabel}</Link>
+              <Button asChild size="sm" variant="gold" className="h-8 px-2.5 text-xs sm:h-8 sm:px-3">
+                <Link to={createHref}>
+                  <span className="sm:hidden">+</span>
+                  <span className="hidden sm:inline">{createLabel}</span>
+                </Link>
               </Button>
             )}
             {viewAllHref && (
-              <Button asChild size="sm" variant="ghost">
+              <Button asChild size="sm" variant="ghost" className="h-8 px-2.5 text-xs sm:h-8 sm:px-3">
                 <Link to={viewAllHref}>{viewAllLabel}</Link>
               </Button>
             )}
@@ -152,8 +157,27 @@ export function RequestListPreview({
       <ul className="divide-y divide-border">
         {items.map((item) => {
           const interactive = Boolean(onItemClick)
-          const inner = (
-            <>
+          return (
+            <li
+              key={item.id}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3.5 sm:px-5 sm:py-3 transition-colors min-h-[60px]',
+                interactive && 'cursor-pointer hover:bg-muted/40 active:bg-muted/60 focus:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+              )}
+              onClick={interactive ? () => onItemClick?.(item) : undefined}
+              onKeyDown={
+                interactive
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onItemClick?.(item)
+                      }
+                    }
+                  : undefined
+              }
+              tabIndex={interactive ? 0 : undefined}
+              role={interactive ? 'button' : undefined}
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-eyebrow text-muted-foreground">
@@ -173,35 +197,12 @@ export function RequestListPreview({
                   </p>
                 )}
               </div>
-              <span className="text-eyebrow text-muted-foreground shrink-0">
+              <span className="text-eyebrow text-muted-foreground shrink-0 hidden xs:inline">
                 {formatRelativeTime(item.createdAt)}
               </span>
               {interactive && (
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
               )}
-            </>
-          )
-          return (
-            <li
-              key={item.id}
-              className={cn(
-                'flex items-center gap-3 px-5 py-3 transition-colors',
-                interactive && 'cursor-pointer hover:bg-muted/40 focus:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
-              )}
-              onClick={interactive ? () => onItemClick?.(item) : undefined}
-              onKeyDown={
-                interactive
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onItemClick?.(item)
-                      }
-                    }
-                  : undefined
-              }
-              tabIndex={interactive ? 0 : undefined}
-            >
-              {inner}
             </li>
           )
         })}

@@ -185,7 +185,7 @@ export function AdminUsersPage() {
         title="Usuarios del Sistema"
         description="Gestión de cuentas, roles y permisos del portal académico"
         actions={
-          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
+          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)} className="w-full sm:w-auto h-10 sm:h-9">
             <Plus className="h-3.5 w-3.5" />
             Nuevo usuario
           </Button>
@@ -241,7 +241,7 @@ export function AdminUsersPage() {
         filters={
           <>
             <Select value={roleFilter ?? 'all'} onValueChange={(v) => setParam('role', v === 'all' ? null : v)}>
-              <SelectTrigger className="h-9 w-[160px]">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[160px]">
                 <SelectValue placeholder="Todos los roles" />
               </SelectTrigger>
               <SelectContent>
@@ -257,7 +257,7 @@ export function AdminUsersPage() {
               value={isActiveFilter ?? 'all'}
               onValueChange={(v) => setParam('isActive', v === 'all' ? null : v)}
             >
-              <SelectTrigger className="h-9 w-[150px]">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[150px]">
                 <SelectValue placeholder="Todos los estados" />
               </SelectTrigger>
               <SelectContent>
@@ -271,7 +271,7 @@ export function AdminUsersPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchParams({})}
-                className="h-9"
+                className="h-10 sm:h-9 w-full sm:w-auto"
               >
                 <X className="mr-1 h-3 w-3" />
                 Limpiar
@@ -362,34 +362,34 @@ export function AdminUsersPage() {
               </Badge>
             ),
           },
-          {
-            key: 'status',
-            header: 'Estado',
-            width: '110px',
-            cell: (user) => (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setToggleTarget(user)
-                }}
-                disabled={toggling}
-                className="cursor-pointer"
+        {
+          key: 'status',
+          header: 'Estado',
+          width: '110px',
+          cell: (user) => (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setToggleTarget(user)
+              }}
+              disabled={toggling}
+              className="cursor-pointer min-h-[32px] inline-flex items-center"
+            >
+              <Badge
+                variant={user.isActive ? 'active' : 'inactive'}
+                className="cursor-pointer text-eyebrow"
               >
-                <Badge
-                  variant={user.isActive ? 'active' : 'inactive'}
-                  className="cursor-pointer text-eyebrow"
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      user.isActive ? 'bg-success' : 'bg-muted-foreground/50'
-                    }`}
-                  />
-                  {user.isActive ? 'Activo' : 'Inactivo'}
-                </Badge>
-              </button>
-            ),
-          },
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    user.isActive ? 'bg-success' : 'bg-muted-foreground/50'
+                  }`}
+                />
+                {user.isActive ? 'Activo' : 'Inactivo'}
+              </Badge>
+            </button>
+          ),
+        },
           {
             key: 'createdAt',
             header: 'Fecha',
@@ -405,41 +405,41 @@ export function AdminUsersPage() {
               </span>
             ),
           },
-          {
-            key: 'actions',
-            header: '',
-            align: 'right',
-            width: '60px',
-            cell: (user) => (
-              <div onClick={(e) => e.stopPropagation()}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem onClick={() => setDrawerUser(user)}>
-                      <Eye className="mr-2 h-3.5 w-3.5" />
-                      Ver detalle
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setEditTarget(user)}>
-                      <Pencil className="mr-2 h-3.5 w-3.5" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setDeleteTarget(user)}
-                      className="text-danger focus:text-danger"
-                      disabled={deleting}
-                    >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      Eliminar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ),
-          },
+        {
+          key: 'actions',
+          header: '',
+          align: 'right',
+          width: '60px',
+          cell: (user) => (
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" className="h-9 w-9">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  <DropdownMenuItem onClick={() => setDrawerUser(user)}>
+                    <Eye className="mr-2 h-3.5 w-3.5" />
+                    Ver detalle
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEditTarget(user)}>
+                    <Pencil className="mr-2 h-3.5 w-3.5" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteTarget(user)}
+                    className="text-danger focus:text-danger"
+                    disabled={deleting}
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ),
+        },
         ]}
         rowKey={(user) => user.id}
         onRowClick={(user) => setDrawerUser(user)}
@@ -645,7 +645,7 @@ export function AdminUsersPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" size="sm" onClick={() => setToggleTarget(null)}>
+              <Button variant="outline" size="sm" onClick={() => setToggleTarget(null)} className="w-full sm:w-auto h-10 sm:h-9">
                 Cancelar
               </Button>
               <Button
@@ -668,6 +668,7 @@ export function AdminUsersPage() {
                     },
                   )
                 }}
+                className="w-full sm:w-auto h-10 sm:h-9"
               >
                 {toggling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {toggleTarget.isActive ? 'Desactivar' : 'Activar'}
@@ -768,14 +769,14 @@ function CreateUserDialog({
               {errors.password && <p className="text-xs text-danger mt-1">{errors.password.message}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="roleId">Rol *</Label>
               <Select
                 value={selectedRoleId}
                 onValueChange={(v) => setValue('roleId', v, { shouldValidate: true })}
                 disabled={isPending}
               >
-                <SelectTrigger className={errors.roleId ? 'border-danger' : ''}>
+                <SelectTrigger className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}>
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
@@ -808,10 +809,10 @@ function CreateUserDialog({
           )}
 
           <DialogFooter>
-            <Button variant="outline" size="sm" type="button" onClick={() => { reset(); onOpenChange(false) }}>
+            <Button variant="outline" size="sm" type="button" onClick={() => { reset(); onOpenChange(false) }} className="w-full sm:w-auto h-10 sm:h-9">
               Cancelar
             </Button>
-            <Button size="sm" type="submit" disabled={isPending}>
+            <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Crear usuario
             </Button>
@@ -908,14 +909,14 @@ function EditUserDialog({
               {errors.documentNumber && <p className="text-xs text-danger mt-1">{errors.documentNumber.message}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="edit-roleId">Rol *</Label>
               <Select
                 value={selectedRoleId}
                 onValueChange={(v) => setValue('roleId', v, { shouldValidate: true })}
                 disabled={isPending}
               >
-                <SelectTrigger className={errors.roleId ? 'border-danger' : ''}>
+                <SelectTrigger className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}>
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
@@ -948,10 +949,10 @@ function EditUserDialog({
           )}
 
           <DialogFooter>
-            <Button variant="outline" size="sm" type="button" onClick={onClose}>
+            <Button variant="outline" size="sm" type="button" onClick={onClose} className="w-full sm:w-auto h-10 sm:h-9">
               Cancelar
             </Button>
-            <Button size="sm" type="submit" disabled={isPending}>
+            <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar cambios
             </Button>

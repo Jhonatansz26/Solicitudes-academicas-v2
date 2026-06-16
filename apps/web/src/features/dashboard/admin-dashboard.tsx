@@ -35,7 +35,6 @@ export function AdminDashboard() {
       ? (stats.approved / (stats.approved + stats.rejected)) * 100
       : 0
 
-  // Distribución por estado para gráfico
   const statusDistribution = stats
     ? [
         { key: 'APPROVED', label: 'Aprobadas', value: stats.approved, color: 'bg-success' },
@@ -92,7 +91,7 @@ export function AdminDashboard() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <DashboardHero
         eyebrow="Administración del sistema"
         title={`Hola, ${firstName}`}
@@ -132,7 +131,7 @@ export function AdminDashboard() {
           tone="success"
         />
         <KpiTile
-          label="Tasa de aprobación"
+          label="Aprobación"
           value={statsLoading ? '—' : `${Math.round(approvalRate)}%`}
           icon={TrendingUp}
           tone="success"
@@ -140,18 +139,20 @@ export function AdminDashboard() {
       </KpiGrid>
 
       {statusDistribution.length > 0 && (
-        <Widget title="Distribución operativa por estado" description="Estado global de las solicitudes">
+        <Widget title="Distribución operativa" description="Estado global de las solicitudes">
           <div className="space-y-2.5">
             {statusDistribution.map((s) => (
-              <div key={s.key} className="flex items-center gap-3">
-                <span className="text-sm text-foreground w-32 shrink-0">{s.label}</span>
-                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+              <div key={s.key} className="flex items-center gap-2.5 sm:gap-3">
+                <span className="text-sm text-foreground w-24 sm:w-32 shrink-0 truncate">
+                  {s.label}
+                </span>
+                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden min-w-0">
                   <div
                     className={`h-full ${s.color} transition-all`}
                     style={{ width: `${(s.value / maxStatus) * 100}%` }}
                   />
                 </div>
-                <span className="text-sm font-semibold text-foreground w-12 text-right tabular-nums">
+                <span className="text-sm font-semibold text-foreground w-8 sm:w-12 text-right tabular-nums shrink-0">
                   {s.value}
                 </span>
               </div>
@@ -160,8 +161,8 @@ export function AdminDashboard() {
         </Widget>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-5 sm:space-y-6">
           <RequestListPreview
             title="Solicitudes recientes"
             items={recentItems}
@@ -174,14 +175,14 @@ export function AdminDashboard() {
 
           {usersData && usersData.data.length > 0 && (
             <Widget title="Usuarios recientes" description={`${totalUsers} usuarios en el sistema`}>
-              <ul className="divide-y divide-border -mx-5">
+              <ul className="divide-y divide-border -mx-4 sm:-mx-5">
                 {usersData.data.map((u) => (
                   <li
                     key={u.id}
-                    className="px-5 py-3 flex items-center gap-3 hover:bg-muted/40 cursor-pointer transition-colors"
+                    className="px-4 py-3 sm:px-5 flex items-center gap-3 hover:bg-muted/40 active:bg-muted/60 cursor-pointer transition-colors min-h-[60px]"
                     onClick={() => navigate('/dashboard/admin/users')}
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs shrink-0">
                       {u.fullName
                         .split(' ')
                         .map((n) => n[0])
@@ -198,7 +199,7 @@ export function AdminDashboard() {
                       </p>
                     </div>
                     <span
-                      className={`text-eyebrow font-semibold ${
+                      className={`text-eyebrow font-semibold shrink-0 ${
                         u.isActive ? 'text-success' : 'text-muted-foreground'
                       }`}
                     >
@@ -211,34 +212,34 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           <QuickActions title="Acciones rápidas" actions={quickActions} columns={1} />
 
           <Widget title="Resumen del sistema">
-            <dl className="space-y-3 text-sm">
+            <dl className="space-y-2.5 sm:space-y-3 text-sm">
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground flex items-center gap-2">
                   <Users className="h-3.5 w-3.5" /> Estudiantes
                 </dt>
-                <dd className="font-semibold text-foreground">{studentUsers}</dd>
+                <dd className="font-semibold text-foreground tabular-nums">{studentUsers}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground flex items-center gap-2">
                   <FileText className="h-3.5 w-3.5" /> Solicitudes totales
                 </dt>
-                <dd className="font-semibold text-foreground">{totalRequests}</dd>
+                <dd className="font-semibold text-foreground tabular-nums">{totalRequests}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground flex items-center gap-2">
                   <Tag className="h-3.5 w-3.5" /> Tipos configurados
                 </dt>
-                <dd className="font-semibold text-foreground">{totalTypes}</dd>
+                <dd className="font-semibold text-foreground tabular-nums">{totalTypes}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground flex items-center gap-2">
                   <Shield className="h-3.5 w-3.5" /> Roles
                 </dt>
-                <dd className="font-semibold text-foreground">4</dd>
+                <dd className="font-semibold text-foreground tabular-nums">4</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground flex items-center gap-2">

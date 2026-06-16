@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { FileText, Sparkles, Upload, Download, Plus, AlertCircle } from 'lucide-react'
+import { FileText, Sparkles, Upload, Download, Plus, AlertCircle, FileBadge, Inbox } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/app/providers/auth-provider'
 import {
   useRequests,
@@ -14,9 +15,7 @@ import { Widget } from '@/features/dashboard/widgets/widget'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/empty-state'
-import { useQuery } from '@tanstack/react-query'
 import { api } from '@/shared/api'
-import { FileBadge, Inbox } from 'lucide-react'
 
 interface MyDocument {
   id: string
@@ -55,7 +54,6 @@ export function StudentDashboard() {
     status: 'PENDING_DOCUMENTS',
   })
 
-  // Documentos del estudiante (oficiales generados para sus solicitudes aprobadas)
   const { data: docsData, isLoading: docsLoading } = useQuery({
     queryKey: ['my-documents'],
     queryFn: async () => {
@@ -116,7 +114,7 @@ export function StudentDashboard() {
   const hasPending = pendingItems.length > 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <DashboardHero
         eyebrow={eyebrow}
         title={`Hola, ${firstName}`}
@@ -130,9 +128,9 @@ export function StudentDashboard() {
             variant="gold"
             size="lg"
             onClick={() => navigate('/dashboard/requests/new')}
-            className="h-12 px-6 rounded-xl shadow-md"
+            className="h-12 px-6 sm:h-12 rounded-xl shadow-md text-base font-semibold"
           >
-            <Sparkles className="mr-2 h-4 w-4" />
+            <Sparkles className="mr-2 h-4 w-4 sm:h-4 sm:w-4" />
             Nueva solicitud
           </Button>
         }
@@ -151,7 +149,7 @@ export function StudentDashboard() {
 
       <KpiGrid columns={4}>
         <KpiTile
-          label="Solicitudes activas"
+          label="Activas"
           value={statsLoading ? '—' : (stats?.draft ?? 0) + (stats?.submitted ?? 0) + (stats?.inReview ?? 0)}
           icon={FileText}
           tone="primary"
@@ -163,7 +161,7 @@ export function StudentDashboard() {
           icon={Sparkles}
         />
         <KpiTile
-          label="Pendientes"
+          label="En revisión"
           value={statsLoading ? '—' : (stats?.submitted ?? 0) + (stats?.inReview ?? 0)}
           tone="warning"
           icon={Upload}
@@ -176,8 +174,8 @@ export function StudentDashboard() {
         />
       </KpiGrid>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-5 sm:space-y-6">
           {hasPending && (
             <RequestListPreview
               title="Acciones pendientes"
@@ -213,7 +211,7 @@ export function StudentDashboard() {
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           <QuickActions title="Acciones rápidas" actions={quickActions} columns={1} />
 
           <Widget title="Documentos listos" description="Resoluciones y certificados disponibles">
@@ -224,15 +222,15 @@ export function StudentDashboard() {
                 ))}
               </div>
             ) : docsData && docsData.data.length > 0 ? (
-              <ul className="space-y-2">
+              <ul className="space-y-1.5 -mx-1">
                 {docsData.data.slice(0, 5).map((doc) => (
                   <li key={doc.id}>
                     <button
                       type="button"
                       onClick={() => navigate(`/dashboard/documents`)}
-                      className="w-full flex items-center gap-3 rounded-lg p-2 hover:bg-muted/40 transition-colors text-left"
+                      className="w-full flex items-center gap-3 rounded-lg p-2.5 min-h-[48px] hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-soft text-info shrink-0">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-info-soft text-info shrink-0">
                         <FileBadge className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">

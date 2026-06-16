@@ -68,35 +68,42 @@ export function CreateRequest() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+    <div className="space-y-5 sm:space-y-6 max-w-2xl">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="-ml-2 sm:ml-0 h-10 sm:h-9"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Volver
         </Button>
       </div>
 
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Nueva Solicitud</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">Nueva Solicitud</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Completa los datos para crear una nueva solicitud académica
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="rounded-lg border border-border bg-surface p-6 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
+        <div className="rounded-2xl border border-border bg-surface p-4 sm:p-6 space-y-4 sm:space-y-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor="requestTypeId" className="text-sm font-medium text-foreground block">
               Tipo de solicitud <span className="text-danger">*</span>
             </label>
             {loadingTypes ? (
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full rounded-lg" />
             ) : (
               <Select
                 value={undefined}
                 onValueChange={(value) => setValue('requestTypeId', value, { shouldValidate: true })}
               >
-                <SelectTrigger className={errors.requestTypeId ? 'border-danger' : ''}>
+                <SelectTrigger
+                  className={`w-full h-10 ${errors.requestTypeId ? 'border-danger' : ''}`}
+                >
                   <SelectValue placeholder="Selecciona un tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -109,30 +116,32 @@ export function CreateRequest() {
               </Select>
             )}
             {errors.requestTypeId && (
-              <p className="text-sm text-danger">{errors.requestTypeId.message}</p>
+              <p className="text-xs text-danger">{errors.requestTypeId.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor="title" className="text-sm font-medium text-foreground block">
               Título <span className="text-danger">*</span>
             </label>
             <Input
+              id="title"
               placeholder="Ej: Solicitud de certificado de estudio"
               {...register('title')}
               className={errors.title ? 'border-danger' : ''}
               disabled={isPending}
             />
             {errors.title && (
-              <p className="text-sm text-danger">{errors.title.message}</p>
+              <p className="text-xs text-danger">{errors.title.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor="description" className="text-sm font-medium text-foreground block">
               Descripción <span className="text-muted-foreground font-normal">(opcional)</span>
             </label>
             <Textarea
+              id="description"
               placeholder="Agrega detalles adicionales sobre tu solicitud..."
               rows={4}
               {...register('description')}
@@ -140,21 +149,26 @@ export function CreateRequest() {
               disabled={isPending}
             />
             {errors.description && (
-              <p className="text-sm text-danger">{errors.description.message}</p>
+              <p className="text-xs text-danger">{errors.description.message}</p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
             disabled={isPending}
+            className="w-full sm:w-auto h-10 sm:h-9"
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full sm:w-auto h-10 sm:h-9"
+          >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Crear solicitud
           </Button>

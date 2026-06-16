@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, PanelLeftClose, PanelLeftOpen, User, LogOut, Bell, Sun } from 'lucide-react'
+import { Menu, PanelLeftClose, PanelLeftOpen, User, LogOut, Bell, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/app/providers/auth-provider'
-import { ThemeToggle } from '@/shared/components/theme-toggle'
+import { useTheme } from 'next-themes'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -57,7 +57,12 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const currentPath = location.pathname
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
 
   const initials = user?.fullName ? getInitials(user.fullName) : 'U'
   const gradient = user?.fullName ? getUserGradient(user.fullName) : 'from-navy-700 to-blue-500'
@@ -72,26 +77,24 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
 
   return (
     <header
-      className="w-full flex items-center justify-between bg-surface border border-border rounded-2xl px-3 sm:px-4 py-2.5 shrink-0"
+      className="w-full flex items-center justify-between bg-surface border border-border rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shrink-0 gap-2"
       role="banner"
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {/* Burger mobile */}
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
         <button
           type="button"
           onClick={onMenuClick}
-          className="lg:hidden p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
+          className="lg:hidden h-11 w-11 -ml-1.5 inline-flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
           aria-label="Abrir menú"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Toggle sidebar desktop */}
         {onToggleSidebar && (
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="hidden lg:inline-flex p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
+            className="hidden lg:inline-flex h-9 w-9 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
             aria-label={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
             title={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
           >
@@ -103,7 +106,6 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
           </button>
         )}
 
-        {/* Page label (breadcrumb mejorado en PageHeader) */}
         <div className="hidden sm:flex items-center gap-2 min-w-0">
           <Link
             to="/dashboard"
@@ -117,34 +119,43 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
           </span>
         </div>
 
-        {/* Mobile: solo label */}
         <span className="sm:hidden text-sm font-semibold text-foreground truncate">
           {getPageLabel()}
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        {/* Notificaciones (placeholder, funcional in-box en fase futura) */}
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-muted-foreground hover:text-foreground relative"
+          className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground relative"
           aria-label="Notificaciones"
           onClick={() => navigate('/dashboard/notifications')}
         >
           <Bell className="h-4 w-4" />
         </Button>
 
-        {/* Theme toggle */}
-        <ThemeToggle />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
+          aria-label="Cambiar tema"
+          onClick={toggleTheme}
+        >
+          {theme === 'dark' ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </Button>
 
-        {/* Profile dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted"
+              className="flex items-center gap-2 rounded-lg p-1.5 sm:px-2 sm:py-1.5 transition-colors hover:bg-muted min-h-[44px] sm:min-h-0"
               aria-label="Menú de usuario"
             >
               <div className="hidden text-right md:block min-w-0">

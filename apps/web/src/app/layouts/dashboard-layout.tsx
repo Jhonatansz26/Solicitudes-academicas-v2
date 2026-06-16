@@ -17,6 +17,8 @@ import { cn } from '@/shared/lib/utils'
  *  │ Content area (max-width 1440px, padding consistente)          │
  *  │  └─ <Outlet /> (cada página renderiza su PageHeader + body)   │
  *  └─────────────────────────────────────────────────────────────────┘
+ *
+ * Mobile-first: padding reducido en pantallas pequeñas, gutter consistente.
  */
 export function DashboardLayout() {
   const { collapsed, toggle, mobileOpen, openMobile, closeMobile } = useSidebarCollapsed()
@@ -36,8 +38,8 @@ export function DashboardLayout() {
     <div
       className={cn(
         'flex min-h-screen bg-background',
-        'p-2 sm:p-3 lg:p-4',
-        'gap-2 sm:gap-3 lg:gap-4',
+        'p-1.5 sm:p-2 lg:p-4',
+        'gap-1.5 sm:gap-2 lg:gap-4',
         'relative overflow-x-hidden',
       )}
     >
@@ -48,7 +50,7 @@ export function DashboardLayout() {
         onClose={closeMobile}
       />
 
-      <div className="flex flex-1 flex-col gap-2 sm:gap-3 lg:gap-4 min-w-0">
+      <div className="flex flex-1 flex-col gap-1.5 sm:gap-2 lg:gap-4 min-w-0">
         <Topbar
           onMenuClick={openMobile}
           onToggleSidebar={toggle}

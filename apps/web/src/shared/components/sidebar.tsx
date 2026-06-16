@@ -88,7 +88,7 @@ function NavItemLink({
       className={({ isActive }) =>
         cn(
           'group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200',
-          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-3 h-10',
+          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-3 h-11 sm:h-10',
           isActive
             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
             : 'text-sidebar-muted hover:bg-sidebar-border/40 hover:text-sidebar-foreground',
@@ -237,7 +237,7 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
             <button
               type="button"
               onClick={onToggle}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors"
+              className="h-9 w-9 inline-flex items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors"
               title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
               aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
             >
@@ -278,7 +278,7 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
               <button
                 type="button"
                 onClick={() => logout()}
-                className="p-1.5 text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors rounded-md shrink-0"
+                className="h-9 w-9 inline-flex items-center justify-center text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors rounded-md shrink-0"
                 title="Cerrar sesión"
                 aria-label="Cerrar sesión"
               >
@@ -307,14 +307,14 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
       {/* Mobile: drawer overlay */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in-0"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
       <div
         className={cn(
-          'lg:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform transition-transform duration-200 ease-out',
+          'lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[90vw] transform transition-transform duration-200 ease-out shadow-2xl',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -322,7 +322,7 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 p-1.5 rounded-md text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground"
+          className="absolute top-3 right-3 h-10 w-10 inline-flex items-center justify-center rounded-lg text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground"
           aria-label="Cerrar menú"
         >
           <X className="h-4 w-4" />

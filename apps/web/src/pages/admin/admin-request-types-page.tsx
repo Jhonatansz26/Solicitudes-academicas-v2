@@ -108,7 +108,7 @@ export function AdminRequestTypesPage() {
         title="Tipos de Solicitud"
         description="Catálogo de trámites académicos disponibles y su configuración operativa"
         actions={
-          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
+          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)} className="w-full sm:w-auto h-10 sm:h-9">
             <Plus className="h-3.5 w-3.5" />
             Nuevo tipo
           </Button>
@@ -116,7 +116,7 @@ export function AdminRequestTypesPage() {
       />
 
       {/* KPI Strip */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
           label="Tipos Activos"
           value={kpis.active}
@@ -162,7 +162,7 @@ export function AdminRequestTypesPage() {
             <Button
               variant={statusFilter === '' ? 'default' : 'outline'}
               size="sm"
-              className="h-9"
+              className="h-10 sm:h-9 flex-1 sm:flex-none"
               onClick={() => setStatusFilter('')}
             >
               Todos
@@ -170,7 +170,7 @@ export function AdminRequestTypesPage() {
             <Button
               variant={statusFilter === 'active' ? 'default' : 'outline'}
               size="sm"
-              className="h-9"
+              className="h-10 sm:h-9 flex-1 sm:flex-none"
               onClick={() => setStatusFilter('active')}
             >
               Activos
@@ -178,7 +178,7 @@ export function AdminRequestTypesPage() {
             <Button
               variant={statusFilter === 'inactive' ? 'default' : 'outline'}
               size="sm"
-              className="h-9"
+              className="h-10 sm:h-9 flex-1 sm:flex-none"
               onClick={() => setStatusFilter('inactive')}
             >
               Inactivos
@@ -191,7 +191,7 @@ export function AdminRequestTypesPage() {
                   setSearchQuery('')
                   setStatusFilter('')
                 }}
-                className="h-9"
+                className="h-10 sm:h-9 w-full sm:w-auto"
               >
                 <X className="mr-1 h-3 w-3" />
                 Limpiar
@@ -281,8 +281,8 @@ export function AdminRequestTypesPage() {
               <div onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                      <MoreVertical className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon-sm" className="h-9 w-9">
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-36">
@@ -550,10 +550,10 @@ function TypeDialog({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" size="sm" type="button" onClick={() => { reset(); onOpenChange(false) }}>
+            <Button variant="outline" size="sm" type="button" onClick={() => { reset(); onOpenChange(false) }} className="w-full sm:w-auto h-10 sm:h-9">
               Cancelar
             </Button>
-            <Button size="sm" type="submit" disabled={isPending}>
+            <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {defaultValues ? 'Guardar cambios' : 'Crear tipo'}
             </Button>

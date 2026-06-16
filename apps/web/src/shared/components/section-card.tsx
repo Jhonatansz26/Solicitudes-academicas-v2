@@ -46,7 +46,7 @@ export function SectionCard({
       {tone !== 'default' && <div className={cn('h-1.5 w-full', toneClasses[tone])} />}
 
       {hasHeader && (
-        <CardHeader className={cn('border-b border-border px-6 py-5', headerClassName)}>
+        <CardHeader className={cn('border-b border-border px-5 py-4 sm:px-6 sm:py-5', headerClassName)}>
           <div className="grid grid-cols-[1fr_auto] items-start gap-3">
             <div className="space-y-1 min-w-0">
               {title && (
@@ -65,12 +65,12 @@ export function SectionCard({
         </CardHeader>
       )}
 
-      <CardContent className={cn(compact ? 'px-4 py-4 sm:px-5 sm:py-5' : 'px-6 py-6', contentClassName)}>
+      <CardContent className={cn(compact ? 'px-4 py-4 sm:px-5 sm:py-5' : 'px-5 py-5 sm:px-6 sm:py-6', contentClassName)}>
         {children}
       </CardContent>
 
       {footer && (
-        <CardFooter className={cn('border-t border-border px-6 py-4', footerClassName)}>
+        <CardFooter className={cn('border-t border-border px-5 py-4 sm:px-6', footerClassName)}>
           {footer}
         </CardFooter>
       )}

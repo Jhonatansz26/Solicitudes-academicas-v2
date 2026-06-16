@@ -173,31 +173,31 @@ export function SettingsPage() {
           <div className="animate-fade-in-up stagger-1">
             <Card className="overflow-hidden hover-elevate">
               <div className="h-1.5 w-full bg-accent-bar" />
-              <CardContent className="pt-6 pb-6">
+              <CardContent className="pt-5 pb-5 sm:pt-6 sm:pb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <Avatar className="h-16 w-16 text-lg bg-primary/10 text-primary dark:bg-navy-900/60 dark:text-navy-200">
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-xl font-semibold text-foreground">{profile.fullName}</h2>
+                      <h2 className="text-lg sm:text-xl font-semibold text-foreground">{profile.fullName}</h2>
                       {roleConfig && (
                         <Badge variant={roleConfig.variant as never}>
                           {roleConfig.label}
                         </Badge>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Mail className="h-3.5 w-3.5" />
-                        {profile.email}
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{profile.email}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Hash className="h-3.5 w-3.5" />
+                        <Hash className="h-3.5 w-3.5 shrink-0" />
                         <span className="font-mono">{profile.documentNumber}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
+                        <Calendar className="h-3.5 w-3.5 shrink-0" />
                         Miembro desde {formatDate(profile.createdAt)}
                       </span>
                     </div>
@@ -207,9 +207,9 @@ export function SettingsPage() {
             </Card>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
             <Card className="animate-fade-in-up stagger-2 overflow-hidden hover-elevate">
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="text-base flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50">
                     <User className="h-4 w-4 text-primary dark:text-navy-200" />
@@ -217,7 +217,7 @@ export function SettingsPage() {
                   Información personal
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-5 sm:px-6">
                 <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="profile-fullName">Nombre completo</Label>
@@ -273,7 +273,7 @@ export function SettingsPage() {
                     </div>
                   )}
 
-                  <Button size="sm" type="submit" disabled={updatingProfile || !profileDirty}>
+                  <Button size="sm" type="submit" disabled={updatingProfile || !profileDirty} className="h-10 sm:h-9 w-full sm:w-auto">
                     {updatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Guardar cambios
                   </Button>
@@ -282,7 +282,7 @@ export function SettingsPage() {
             </Card>
 
             <Card className="animate-fade-in-up stagger-3 overflow-hidden hover-elevate">
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="text-base flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50">
                     <Shield className="h-4 w-4 text-primary dark:text-navy-200" />
@@ -290,7 +290,7 @@ export function SettingsPage() {
                   Seguridad
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-5 sm:px-6">
                 <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-5">
                   <div className="rounded-lg border border-border bg-surface p-3.5 mb-2">
                     <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export function SettingsPage() {
                     )}
                   </div>
 
-                  <Button size="sm" type="submit" disabled={changingPassword}>
+                  <Button size="sm" type="submit" disabled={changingPassword} className="h-10 sm:h-9 w-full sm:w-auto">
                     {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Actualizar contraseña
                   </Button>

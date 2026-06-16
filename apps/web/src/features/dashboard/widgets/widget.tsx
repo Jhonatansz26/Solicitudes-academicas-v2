@@ -14,6 +14,7 @@ interface WidgetProps {
 /**
  * Widget — Contenedor base para tarjetas de dashboard.
  * Provee título, descripción, acción opcional y cuerpo.
+ * Mobile-first: padding reducido y header más compacto.
  */
 export function Widget({
   title,
@@ -35,7 +36,7 @@ export function Widget({
       )}
     >
       {hasHeader && (
-        <header className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border">
+        <header className="flex items-start justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border">
           <div className="min-w-0 flex-1">
             {title && (
               <h2 className="text-base font-semibold text-foreground truncate">
@@ -51,7 +52,7 @@ export function Widget({
           {action && <div className="shrink-0">{action}</div>}
         </header>
       )}
-      <div className={cn('p-5', contentClassName)}>{children}</div>
+      <div className={cn('p-4 sm:p-5', contentClassName)}>{children}</div>
     </section>
   )
 }

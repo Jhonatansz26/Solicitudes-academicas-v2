@@ -48,6 +48,7 @@ const toneClasses: Record<KpiTone, { iconWrap: string; iconColor: string; value:
 
 /**
  * KpiTile — Tile individual de métrica para dashboards.
+ * Mobile-first: padding compacto y valor en tamaño manejable.
  * Variantes: default, primary, success, warning, danger, info.
  */
 export function KpiTile({
@@ -63,28 +64,28 @@ export function KpiTile({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border bg-surface p-4 sm:p-5',
-        'flex flex-col gap-2 sm:gap-3',
+        'rounded-2xl border border-border bg-surface p-3.5 sm:p-4 sm:p-5',
+        'flex flex-col gap-1.5 sm:gap-2 sm:gap-3',
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-eyebrow font-medium text-muted-foreground uppercase tracking-wider">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <p className="text-eyebrow font-medium text-muted-foreground uppercase tracking-wider leading-tight">
           {label}
         </p>
         {Icon && (
           <div
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-xl shrink-0',
+              'flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl shrink-0',
               styles.iconWrap,
             )}
           >
-            <Icon className={cn('h-4 w-4', styles.iconColor)} />
+            <Icon className={cn('h-4 w-4 sm:h-4 sm:w-4', styles.iconColor)} />
           </div>
         )}
       </div>
-      <p className={cn('text-3xl font-bold tracking-tight', styles.value)}>{value}</p>
-      {trend && <p className="text-eyebrow text-muted-foreground">{trend}</p>}
+      <p className={cn('text-2xl sm:text-3xl font-bold tracking-tight leading-none', styles.value)}>{value}</p>
+      {trend && <p className="text-eyebrow text-muted-foreground leading-tight">{trend}</p>}
     </div>
   )
 }
@@ -97,12 +98,12 @@ interface KpiGridProps {
 }
 
 const gridClasses: Record<NonNullable<KpiGridProps['columns']>, string> = {
-  2: 'grid-cols-1 sm:grid-cols-2',
-  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+  2: 'grid-cols-2',
+  3: 'grid-cols-2 sm:grid-cols-3',
+  4: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4',
   5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
 }
 
 export function KpiGrid({ children, columns = 4, className }: KpiGridProps) {
-  return <div className={cn('grid gap-4', gridClasses[columns], className)}>{children}</div>
+  return <div className={cn('grid gap-3 sm:gap-4', gridClasses[columns], className)}>{children}</div>
 }

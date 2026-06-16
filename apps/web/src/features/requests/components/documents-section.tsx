@@ -106,10 +106,10 @@ export function DocumentsSection({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface">
-      <div className="p-6 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Paperclip className="h-4 w-4 text-muted-foreground" />
+    <div className="rounded-2xl border border-border bg-surface">
+      <div className="p-4 sm:p-6 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
           <h3 className="text-sm font-medium text-foreground">Documentos adjuntos</h3>
           {documents && (
             <span className="text-xs text-muted-foreground">({documents.length})</span>
@@ -130,6 +130,7 @@ export function DocumentsSection({
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
+            className="h-10 sm:h-9 w-full sm:w-auto"
           >
             {uploading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -142,7 +143,7 @@ export function DocumentsSection({
       </div>
 
       {error && (
-        <div className="px-6 pt-4">
+        <div className="px-4 sm:px-6 pt-4">
           <div className="flex items-start gap-2 rounded-lg border border-danger/20 bg-danger-soft px-3 py-2.5 text-sm text-danger">
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
             <span>{error}</span>
@@ -150,9 +151,9 @@ export function DocumentsSection({
         </div>
       )}
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-16 w-full rounded-lg" />
             ))}
@@ -176,7 +177,7 @@ export function DocumentsSection({
               return (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-surface-hover"
+                  className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-surface-hover min-h-[60px] gap-2"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="shrink-0">
@@ -187,22 +188,23 @@ export function DocumentsSection({
                       <p className="text-sm font-medium text-foreground truncate">
                         {doc.originalName}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                         <span>{formatFileSize(doc.fileSize)}</span>
                         <span>·</span>
                         <span>{getFileTypeLabel(doc.mimeType)}</span>
-                        <span>·</span>
-                        <span>{formatDate(doc.createdAt)}</span>
+                        <span className="hidden sm:inline">·</span>
+                        <span className="hidden sm:inline">{formatDate(doc.createdAt)}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0 ml-3">
+                  <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-9 w-9 p-0"
                       onClick={() => handleDownload(doc.id, doc.originalName)}
+                      aria-label="Descargar"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -210,7 +212,7 @@ export function DocumentsSection({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-danger"
+                        className="h-9 w-9 p-0 text-muted-foreground hover:text-danger"
                         onClick={() =>
                           setDeleteTarget({
                             id: doc.id,
@@ -219,6 +221,7 @@ export function DocumentsSection({
                           })
                         }
                         disabled={deleting}
+                        aria-label="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

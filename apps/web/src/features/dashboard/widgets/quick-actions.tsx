@@ -42,7 +42,7 @@ export function QuickActions({
 }: QuickActionsProps) {
   return (
     <Widget title={title} description={description} className={className}>
-      <div className={cn('grid gap-3', columnClasses[columns])}>
+      <div className={cn('grid gap-2.5 sm:gap-3', columnClasses[columns])}>
         {actions.map((action) => {
           const Icon = action.icon
           const variant = action.variant ?? 'default'
@@ -50,7 +50,7 @@ export function QuickActions({
             <>
               <div
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-xl shrink-0',
+                  'flex h-10 w-10 sm:h-10 sm:w-10 items-center justify-center rounded-xl shrink-0',
                   variant === 'accent'
                     ? 'bg-gold-500/10 text-gold-600 dark:text-gold-400'
                     : variant === 'primary'
@@ -65,7 +65,7 @@ export function QuickActions({
                   {action.label}
                 </p>
                 {action.description && (
-                  <p className="text-eyebrow text-muted-foreground truncate">
+                  <p className="text-eyebrow text-muted-foreground truncate mt-0.5">
                     {action.description}
                   </p>
                 )}
@@ -77,7 +77,7 @@ export function QuickActions({
             </>
           )
           const className = cn(
-            'flex items-center gap-3 rounded-xl border p-3 transition-colors',
+            'flex items-center gap-3 rounded-xl border p-3 sm:p-3 min-h-[56px] transition-colors active:scale-[0.99]',
             'hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
             variantClasses[variant],
           )

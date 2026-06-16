@@ -161,7 +161,7 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
                     }
                   }}
                   placeholder={searchPlaceholder ?? 'Buscar...'}
-                  className="w-full h-9 px-3 text-sm rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring transition-colors"
+                  className="w-full h-10 sm:h-9 px-3 text-sm rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring transition-colors"
                   aria-label="Buscar"
                 />
               </div>
@@ -199,7 +199,7 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
           )}
         </div>
       ) : isLoading ? (
-        <div className={cn('space-y-3', contentClassName)}>
+        <div className={cn('space-y-2 sm:space-y-3', contentClassName)}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}

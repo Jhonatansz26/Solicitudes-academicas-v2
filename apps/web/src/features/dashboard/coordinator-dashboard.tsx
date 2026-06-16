@@ -22,21 +22,18 @@ export function CoordinatorDashboard() {
   const { user } = useAuth()
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
 
-  // Solicitudes listas para decisión (IN_REVIEW)
   const { data: pendingData, isLoading: pendingLoading } = useRequests({
     page: 1,
     limit: 8,
     status: 'IN_REVIEW',
   })
 
-  // Aprobadas este mes (necesita status=APPROVED)
   const { data: approvedData } = useRequests({
     page: 1,
     limit: 5,
     status: 'APPROVED',
   })
 
-  // Rechazadas este mes
   const { data: rejectedData } = useRequests({
     page: 1,
     limit: 5,
@@ -76,14 +73,12 @@ export function CoordinatorDashboard() {
       secondary: req.requestType?.name,
     })) ?? []
 
-  // Tipos de solicitud con stats (top 5)
   const { data: typesData } = useQuery({
     queryKey: ['request-types-stats'],
     queryFn: async () => {
       const { data } = await api.get<{ data: { id: string; name: string }[] }>(
         '/api/requests/types/all',
       )
-      // Traer stats por tipo
       const statsResults = await Promise.all(
         data.data.slice(0, 5).map(async (t) => {
           try {
@@ -128,7 +123,7 @@ export function CoordinatorDashboard() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <DashboardHero
         eyebrow="Coordinador académico"
         title={`Hola, ${firstName}`}
@@ -152,7 +147,7 @@ export function CoordinatorDashboard() {
 
       <KpiGrid columns={4}>
         <KpiTile
-          label="Pendientes de aprobación"
+          label="Pendientes"
           value={statsLoading ? '—' : pendingCount}
           icon={Scale}
           tone="warning"
@@ -177,8 +172,8 @@ export function CoordinatorDashboard() {
         />
       </KpiGrid>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-5 sm:space-y-6">
           <RequestListPreview
             title="Pendientes de decisión"
             description="Solicitudes en IN_REVIEW que esperan aprobación o rechazo"
@@ -193,14 +188,14 @@ export function CoordinatorDashboard() {
 
           {typesData && typesData.length > 0 && (
             <Widget title="Tasa de aprobación por tipo" description="Top 5 tipos de solicitud">
-              <ul className="space-y-3">
+              <ul className="space-y-3 sm:space-y-3.5">
                 {typesData.map((t) => (
                   <li key={t.id} className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium text-foreground truncate">
                         {t.name}
                       </span>
-                      <span className="text-eyebrow font-semibold text-muted-foreground shrink-0">
+                      <span className="text-eyebrow font-semibold text-muted-foreground shrink-0 tabular-nums">
                         {Math.round(t.approvalRate)}%
                       </span>
                     </div>
@@ -220,7 +215,7 @@ export function CoordinatorDashboard() {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           <QuickActions title="Acciones rápidas" actions={quickActions} columns={1} />
 
           {approvedItems.length > 0 && (

@@ -93,17 +93,17 @@ export function ActivityFeed({
       className={className}
       action={
         viewAllHref ? (
-          <Button asChild size="sm" variant="ghost">
+          <Button asChild size="sm" variant="ghost" className="h-8 px-2.5 text-xs">
             <a href={viewAllHref}>{viewAllLabel}</a>
           </Button>
         ) : null
       }
     >
-      <ul className="divide-y divide-border -mx-5">
+      <ul className="divide-y divide-border -mx-4 sm:-mx-5">
         {items.map((item) => {
           if (renderItem) {
             return (
-              <li key={item.id} className="px-5 py-3">
+              <li key={item.id} className="px-4 py-3 sm:px-5">
                 {renderItem(item)}
               </li>
             )
@@ -112,8 +112,8 @@ export function ActivityFeed({
             <li
               key={item.id}
               className={cn(
-                'px-5 py-3 flex items-center gap-3 transition-colors',
-                item.href && 'cursor-pointer hover:bg-muted/40',
+                'px-4 py-3 sm:px-5 flex items-center gap-3 transition-colors min-h-[56px]',
+                item.href && 'cursor-pointer hover:bg-muted/40 active:bg-muted/60',
               )}
               onClick={item.href ? () => navigate(item.href!) : undefined}
               role={item.href ? 'button' : undefined}
@@ -142,7 +142,7 @@ export function ActivityFeed({
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <span className="text-eyebrow text-muted-foreground">
                   {formatRelative(item.timestamp)}
                 </span>

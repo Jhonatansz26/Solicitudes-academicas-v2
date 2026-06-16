@@ -65,9 +65,9 @@ export function RequestDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-40 w-full rounded-lg" />
+      <div className="space-y-5 sm:space-y-6">
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-40 sm:h-40 w-full rounded-lg" />
         <Skeleton className="h-60 w-full rounded-lg" />
         <Skeleton className="h-48 w-full rounded-lg" />
       </div>
@@ -76,7 +76,7 @@ export function RequestDetail() {
 
   if (!request) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
         <AlertCircle className="mb-3 h-10 w-10 text-muted-foreground/50" />
         <h3 className="text-base font-medium text-foreground">Solicitud no encontrada</h3>
         <Button className="mt-4" variant="outline" size="sm" onClick={() => navigate('/dashboard/requests')}>
@@ -89,36 +89,52 @@ export function RequestDetail() {
   const lastComment = request.history?.find((h) => h.comment)?.comment ?? undefined
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/requests')}>
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/dashboard/requests')}
+            className="-ml-2 sm:ml-0 h-10 sm:h-9"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          {canSubmit && confirmAction !== 'submit' && (
-            <Button size="sm" onClick={() => setConfirmAction('submit')}>
-              <Send className="mr-2 h-4 w-4" />
-              Enviar
-            </Button>
-          )}
-          {canCancel && confirmAction !== 'cancel' && (
-            <Button variant="outline" size="sm" onClick={() => setConfirmAction('cancel')}>
-              <XCircle className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-          )}
-        </div>
+        {(canSubmit || canCancel) && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {canSubmit && confirmAction !== 'submit' && (
+              <Button
+                size="sm"
+                onClick={() => setConfirmAction('submit')}
+                className="h-10 sm:h-9 w-full sm:w-auto"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Enviar
+              </Button>
+            )}
+            {canCancel && confirmAction !== 'cancel' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmAction('cancel')}
+                className="h-10 sm:h-9 w-full sm:w-auto"
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancelar
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {confirmAction && (
-        <div className="rounded-lg border border-warning/20 bg-warning-soft p-4 space-y-3">
+        <div className="rounded-2xl border border-warning/20 bg-warning-soft p-4 space-y-3">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <p className="text-sm font-medium text-foreground">
                 {confirmAction === 'submit'
                   ? '¿Enviar solicitud a revisión?'
@@ -131,12 +147,22 @@ export function RequestDetail() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={handleAction} disabled={submitting || cancelling}>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleAction}
+              disabled={submitting || cancelling}
+              className="h-10 sm:h-9 w-full sm:w-auto"
+            >
               {(submitting || cancelling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {confirmAction === 'submit' ? 'Confirmar envío' : 'Confirmar cancelación'}
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setConfirmAction(null)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmAction(null)}
+              className="h-10 sm:h-9 w-full sm:w-auto"
+            >
               Volver
             </Button>
           </div>
@@ -154,29 +180,31 @@ export function RequestDetail() {
         />
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="flex-1 space-y-6 min-w-0 lg:max-w-[calc(100%-340px)]">
-          <div className="rounded-lg border border-border bg-surface">
-            <div className="p-6 border-b border-border space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-start">
+        <div className="flex-1 space-y-5 sm:space-y-6 min-w-0 lg:max-w-[calc(100%-340px)]">
+          <div className="rounded-2xl border border-border bg-surface">
+            <div className="p-4 sm:p-6 border-b border-border space-y-4">
+              <div className="flex items-start justify-between gap-3 sm:gap-4">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs text-muted-foreground">
                       {request.trackingNumber}
                     </span>
                     <StatusBadge status={request.status} />
                   </div>
-                  <h2 className="text-xl font-semibold text-foreground">{request.title}</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
+                    {request.title}
+                  </h2>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <FileText className="h-3 w-3" />
                     Tipo
                   </div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {request.requestType?.name || '—'}
                   </p>
                 </div>
@@ -196,7 +224,7 @@ export function RequestDetail() {
                     <User className="h-3 w-3" />
                     Solicitante
                   </div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {request.user?.fullName || '—'}
                   </p>
                 </div>
@@ -214,9 +242,9 @@ export function RequestDetail() {
             </div>
 
             {request.description && (
-              <div className="p-6 border-b border-border">
+              <div className="p-4 sm:p-6 border-b border-border">
                 <h3 className="text-sm font-medium text-foreground mb-2">Descripción</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                   {request.description}
                 </p>
               </div>
@@ -238,21 +266,21 @@ export function RequestDetail() {
           </div>
         </div>
 
-        <div className="w-full space-y-6 lg:w-[320px] lg:shrink-0">
+        <div className="w-full space-y-5 sm:space-y-6 lg:w-[320px] lg:shrink-0">
           {id && canShowReviewPanel && (
             <ReviewPanel requestId={id} currentStatus={request.status} />
           )}
 
-          <div className="rounded-lg border border-border bg-surface">
-            <div className="p-6 border-b border-border">
+          <div className="rounded-2xl border border-border bg-surface">
+            <div className="p-4 sm:p-6 border-b border-border">
               <h3 className="text-sm font-medium text-foreground">Historial de cambios</h3>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {request.history && request.history.length > 0 ? (
                 <div className="space-y-0">
                   {request.history.map((entry, index) => (
-                    <div key={entry.id} className="flex gap-4">
+                    <div key={entry.id} className="flex gap-3 sm:gap-4">
                       <div className="flex flex-col items-center">
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getHistoryColor(entry.newStatus)} bg-surface border border-border`}>
                           {getHistoryIcon(entry.newStatus)}
@@ -261,7 +289,7 @@ export function RequestDetail() {
                           <div className="w-px flex-1 bg-border my-1" />
                         )}
                       </div>
-                      <div className="pb-6 flex-1">
+                      <div className="pb-6 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-medium text-foreground">
                             {getHistoryLabel(entry.newStatus)}

@@ -9,6 +9,11 @@ interface DetailDrawerProps {
   className?: string
 }
 
+/**
+ * DetailDrawer — Panel lateral de detalle.
+ * - Desktop: panel fijo 410px desde la derecha.
+ * - Mobile: full-screen sheet desde la derecha con handle visual.
+ */
 export function DetailDrawer({ open, onClose, children, className }: DetailDrawerProps) {
   useEffect(() => {
     if (open) {
@@ -31,17 +36,20 @@ export function DetailDrawer({ open, onClose, children, className }: DetailDrawe
     <>
       <div
         className={cn(
-          'fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px] transition-opacity duration-200',
+          'fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] transition-opacity duration-200',
           open ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
+        aria-hidden="true"
       />
       <div
         className={cn(
-          'fixed top-0 right-0 bottom-0 z-50 w-[410px] max-w-[90vw] glass-panel border-l border-border flex flex-col transition-transform duration-250 ease-out',
+          'fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[410px] sm:max-w-[90vw] glass-panel border-l border-border flex flex-col transition-transform duration-250 ease-out shadow-2xl',
           open ? 'translate-x-0' : 'translate-x-full',
           className
         )}
+        role="dialog"
+        aria-modal="true"
       >
         {children}
       </div>
@@ -63,7 +71,7 @@ export function DrawerHeader({
   onClose: () => void
 }) {
   return (
-    <div className="px-5 pt-5 pb-4 border-b border-border shrink-0">
+    <div className="px-4 pt-4 pb-3.5 sm:px-5 sm:pt-5 sm:pb-4 border-b border-border shrink-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {eyebrow && (
@@ -78,9 +86,10 @@ export function DrawerHeader({
         </div>
         <button
           onClick={onClose}
-          className="h-7 w-7 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center shrink-0"
+          className="h-10 w-10 sm:h-9 sm:w-9 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center shrink-0"
+          aria-label="Cerrar panel"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
       {badges && <div className="flex gap-1.5 mt-3 flex-wrap">{badges}</div>}
@@ -90,7 +99,7 @@ export function DrawerHeader({
 
 export function DrawerBody({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('flex-1 overflow-y-auto px-5 py-4 space-y-5', className)}>
+    <div className={cn('flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-4 space-y-5 overscroll-contain', className)}>
       {children}
     </div>
   )
@@ -98,7 +107,7 @@ export function DrawerBody({ children, className }: { children: ReactNode; class
 
 export function DrawerFooter({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('px-5 py-3 border-t border-border shrink-0 flex gap-2', className)}>
+    <div className={cn('px-4 py-3 sm:px-5 border-t border-border shrink-0 flex flex-col sm:flex-row gap-2', className)}>
       {children}
     </div>
   )
@@ -133,8 +142,8 @@ export function DrawerDetailRow({
   className?: string
 }) {
   return (
-    <div className={cn('flex items-center justify-between py-1', className)}>
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div className={cn('flex items-center justify-between py-1 gap-2', className)}>
+      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
       <span className="text-xs font-medium text-foreground text-right max-w-[60%] truncate">{value}</span>
     </div>
   )
@@ -225,7 +234,7 @@ export function DrawerStatPill({
   valueColor?: string
 }) {
   return (
-    <div className="flex flex-col items-center px-3 py-2.5 rounded-lg bg-surface-hover border border-border min-w-[72px]">
+    <div className="flex flex-col items-center px-3 py-2.5 rounded-lg bg-surface-hover border border-border min-w-[72px] flex-1">
       <span className={cn('text-lg font-bold leading-none', valueColor ?? 'text-foreground')}>
         {value}
       </span>
