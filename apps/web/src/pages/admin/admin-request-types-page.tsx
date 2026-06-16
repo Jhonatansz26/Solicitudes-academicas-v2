@@ -38,19 +38,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/shared/components/ui/dropdown-menu'
-import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Badge } from '@/shared/components/ui/badge'
 import { Label } from '@/shared/components/ui/label'
 import { DeleteConfirmationDialog } from '@/shared/components/delete-confirmation-dialog'
 import { FilterChip } from '@/shared/components/filter-chip'
+import { PageHeader } from '@/shared/components/page-header'
+import { DataView } from '@/shared/components/data-view'
 import {
   Plus,
   Pencil,
   Trash2,
   Loader2,
-  AlertCircle,
   Tag,
-  Search,
   X,
   MoreVertical,
   Eye,
@@ -103,29 +102,18 @@ export function AdminRequestTypesPage() {
   const hasActiveFilters = searchQuery || statusFilter
 
   return (
-    <div className="space-y-5">
-      {/* Compact Hero */}
-      <div className="glass-panel rounded-2xl p-5 border-l-4 border-l-gold-500 shadow-premium-sm">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div className="space-y-1 min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Configuración de Trámites
-            </p>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground leading-tight">
-              Tipos de Solicitud
-            </h1>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Catálogo de trámites académicos disponibles y su configuración operativa
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              Nuevo tipo
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Configuración de Trámites"
+        title="Tipos de Solicitud"
+        description="Catálogo de trámites académicos disponibles y su configuración operativa"
+        actions={
+          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-3.5 w-3.5" />
+            Nuevo tipo
+          </Button>
+        }
+      />
 
       {/* KPI Strip */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -155,24 +143,26 @@ export function AdminRequestTypesPage() {
         />
       </div>
 
-      {/* Toolbar */}
-      <div className="glass-panel rounded-xl p-3.5 shadow-premium-sm">
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar tipo de solicitud..."
-              className="pl-9 h-8 text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="flex gap-1.5">
+      {/* Toolbar + Lista con DataView (card 1 col para catálogo pequeño) */}
+      <DataView<RequestType>
+        mode="card"
+        data={
+          filteredTypes.length > 0
+            ? { data: filteredTypes, total: filteredTypes.length, page: 1, totalPages: 1 }
+            : undefined
+        }
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        search={searchQuery}
+        searchPlaceholder="Buscar tipo de solicitud..."
+        onSearchChange={(v) => setSearchQuery(v)}
+        filters={
+          <>
             <Button
               variant={statusFilter === '' ? 'default' : 'outline'}
               size="sm"
-              className="h-8 text-xs"
+              className="h-9"
               onClick={() => setStatusFilter('')}
             >
               Todos
@@ -180,7 +170,7 @@ export function AdminRequestTypesPage() {
             <Button
               variant={statusFilter === 'active' ? 'default' : 'outline'}
               size="sm"
-              className="h-8 text-xs"
+              className="h-9"
               onClick={() => setStatusFilter('active')}
             >
               Activos
@@ -188,30 +178,34 @@ export function AdminRequestTypesPage() {
             <Button
               variant={statusFilter === 'inactive' ? 'default' : 'outline'}
               size="sm"
-              className="h-8 text-xs"
+              className="h-9"
               onClick={() => setStatusFilter('inactive')}
             >
               Inactivos
             </Button>
-          </div>
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => { setSearchQuery(''); setStatusFilter('') }}
-              className="h-8 text-xs text-muted-foreground"
-            >
-              <X className="mr-1 h-3 w-3" />
-              Limpiar
-            </Button>
-          )}
-        </div>
-
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-border">
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('')
+                  setStatusFilter('')
+                }}
+                className="h-9"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Limpiar
+              </Button>
+            )}
+          </>
+        }
+        activeFilters={
+          <>
             {searchQuery && (
-              <FilterChip label={`Búsqueda: "${searchQuery}"`} onRemove={() => setSearchQuery('')} />
+              <FilterChip
+                label={`Búsqueda: "${searchQuery}"`}
+                onRemove={() => setSearchQuery('')}
+              />
             )}
             {statusFilter && (
               <FilterChip
@@ -219,125 +213,104 @@ export function AdminRequestTypesPage() {
                 onRemove={() => setStatusFilter('')}
               />
             )}
-          </div>
-        )}
-      </div>
-
-      {/* Table */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-lg" />
-          ))}
-        </div>
-      ) : isError ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-danger-soft py-14 text-center glass-panel">
-          <AlertCircle className="mb-3 h-9 w-9 text-danger/50" />
-          <h3 className="text-sm font-medium text-foreground">Error al cargar tipos</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
-            Reintentar
-          </Button>
-        </div>
-      ) : filteredTypes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface py-14 text-center glass-panel">
-          <Tag className="mb-3 h-9 w-9 text-muted-foreground/50" />
-          <h3 className="text-sm font-medium text-foreground">No hay tipos de solicitud</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {hasActiveFilters ? 'Intenta cambiar los filtros' : 'Crea el primer tipo de solicitud'}
-          </p>
-          {!hasActiveFilters && (
+          </>
+        }
+        emptyTitle="No hay tipos de solicitud"
+        emptyDescription={
+          hasActiveFilters
+            ? 'Intenta cambiar los filtros'
+            : 'Crea el primer tipo de solicitud'
+        }
+        emptyIcon={<Tag className="h-6 w-6" />}
+        emptyAction={
+          !hasActiveFilters && (
             <Button className="mt-3" size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="mr-2 h-3.5 w-3.5" />
               Crear tipo
             </Button>
-          )}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border bg-surface overflow-hidden glass-panel">
-          {/* Table Header */}
-          <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-4 py-2.5 border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-surface-hover/50">
-            <div className="col-span-3">Nombre</div>
-            <div className="col-span-4">Descripción</div>
-            <div className="col-span-2">Días Est.</div>
-            <div className="col-span-1">Estado</div>
-            <div className="col-span-2"></div>
-          </div>
-
-          {/* Table Rows */}
-          {filteredTypes.map((type) => (
-            <div
-              key={type.id}
-              className="group grid grid-cols-12 gap-3 px-4 py-3 border-b border-border border-l-2 border-l-transparent last:border-0 items-center transition-all duration-150 hover:bg-gold-50/30 hover:border-l-gold-500 dark:hover:bg-gold-500/[0.04] cursor-pointer"
-              onClick={() => setDrawerType(type)}
-            >
-              <div className="col-span-12 sm:col-span-3 min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{type.name}</p>
-              </div>
-
-              <div className="col-span-12 sm:col-span-4 min-w-0">
-                <p className="text-xs text-muted-foreground truncate">{type.description || '—'}</p>
-              </div>
-
-              <div className="col-span-6 sm:col-span-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-foreground">
-                    {type.estimatedDays} {type.estimatedDays === 1 ? 'día' : 'días'}
-                  </span>
-                  <div className="flex-1 h-1 rounded-full bg-surface-hover overflow-hidden max-w-[60px]">
+          )
+        }
+        cardColumns={1}
+        cardItems={(type) => [
+          {
+            id: type.id,
+            content: (
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-foreground truncate">
+                      {type.name}
+                    </h3>
+                    {type.description && (
+                      <p className="text-eyebrow text-muted-foreground line-clamp-2 mt-0.5">
+                        {type.description}
+                      </p>
+                    )}
+                  </div>
+                  <Badge
+                    variant={type.isActive ? 'active' : 'inactive'}
+                    className="text-eyebrow shrink-0"
+                  >
+                    {type.isActive ? 'Activo' : 'Inactivo'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-eyebrow font-medium text-foreground">
+                      {type.estimatedDays} {type.estimatedDays === 1 ? 'día' : 'días'}
+                    </span>
+                  </div>
+                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden max-w-[120px]">
                     <div
                       className={cn(
-                        'h-full rounded-full transition-all',
-                        type.estimatedDays <= 5 ? 'bg-success' : type.estimatedDays <= 10 ? 'bg-warning' : 'bg-danger'
+                        'h-full rounded-full',
+                        type.estimatedDays <= 5
+                          ? 'bg-success'
+                          : type.estimatedDays <= 10
+                            ? 'bg-warning'
+                            : 'bg-danger',
                       )}
                       style={{ width: `${Math.min(100, (type.estimatedDays / 15) * 100)}%` }}
                     />
                   </div>
                 </div>
               </div>
-
-              <div className="col-span-4 sm:col-span-1">
-                <Badge variant={type.isActive ? 'active' : 'inactive'} className="text-[10px]">
-                  {type.isActive ? 'Activo' : 'Inactivo'}
-                </Badge>
+            ),
+            actions: (
+              <div onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-36">
+                    <DropdownMenuItem onClick={() => setDrawerType(type)}>
+                      <Eye className="mr-2 h-3.5 w-3.5" />
+                      Ver detalle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setEditTarget(type)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDeleteTarget(type)}
+                      className="text-danger focus:text-danger"
+                      disabled={deleting}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Desactivar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-
-              <div className="col-span-2 sm:col-span-2 flex justify-end">
-                <div
-                  className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                        <MoreVertical className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-36">
-                      <DropdownMenuItem onClick={() => setDrawerType(type)}>
-                        <Eye className="mr-2 h-3.5 w-3.5" />
-                        Ver detalle
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setEditTarget(type)}>
-                        <Pencil className="mr-2 h-3.5 w-3.5" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setDeleteTarget(type)}
-                        className="text-danger focus:text-danger"
-                        disabled={deleting}
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Desactivar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ),
+          },
+        ]}
+        onItemClick={(type) => setDrawerType(type)}
+        showPagination={false}
+      />
 
       {/* Detail Drawer */}
       <DetailDrawer open={!!drawerType} onClose={() => setDrawerType(null)}>
@@ -347,7 +320,7 @@ export function AdminRequestTypesPage() {
               eyebrow="Tipo de Solicitud"
               title={drawerType.name}
               badges={
-                <Badge variant={drawerType.isActive ? 'active' : 'inactive'} className="text-[10px]">
+                <Badge variant={drawerType.isActive ? 'active' : 'inactive'} className="text-eyebrow">
                   {drawerType.isActive ? 'Activo' : 'Inactivo'}
                 </Badge>
               }
@@ -391,7 +364,7 @@ export function AdminRequestTypesPage() {
                   />
                 </div>
                 {(typeStats?.total ?? 0) === 0 && (
-                  <p className="text-[10px] text-muted-foreground mt-2">Sin solicitudes de este tipo aún</p>
+                  <p className="text-eyebrow text-muted-foreground mt-2">Sin solicitudes de este tipo aún</p>
                 )}
               </DrawerSection>
             </DrawerBody>

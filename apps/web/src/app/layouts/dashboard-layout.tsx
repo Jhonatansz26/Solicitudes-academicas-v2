@@ -1,20 +1,62 @@
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from '@/shared/components/sidebar'
 import { Topbar } from '@/shared/components/topbar'
-import { useState } from 'react'
+import { useSidebarCollapsed } from '@/shared/hooks/use-sidebar-collapsed'
+import { cn } from '@/shared/lib/utils'
 
+/**
+ * DashboardLayout — Layout maestro de la aplicación autenticada.
+ *
+ * Estructura:
+ *  ┌─────────────────────────────────────────────────────────────────┐
+ *  │ Sidebar (240px expandida / 64px colapsada / drawer en mobile) │
+ *  ├─────────────────────────────────────────────────────────────────┤
+ *  │ Topbar                                                          │
+ *  ├─────────────────────────────────────────────────────────────────┤
+ *  │ Content area (max-width 1440px, padding consistente)          │
+ *  │  └─ <Outlet /> (cada página renderiza su PageHeader + body)   │
+ *  └─────────────────────────────────────────────────────────────────┘
+ */
 export function DashboardLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { collapsed, toggle, mobileOpen, openMobile, closeMobile } = useSidebarCollapsed()
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
 
   return (
-    <div className="flex min-h-screen bg-background p-2 sm:p-4 lg:p-6 gap-4 lg:gap-6 relative overflow-x-hidden">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div
+      className={cn(
+        'flex min-h-screen bg-background',
+        'p-2 sm:p-3 lg:p-4',
+        'gap-2 sm:gap-3 lg:gap-4',
+        'relative overflow-x-hidden',
+      )}
+    >
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={toggle}
+        open={mobileOpen}
+        onClose={closeMobile}
+      />
 
-      <div className="flex flex-1 flex-col gap-4 lg:gap-6 min-w-0">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+      <div className="flex flex-1 flex-col gap-2 sm:gap-3 lg:gap-4 min-w-0">
+        <Topbar
+          onMenuClick={openMobile}
+          onToggleSidebar={toggle}
+          sidebarCollapsed={collapsed}
+        />
 
         <main className="flex-1 w-full min-w-0">
-          <div className="w-full">
+          <div className="w-full mx-auto max-w-[1440px]">
             <Outlet />
           </div>
         </main>

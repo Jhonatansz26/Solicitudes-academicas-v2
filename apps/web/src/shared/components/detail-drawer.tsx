@@ -67,7 +67,7 @@ export function DrawerHeader({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {eyebrow && (
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+            <p className="text-eyebrow font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
               {eyebrow}
             </p>
           )}
@@ -115,7 +115,7 @@ export function DrawerSection({
 }) {
   return (
     <div className={cn('space-y-2.5', className)}>
-      <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border">
+      <h3 className="text-eyebrow font-bold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border">
         {title}
       </h3>
       {children}
@@ -165,12 +165,12 @@ export function DrawerFlowStep({
   return (
     <div className="flex gap-3 relative">
       {!isLast && <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />}
-      <div className={cn('h-[22px] w-[22px] rounded-full flex items-center justify-center shrink-0 text-[10px] border-2 mt-0.5', iconBg)}>
+      <div className={cn('h-[22px] w-[22px] rounded-full flex items-center justify-center shrink-0 text-eyebrow border-2 mt-0.5', iconBg)}>
         {icon}
       </div>
       <div className="pb-3.5 min-w-0 flex-1">
         <p className="text-xs font-semibold text-foreground leading-tight">{title}</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{description}</p>
+        <p className="text-eyebrow text-muted-foreground mt-0.5 truncate">{description}</p>
       </div>
     </div>
   )
@@ -190,7 +190,7 @@ export function DrawerActivityItem({
       <div className={cn('h-2 w-2 rounded-full shrink-0 mt-1.5', color)} />
       <div className="min-w-0 flex-1">
         <p className="text-xs text-foreground leading-tight">{text}</p>
-        <p className="text-[10px] text-muted-foreground mt-0.5">{time}</p>
+        <p className="text-eyebrow text-muted-foreground mt-0.5">{time}</p>
       </div>
     </div>
   )
@@ -208,7 +208,7 @@ export function DrawerEmptyState({
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-hover mb-2.5">
         {icon ?? <Inbox className="h-4 w-4 text-muted-foreground" />}
       </div>
-      <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[200px]">
+      <p className="text-eyebrow text-muted-foreground leading-relaxed max-w-[200px]">
         {text}
       </p>
     </div>
@@ -229,7 +229,7 @@ export function DrawerStatPill({
       <span className={cn('text-lg font-bold leading-none', valueColor ?? 'text-foreground')}>
         {value}
       </span>
-      <span className="text-[10px] text-muted-foreground mt-1 font-medium">{label}</span>
+      <span className="text-eyebrow text-muted-foreground mt-1 font-medium">{label}</span>
     </div>
   )
 }

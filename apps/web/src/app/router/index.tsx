@@ -11,6 +11,8 @@ import { DocumentsPage } from '@/pages/documents/documents-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { AdminRequestTypesPage } from '@/pages/admin/admin-request-types-page'
 import { SettingsPage } from '@/pages/settings/settings-page'
+import { NotificationsPage } from '@/pages/notifications/notifications-page'
+import { ProfilePage } from '@/pages/profile/profile-page'
 import { CreateRequest } from '@/features/requests/components/create-request'
 import { RequestDetail } from '@/features/requests/components/request-detail'
 import { useAuth } from '@/app/providers/auth-provider'
@@ -65,8 +67,16 @@ export const router = createBrowserRouter([
         element: <DocumentsPage />,
       },
       {
+        path: '/dashboard/notifications',
+        element: <NotificationsPage />,
+      },
+      {
         path: '/dashboard/settings',
         element: <SettingsPage />,
+      },
+      {
+        path: '/dashboard/profile',
+        element: <ProfilePage />,
       },
     ],
   },

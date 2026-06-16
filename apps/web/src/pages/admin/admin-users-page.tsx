@@ -27,6 +27,7 @@ import {
   DrawerActivityItem,
 } from '@/shared/components/detail-drawer'
 import { KpiCard } from '@/shared/components/kpi-card'
+import { PageHeader } from '@/shared/components/page-header'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import {
@@ -55,11 +56,9 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Label } from '@/shared/components/ui/label'
 import { DeleteConfirmationDialog } from '@/shared/components/delete-confirmation-dialog'
 import { FilterChip } from '@/shared/components/filter-chip'
+import { DataView } from '@/shared/components/data-view'
 import {
   Plus,
-  Search,
-  ChevronLeft,
-  ChevronRight,
   Pencil,
   Trash2,
   Users,
@@ -67,10 +66,9 @@ import {
   UserX,
   GraduationCap,
   Loader2,
-  AlertCircle,
   X,
-  MoreVertical,
   Eye,
+  MoreVertical,
 } from 'lucide-react'
 import type { AdminUser, RoleName, CreateUserInput } from '@/shared/types'
 import { cn } from '@/shared/lib/utils'
@@ -181,29 +179,18 @@ export function AdminUsersPage() {
   const hasActiveFilters = search || roleFilter || isActiveFilter
 
   return (
-    <div className="space-y-5">
-      {/* Compact Hero */}
-      <div className="glass-panel rounded-2xl p-5 border-l-4 border-l-gold-500 shadow-premium-sm">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div className="space-y-1 min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Directorio Institucional
-            </p>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground leading-tight">
-              Usuarios del Sistema
-            </h1>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Gestión de cuentas, roles y permisos del portal académico
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              Nuevo usuario
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Directorio Institucional"
+        title="Usuarios del Sistema"
+        description="Gestión de cuentas, roles y permisos del portal académico"
+        actions={
+          <Button variant="gold" size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-3.5 w-3.5" />
+            Nuevo usuario
+          </Button>
+        }
+      />
 
       {/* KPI Strip */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -241,60 +228,64 @@ export function AdminUsersPage() {
         />
       </div>
 
-      {/* Toolbar */}
-      <div className="glass-panel rounded-xl p-3.5 shadow-premium-sm">
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre, correo o documento..."
-              className="pl-9 h-8 text-sm"
-              defaultValue={search}
-              onBlur={(e) => setParam('search', e.target.value || null)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setParam('search', (e.target as HTMLInputElement).value || null)
-              }}
-            />
-          </div>
-
-          <Select value={roleFilter ?? ''} onValueChange={(v) => setParam('role', v || null)}>
-            <SelectTrigger className="w-[160px] h-8 text-sm">
-              <SelectValue placeholder="Todos los roles" />
-            </SelectTrigger>
-            <SelectContent>
-              {roles?.map((r) => (
-                <SelectItem key={r.id} value={r.name}>{ROLE_CONFIG[r.name]?.label ?? r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={isActiveFilter ?? ''} onValueChange={(v) => setParam('isActive', v || null)}>
-            <SelectTrigger className="w-[150px] h-8 text-sm">
-              <SelectValue placeholder="Todos los estados" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Activos</SelectItem>
-              <SelectItem value="false">Inactivos</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSearchParams({})}
-              className="h-8 text-xs text-muted-foreground"
+      {/* Toolbar + Tabla con DataView */}
+      <DataView<AdminUser>
+        mode="table"
+        data={data ? { data: users, total: data.total, page: data.page, totalPages: data.totalPages } : undefined}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        search={search ?? ''}
+        searchPlaceholder="Buscar por nombre, correo o documento..."
+        onSearchChange={(v) => setParam('search', v || null)}
+        filters={
+          <>
+            <Select value={roleFilter ?? 'all'} onValueChange={(v) => setParam('role', v === 'all' ? null : v)}>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Todos los roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los roles</SelectItem>
+                {roles?.map((r) => (
+                  <SelectItem key={r.id} value={r.name}>
+                    {ROLE_CONFIG[r.name]?.label ?? r.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={isActiveFilter ?? 'all'}
+              onValueChange={(v) => setParam('isActive', v === 'all' ? null : v)}
             >
-              <X className="mr-1 h-3 w-3" />
-              Limpiar
-            </Button>
-          )}
-        </div>
-
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-border">
+              <SelectTrigger className="h-9 w-[150px]">
+                <SelectValue placeholder="Todos los estados" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="true">Activos</SelectItem>
+                <SelectItem value="false">Inactivos</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchParams({})}
+                className="h-9"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Limpiar
+              </Button>
+            )}
+          </>
+        }
+        activeFilters={
+          <>
             {search && (
-              <FilterChip label={`Búsqueda: "${search}"`} onRemove={() => setParam('search', null)} />
+              <FilterChip
+                label={`Búsqueda: "${search}"`}
+                onRemove={() => setParam('search', null)}
+              />
             )}
             {roleFilter && (
               <FilterChip
@@ -308,186 +299,162 @@ export function AdminUsersPage() {
                 onRemove={() => setParam('isActive', null)}
               />
             )}
-          </div>
-        )}
-      </div>
-
-      {/* Table */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-lg" />
-          ))}
-        </div>
-      ) : isError ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-danger-soft py-14 text-center glass-panel">
-          <AlertCircle className="mb-3 h-9 w-9 text-danger/50" />
-          <h3 className="text-sm font-medium text-foreground">Error al cargar usuarios</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
-            Reintentar
-          </Button>
-        </div>
-      ) : users.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface py-14 text-center glass-panel">
-          <Users className="mb-3 h-9 w-9 text-muted-foreground/50" />
-          <h3 className="text-sm font-medium text-foreground">No se encontraron usuarios</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {hasActiveFilters ? 'Intenta cambiar los filtros de búsqueda' : 'Crea el primer usuario del sistema'}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="rounded-xl border border-border bg-surface overflow-hidden glass-panel">
-            {/* Table Header */}
-            <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-4 py-2.5 border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-surface-hover/50">
-              <div className="col-span-3">Usuario</div>
-              <div className="col-span-3">Correo</div>
-              <div className="col-span-2">Documento</div>
-              <div className="col-span-1">Rol</div>
-              <div className="col-span-1">Estado</div>
-              <div className="col-span-1">Fecha</div>
-              <div className="col-span-1"></div>
-            </div>
-
-            {/* Table Rows */}
-            {users.map((user) => (
-              <div
-                key={user.id}
-                className="group grid grid-cols-12 gap-3 px-4 py-3 border-b border-border border-l-2 border-l-transparent last:border-0 items-center transition-all duration-150 hover:bg-gold-50/30 hover:border-l-gold-500 dark:hover:bg-gold-500/[0.04] cursor-pointer"
-                onClick={() => setDrawerUser(user)}
+          </>
+        }
+        emptyTitle="No se encontraron usuarios"
+        emptyDescription={
+          hasActiveFilters
+            ? 'Intenta cambiar los filtros de búsqueda'
+            : 'Crea el primer usuario del sistema'
+        }
+        emptyIcon={<Users className="h-6 w-6" />}
+        columns={[
+          {
+            key: 'user',
+            header: 'Usuario',
+            cell: (user) => (
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={cn(
+                    'h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-eyebrow font-bold text-white bg-gradient-to-br',
+                    getAvatarGradient(user.fullName),
+                  )}
+                >
+                  {getInitials(user.fullName)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{user.fullName}</p>
+                  {user.studentProfile && (
+                    <p className="text-eyebrow text-muted-foreground truncate">
+                      {user.studentProfile.program} — Sem. {user.studentProfile.semester}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: 'email',
+            header: 'Correo',
+            hideOnMobile: true,
+            cell: (user) => (
+              <span className="text-sm text-muted-foreground truncate">{user.email}</span>
+            ),
+          },
+          {
+            key: 'document',
+            header: 'Documento',
+            width: '140px',
+            hideOnMobile: true,
+            cell: (user) => (
+              <span className="text-eyebrow font-mono text-muted-foreground">
+                {user.documentNumber}
+              </span>
+            ),
+          },
+          {
+            key: 'role',
+            header: 'Rol',
+            width: '120px',
+            cell: (user) => (
+              <Badge variant={ROLE_CONFIG[user.role.name]?.variant as never} className="text-eyebrow">
+                {ROLE_CONFIG[user.role.name]?.label}
+              </Badge>
+            ),
+          },
+          {
+            key: 'status',
+            header: 'Estado',
+            width: '110px',
+            cell: (user) => (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setToggleTarget(user)
+                }}
+                disabled={toggling}
+                className="cursor-pointer"
               >
-                <div className="col-span-12 sm:col-span-3 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white bg-gradient-to-br',
-                        getAvatarGradient(user.fullName)
-                      )}
-                    >
-                      {getInitials(user.fullName)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{user.fullName}</p>
-                      {user.studentProfile && (
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          {user.studentProfile.program} — Sem. {user.studentProfile.semester}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-span-12 sm:col-span-3 min-w-0">
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </div>
-
-                <div className="col-span-6 sm:col-span-2">
-                  <span className="text-xs font-mono text-muted-foreground">{user.documentNumber}</span>
-                </div>
-
-                <div className="col-span-4 sm:col-span-1">
-                  <Badge variant={ROLE_CONFIG[user.role.name]?.variant as never} className="text-[10px]">
-                    {ROLE_CONFIG[user.role.name]?.label}
-                  </Badge>
-                </div>
-
-                <div className="col-span-6 sm:col-span-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setToggleTarget(user)
-                    }}
-                    disabled={toggling}
-                    className="p-0 cursor-pointer"
-                  >
-                    <Badge
-                      variant={user.isActive ? 'active' : 'inactive'}
-                      className="cursor-pointer text-[10px]"
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${user.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
-                      {user.isActive ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </button>
-                </div>
-
-                <div className="col-span-4 sm:col-span-1">
-                  <span className="text-[10px] text-muted-foreground">
-                    {new Date(user.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-
-                <div className="col-span-2 sm:col-span-1 flex justify-end">
-                  <div
-                    className="sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-36">
-                        <DropdownMenuItem onClick={() => setDrawerUser(user)}>
-                          <Eye className="mr-2 h-3.5 w-3.5" />
-                          Ver detalle
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setEditTarget(user)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setDeleteTarget(user)}
-                          className="text-danger focus:text-danger"
-                          disabled={deleting}
-                        >
-                          <Trash2 className="mr-2 h-3.5 w-3.5" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {data && data.totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                Mostrando {users.length} de {data.total} usuarios
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => handlePageChange(page - 1)}
-                  className="h-7 text-xs"
+                <Badge
+                  variant={user.isActive ? 'active' : 'inactive'}
+                  className="cursor-pointer text-eyebrow"
                 >
-                  <ChevronLeft className="mr-1 h-3 w-3" />
-                  Anterior
-                </Button>
-                <span className="text-xs text-muted-foreground px-2">
-                  Página {page} de {data.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= data.totalPages}
-                  onClick={() => handlePageChange(page + 1)}
-                  className="h-7 text-xs"
-                >
-                  Siguiente
-                  <ChevronRight className="ml-1 h-3 w-3" />
-                </Button>
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      user.isActive ? 'bg-success' : 'bg-muted-foreground/50'
+                    }`}
+                  />
+                  {user.isActive ? 'Activo' : 'Inactivo'}
+                </Badge>
+              </button>
+            ),
+          },
+          {
+            key: 'createdAt',
+            header: 'Fecha',
+            width: '110px',
+            hideOnMobile: true,
+            cell: (user) => (
+              <span className="text-eyebrow text-muted-foreground">
+                {new Date(user.createdAt).toLocaleDateString('es-CO', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </span>
+            ),
+          },
+          {
+            key: 'actions',
+            header: '',
+            align: 'right',
+            width: '60px',
+            cell: (user) => (
+              <div onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-36">
+                    <DropdownMenuItem onClick={() => setDrawerUser(user)}>
+                      <Eye className="mr-2 h-3.5 w-3.5" />
+                      Ver detalle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setEditTarget(user)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDeleteTarget(user)}
+                      className="text-danger focus:text-danger"
+                      disabled={deleting}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Eliminar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            ),
+          },
+        ]}
+        rowKey={(user) => user.id}
+        onRowClick={(user) => setDrawerUser(user)}
+        pagination={
+          data
+            ? {
+                page: data.page,
+                totalPages: data.totalPages,
+                totalItems: data.total,
+                pageSize: data.limit,
+                onPageChange: handlePageChange,
+              }
+            : undefined
+        }
+      />
 
       {/* Detail Drawer */}
       <DetailDrawer open={!!drawerUser} onClose={() => setDrawerUser(null)}>
@@ -499,10 +466,10 @@ export function AdminUsersPage() {
               subtitle={drawerUser.email}
               badges={
                 <>
-                  <Badge variant={ROLE_CONFIG[drawerUser.role.name]?.variant as never} className="text-[10px]">
+                  <Badge variant={ROLE_CONFIG[drawerUser.role.name]?.variant as never} className="text-eyebrow">
                     {ROLE_CONFIG[drawerUser.role.name]?.label}
                   </Badge>
-                  <Badge variant={drawerUser.isActive ? 'active' : 'inactive'} className="text-[10px]">
+                  <Badge variant={drawerUser.isActive ? 'active' : 'inactive'} className="text-eyebrow">
                     <span className={`h-1.5 w-1.5 rounded-full ${drawerUser.isActive ? 'bg-success' : 'bg-muted-foreground/50'}`} />
                     {drawerUser.isActive ? 'Activo' : 'Inactivo'}
                   </Badge>
@@ -535,7 +502,7 @@ export function AdminUsersPage() {
                   <DrawerStatPill value={userRequestStats?.pending ?? 0} label="Pendientes" valueColor="text-warning" />
                 </div>
                 {(userRequestStats?.total ?? 0) === 0 && (
-                  <p className="text-[10px] text-muted-foreground mt-2">Sin solicitudes registradas aún</p>
+                  <p className="text-eyebrow text-muted-foreground mt-2">Sin solicitudes registradas aún</p>
                 )}
               </DrawerSection>
 

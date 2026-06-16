@@ -1,5 +1,5 @@
+import { useEffect, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { cn } from '@/shared/lib/utils'
 import {
   LayoutDashboard,
   FileText,
@@ -9,12 +9,21 @@ import {
   X,
   Users,
   Tag,
+  ChevronsLeft,
+  ChevronsRight,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Bell,
+  type LucideIcon,
 } from 'lucide-react'
+import { cn } from '@/shared/lib/utils'
 import { useAuth } from '@/app/providers/auth-provider'
 import { usePermissions } from '@/shared/hooks/use-permissions'
 import { useDashboardStats } from '@/features/requests/hooks/use-requests'
 
 interface SidebarProps {
+  collapsed?: boolean
+  onToggle?: () => void
   open?: boolean
   onClose?: () => void
 }
@@ -43,7 +52,75 @@ function getUserGradient(name: string): string {
   return gradients[hash % gradients.length]
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+interface NavItem {
+  to: string
+  label: string
+  icon: LucideIcon
+  badge?: number
+}
+
+function SidebarSection({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="mb-2">
+      <p className="text-eyebrow font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-3 pb-1.5">
+        {label}
+      </p>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  )
+}
+
+function NavItemLink({
+  item,
+  collapsed,
+  onNavigate,
+}: {
+  item: NavItem
+  collapsed: boolean
+  onNavigate?: () => void
+}) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/dashboard'}
+      onClick={onNavigate}
+      title={collapsed ? item.label : undefined}
+      className={({ isActive }) =>
+        cn(
+          'group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200',
+          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-3 h-10',
+          isActive
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            : 'text-sidebar-muted hover:bg-sidebar-border/40 hover:text-sidebar-foreground',
+        )
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <item.icon
+            className={cn(
+              'h-[18px] w-[18px] shrink-0',
+              isActive ? 'text-gold-400' : 'text-sidebar-muted group-hover:text-sidebar-foreground',
+            )}
+            aria-hidden="true"
+          />
+          {!collapsed && (
+            <>
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-eyebrow font-bold text-white">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </NavLink>
+  )
+}
+
+export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: SidebarProps) {
   const { logout, user } = useAuth()
   const { isReviewer, isAdmin } = usePermissions()
   const { data: stats } = useDashboardStats()
@@ -53,202 +130,207 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const pendingCount = isReviewer ? (stats?.submitted ?? 0) + (stats?.inReview ?? 0) : 0
 
-  const dashboardItems = [
+  const dashboardItems: NavItem[] = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText },
+    { to: '/dashboard/requests', label: 'Solicitudes', icon: FileText, badge: pendingCount },
   ]
 
-  const managementItems = isAdmin
+  const managementItems: NavItem[] = isAdmin
     ? [
         { to: '/dashboard/admin/users', label: 'Usuarios', icon: Users },
         { to: '/dashboard/admin/request-types', label: 'Tipos de solicitud', icon: Tag },
       ]
     : []
 
-  const systemItems = [
+  const systemItems: NavItem[] = [
     { to: '/dashboard/documents', label: 'Documentos', icon: FolderOpen },
+    { to: '/dashboard/notifications', label: 'Notificaciones', icon: Bell },
     { to: '/dashboard/settings', label: 'Configuración', icon: Settings },
   ]
 
-  return (
-    <>
-      <aside
+  // ESC cierra el drawer mobile
+  useEffect(() => {
+    if (!open) return
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose?.()
+    }
+    document.addEventListener('keydown', handleEsc)
+    return () => document.removeEventListener('keydown', handleEsc)
+  }, [open, onClose])
+
+  const sidebarContent = (
+    <aside
+      className={cn(
+        'flex h-full flex-col bg-sidebar border-r border-sidebar-border',
+        'transition-[width] duration-200 ease-out',
+        collapsed ? 'w-16' : 'w-60',
+      )}
+      aria-label="Navegación principal"
+    >
+      {/* Brand */}
+      <div
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col transition-transform duration-200 ease-in-out lg:static lg:translate-x-0',
-          'bg-sidebar border-r border-sidebar-border',
-          open ? 'translate-x-0' : '-translate-x-full'
+          'flex h-16 items-center border-b border-sidebar-border shrink-0',
+          collapsed ? 'justify-center px-2' : 'gap-3 px-5',
         )}
       >
-        {/* Brand */}
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <img
-            src="/logo-cul.png"
-            alt="CUL"
-            className="h-9 w-9 rounded-lg object-cover"
-          />
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-sidebar-foreground leading-tight font-display">
+        <img
+          src="/logo-cul.png"
+          alt="CUL"
+          className="h-9 w-9 rounded-lg object-cover shrink-0"
+        />
+        {!collapsed && (
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-sidebar-foreground leading-tight font-display truncate">
               SOLICITUDES
             </span>
-            <span className="text-[10px] font-medium text-sidebar-muted-foreground leading-tight">
+            <span className="text-eyebrow font-medium text-sidebar-muted-foreground leading-tight truncate">
               Portal Académico
             </span>
           </div>
+        )}
+      </div>
 
-          <button
-            onClick={onClose}
-            className="ml-auto rounded-md p-1 text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground lg:hidden"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2">
-          {/* Dashboard Section */}
-          <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-3 pb-1">
-            Dashboard
-          </p>
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        <SidebarSection label="Principal">
           {dashboardItems.map((item) => (
-            <NavLink
+            <NavItemLink
               key={item.to}
-              to={item.to}
-              end={item.to === '/dashboard'}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-sidebar-accent text-white shadow-sm'
-                    : 'text-sidebar-muted hover:bg-sidebar-border/50 hover:text-sidebar-foreground'
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon
-                    className={cn(
-                      'h-4 w-4 shrink-0',
-                      isActive ? 'text-gold-400' : 'text-sidebar-muted'
-                    )}
-                  />
-                  <span className="flex-1">{item.label}</span>
-                  {item.label === 'Solicitudes' && pendingCount > 0 && (
-                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
-                      {pendingCount > 99 ? '99+' : pendingCount}
-                    </span>
-                  )}
-                </>
-              )}
-            </NavLink>
+              item={item}
+              collapsed={collapsed}
+              onNavigate={onClose}
+            />
           ))}
+        </SidebarSection>
 
-          {/* Gestión Section */}
-          {managementItems.length > 0 && (
-            <>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-4 pb-1">
-                Gestión
-              </p>
-              {managementItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-sidebar-accent text-white shadow-sm'
-                    : 'text-sidebar-muted hover:bg-sidebar-border/50 hover:text-sidebar-foreground'
-                )
-              }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <item.icon
-                        className={cn(
-                          'h-4 w-4 shrink-0',
-                          isActive ? 'text-gold-400' : 'text-sidebar-muted'
-                        )}
-                      />
-                      {item.label}
-                    </>
-                  )}
-                </NavLink>
-              ))}
-            </>
-          )}
+        {managementItems.length > 0 && (
+          <SidebarSection label="Gestión">
+            {managementItems.map((item) => (
+              <NavItemLink
+                key={item.to}
+                item={item}
+                collapsed={collapsed}
+                onNavigate={onClose}
+              />
+            ))}
+          </SidebarSection>
+        )}
 
-          {/* Sistema Section */}
-          <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-4 pb-1">
-            Sistema
-          </p>
+        <SidebarSection label="Sistema">
           {systemItems.map((item) => (
-            <NavLink
+            <NavItemLink
               key={item.to}
-              to={item.to}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-sidebar-accent text-white shadow-sm'
-                    : 'text-sidebar-muted hover:bg-sidebar-border/50 hover:text-sidebar-foreground'
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon
-                    className={cn(
-                      'h-4 w-4 shrink-0',
-                      isActive ? 'text-gold-400' : 'text-sidebar-muted'
-                    )}
-                  />
-                  {item.label}
-                </>
-              )}
-            </NavLink>
+              item={item}
+              collapsed={collapsed}
+              onNavigate={onClose}
+            />
           ))}
-        </nav>
+        </SidebarSection>
+      </nav>
 
-        {/* Footer User Summary Inside Sidebar */}
+      {/* Footer: collapse toggle (desktop) + user */}
+      <div className="border-t border-sidebar-border shrink-0">
+        {/* Toggle collapse — solo desktop (lg+) */}
+        {onToggle && (
+          <div className="hidden lg:flex items-center justify-end px-2 py-2 border-b border-sidebar-border">
+            <button
+              type="button"
+              onClick={onToggle}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors"
+              title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+              aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+            >
+              {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            </button>
+          </div>
+        )}
+
         {user && (
-          <div className="border-t border-sidebar-border px-3 py-3">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center text-white font-bold font-display text-xs bg-gradient-to-br', gradient)}>
-                  {initials}
-                </div>
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-sidebar rounded-full"></span>
+          <div className={cn('flex items-center gap-3', collapsed ? 'justify-center p-2' : 'px-3 py-3')}>
+            <div className="relative shrink-0">
+              <div
+                className={cn(
+                  'rounded-xl flex items-center justify-center text-white font-bold font-display text-xs bg-gradient-to-br',
+                  collapsed ? 'h-9 w-9' : 'h-10 w-10',
+                  gradient,
+                )}
+              >
+                {initials}
               </div>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-sidebar rounded-full" />
+            </div>
+            {!collapsed && (
               <div className="min-w-0 flex-1">
                 <h4 className="text-xs font-semibold text-sidebar-foreground truncate">
                   {user.fullName}
                 </h4>
-                <p className="text-[10px] text-sidebar-muted-foreground truncate">
-                  Rol: {user.role === 'ADMIN' ? 'Administrador' : user.role === 'STUDENT' ? 'Estudiante' : user.role}
+                <p className="text-eyebrow text-sidebar-muted-foreground truncate">
+                  {user.role === 'ADMIN'
+                    ? 'Administrador'
+                    : user.role === 'STUDENT'
+                      ? 'Estudiante'
+                      : user.role}
                 </p>
               </div>
+            )}
+            {!collapsed && (
               <button
+                type="button"
                 onClick={() => logout()}
-                className="p-1.5 text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors rounded-md"
+                className="p-1.5 text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors rounded-md shrink-0"
                 title="Cerrar sesión"
+                aria-label="Cerrar sesión"
               >
                 <LogOut className="h-4 w-4" />
               </button>
-            </div>
+            )}
           </div>
         )}
-      </aside>
+      </div>
+    </aside>
+  )
 
-      {/* Mobile overlay */}
+  return (
+    <>
+      {/* Desktop: sidebar fija en flow */}
+      <div
+        className={cn(
+          'hidden lg:flex shrink-0',
+          collapsed ? 'w-16' : 'w-60',
+          'transition-[width] duration-200 ease-out',
+        )}
+      >
+        {sidebarContent}
+      </div>
+
+      {/* Mobile: drawer overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
+      <div
+        className={cn(
+          'lg:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform transition-transform duration-200 ease-out',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        {sidebarContent}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3 right-3 p-1.5 rounded-md text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground"
+          aria-label="Cerrar menú"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
     </>
   )
 }
+
+// Re-export para que el toggle del Topbar pueda usar el mismo icono
+export { ChevronsLeft, ChevronsRight }

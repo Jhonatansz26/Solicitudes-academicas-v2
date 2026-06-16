@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
 import { Badge } from '@/shared/components/ui/badge'
 import { User, Shield, Bell, Loader2, AlertCircle, Mail, Hash, GraduationCap, KeyRound, Calendar } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { PageHeader } from '@/shared/components/page-header'
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Mínimo 2 caracteres'),
@@ -136,13 +137,11 @@ export function SettingsPage() {
   const initials = profile ? getInitials(profile.fullName) : 'U'
 
   return (
-    <div className="space-y-8">
-      <div className="animate-fade-in-up">
-        <h1 className="font-display text-3xl font-bold tracking-tight">Configuración</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Gestiona tu perfil, seguridad y preferencias
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Configuración"
+        description="Gestiona tu perfil, seguridad y preferencias"
+      />
 
       {isLoading ? (
         <div className="animate-fade-in-up">

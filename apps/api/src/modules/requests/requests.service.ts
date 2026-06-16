@@ -461,9 +461,10 @@ export class RequestsService {
     }
 
     const approved = counts['APPROVED'] || 0;
-    const finalized =
-      approved + (counts['REJECTED'] || 0) + (counts['CANCELLED'] || 0);
-    const approvalRate = finalized > 0 ? (approved / finalized) * 100 : 0;
+    const rejected = counts['REJECTED'] || 0;
+    const approvalDenominator = approved + rejected;
+    const approvalRate =
+      approvalDenominator > 0 ? (approved / approvalDenominator) * 100 : 0;
 
     return {
       total,
