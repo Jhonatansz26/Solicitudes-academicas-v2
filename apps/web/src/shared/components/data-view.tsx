@@ -42,6 +42,8 @@ interface DataViewProps<T> {
   description?: ReactNode
   eyebrow?: ReactNode
   headerActions?: ReactNode
+  /** Etiqueta accesible para la tabla/lista. */
+  ariaLabel?: string
 
   // ─── Filter Bar ───
   search?: string
@@ -124,6 +126,8 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
     cardColumns,
     cardItems,
 
+    ariaLabel,
+
     contentClassName,
     className,
   } = props
@@ -146,10 +150,23 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
 
       {/* FilterBar */}
       {showFilterBar && (
-        <div className="rounded-xl border border-border bg-surface p-3 sm:p-4 space-y-3">
+        <div
+          className="rounded-xl border border-border bg-surface p-3 sm:p-4 space-y-3"
+          role="search"
+        >
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             {onSearchChange !== undefined && (
               <div className="relative flex-1 min-w-0">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
                 <input
                   type="search"
                   value={search ?? ''}
@@ -161,20 +178,20 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
                     }
                   }}
                   placeholder={searchPlaceholder ?? 'Buscar...'}
-                  className="w-full h-10 sm:h-9 px-3 text-sm rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring transition-colors"
-                  aria-label="Buscar"
+                  className="w-full h-10 sm:h-9 pl-9 pr-3 text-sm rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring transition-colors"
+                  aria-label={searchPlaceholder || 'Buscar'}
                 />
               </div>
             )}
             {(filters || filterActions) && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtros">
                 {filters}
                 {filterActions}
               </div>
             )}
           </div>
           {activeFilters && (
-            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border" role="list" aria-label="Filtros activos">
               {activeFilters}
             </div>
           )}
@@ -183,8 +200,8 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
 
       {/* Content: loading / error / empty / data */}
       {isError ? (
-        <div className="rounded-xl border border-danger/30 bg-danger-soft p-10 text-center">
-          <AlertCircle className="h-6 w-6 text-danger mx-auto mb-2" />
+        <div className="rounded-xl border border-danger/30 bg-danger-soft p-10 text-center" role="alert">
+          <AlertCircle className="h-6 w-6 text-danger mx-auto mb-2" aria-hidden="true" />
           <h3 className="text-sm font-semibold text-foreground">Error al cargar</h3>
           <p className="mt-1 text-xs text-muted-foreground">No fue posible obtener la información.</p>
           {onRetry && (
@@ -199,10 +216,16 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
           )}
         </div>
       ) : isLoading ? (
-        <div className={cn('space-y-2 sm:space-y-3', contentClassName)}>
+        <div
+          className={cn('space-y-2 sm:space-y-3', contentClassName)}
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
+          <span className="sr-only">Cargando datos…</span>
         </div>
       ) : rows.length === 0 ? (
         <EmptyState
@@ -220,6 +243,8 @@ export function DataView<T extends { id: string } = { id: string }>(props: DataV
               rowKey={rowKey as (row: object) => string}
               onRowClick={onRowClick as ((row: object) => void) | undefined}
               className={contentClassName}
+              ariaLabel={typeof title === 'string' ? title : ariaLabel}
+              caption={typeof title === 'string' ? title : undefined}
             />
           )}
 

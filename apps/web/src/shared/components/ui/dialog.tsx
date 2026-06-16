@@ -69,9 +69,10 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             className="absolute top-3 right-3 sm:top-4 sm:right-4 rounded-lg h-10 w-10 sm:h-9 sm:w-9 flex items-center justify-center opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-surface-hover focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            aria-label="Cerrar diálogo"
           >
-            <XIcon />
-            <span className="sr-only">Close</span>
+            <XIcon aria-hidden="true" />
+            <span className="sr-only">Cerrar</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -109,7 +110,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline">Cerrar</Button>
         </DialogPrimitive.Close>
       )}
     </div>

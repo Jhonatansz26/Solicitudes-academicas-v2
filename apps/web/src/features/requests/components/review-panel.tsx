@@ -126,13 +126,18 @@ export function ReviewPanel({ requestId, currentStatus }: ReviewPanelProps) {
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-surface">
+      <section
+        className="rounded-2xl border border-border bg-surface"
+        aria-labelledby="review-panel-heading"
+      >
         <div className="p-4 sm:p-6 border-b border-border">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <ClipboardCheck className="h-5 w-5 text-primary shrink-0" />
+              <ClipboardCheck className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
               <div className="min-w-0">
-                <h3 className="text-sm font-medium text-foreground">Panel de revisión</h3>
+                <h3 id="review-panel-heading" className="text-sm font-medium text-foreground">
+                  Panel de revisión
+                </h3>
                 <p className="text-xs text-muted-foreground truncate">
                   Estado actual de la solicitud
                 </p>
@@ -143,9 +148,11 @@ export function ReviewPanel({ requestId, currentStatus }: ReviewPanelProps) {
         </div>
 
         <div className="p-4 sm:p-6 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">{actionButtons}</div>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2" role="group" aria-label="Acciones de revisión">
+            {actionButtons}
+          </div>
         </div>
-      </div>
+      </section>
 
       <Dialog open={rejectionOpen} onOpenChange={setRejectionOpen}>
         <DialogContent>

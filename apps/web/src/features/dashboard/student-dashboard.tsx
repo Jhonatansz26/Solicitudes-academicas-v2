@@ -120,7 +120,7 @@ export function StudentDashboard() {
         title={`Hola, ${firstName}`}
         description={
           hasPending
-            ? 'Tienes solicitudes esperando tu atención.'
+            ? 'Tienes solicitudes esperando tu atención inmediata.'
             : 'No tienes acciones pendientes. Todo está al día.'
         }
         action={
@@ -130,7 +130,7 @@ export function StudentDashboard() {
             onClick={() => navigate('/dashboard/requests/new')}
             className="h-12 px-6 sm:h-12 rounded-xl shadow-md text-base font-semibold"
           >
-            <Sparkles className="mr-2 h-4 w-4 sm:h-4 sm:w-4" />
+            <Sparkles className="mr-2 h-4 w-4 sm:h-4 sm:w-4" aria-hidden="true" />
             Nueva solicitud
           </Button>
         }

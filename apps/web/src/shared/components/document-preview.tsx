@@ -40,19 +40,24 @@ export function DocumentPreview({
             {url && (
               <Button variant="outline" size="sm" asChild>
                 <a href={url} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Abrir
+                  <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Abrir en nueva pestaña
                 </a>
               </Button>
             )}
             {onDownload && (
               <Button size="sm" onClick={onDownload}>
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="mr-2 h-4 w-4" aria-hidden="true" />
                 Descargar
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-              <X className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              aria-label="Cerrar vista previa"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -60,7 +65,7 @@ export function DocumentPreview({
         <div className="bg-surface-hover/40">
           {url ? (
             <iframe
-              title={fileName || title}
+              title={fileName ? `Vista previa de ${fileName}` : title}
               src={url}
               className="h-[78vh] w-full bg-background"
             />

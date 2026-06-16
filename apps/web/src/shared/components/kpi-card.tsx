@@ -96,6 +96,7 @@ export function KpiCard({
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `${label}: ${value}` : undefined}
       onKeyDown={(e) => {
         if (!onClick) return
         if (e.key === 'Enter' || e.key === ' ') {

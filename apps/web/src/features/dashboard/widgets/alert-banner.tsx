@@ -55,6 +55,7 @@ export function AlertBanner({
         className,
       )}
       role="alert"
+      aria-live="polite"
     >
       <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
         <div
@@ -62,6 +63,7 @@ export function AlertBanner({
             'flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl shrink-0 bg-surface',
             styles.iconColor,
           )}
+          aria-hidden="true"
         >
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>

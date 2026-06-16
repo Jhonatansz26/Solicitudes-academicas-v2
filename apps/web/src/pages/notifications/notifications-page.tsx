@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import { PageHeader } from '@/shared/components/page-header'
 import { EmptyState } from '@/shared/components/empty-state'
-import { Inbox } from 'lucide-react'
+import { Button } from '@/shared/components/ui/button'
+import { Inbox, Bell } from 'lucide-react'
 
 export function NotificationsPage() {
   return (
@@ -13,7 +15,15 @@ export function NotificationsPage() {
       <EmptyState
         icon={<Inbox className="h-6 w-6" />}
         title="Bandeja vacía"
-        description="Aún no tienes notificaciones. Los cambios de estado y alertas aparecerán aquí en tiempo real."
+        description="Aún no tienes notificaciones. Cuando recibas alertas sobre tus solicitudes, aparecerán aquí."
+        action={
+          <Button asChild variant="outline" size="sm" className="h-10 sm:h-9">
+            <Link to="/dashboard/requests">
+              <Bell className="mr-2 h-4 w-4" aria-hidden="true" />
+              Ver mis solicitudes
+            </Link>
+          </Button>
+        }
       />
     </div>
   )

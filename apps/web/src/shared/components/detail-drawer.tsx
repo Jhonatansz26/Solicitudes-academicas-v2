@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { X, Inbox } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
 
@@ -13,11 +13,16 @@ interface DetailDrawerProps {
  * DetailDrawer — Panel lateral de detalle.
  * - Desktop: panel fijo 410px desde la derecha.
  * - Mobile: full-screen sheet desde la derecha con handle visual.
+ * - Accesible: focus trap, restore focus, ESC, aria-modal, aria-labelledby desde DrawerHeader.
  */
 export function DetailDrawer({ open, onClose, children, className }: DetailDrawerProps) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  const previouslyFocused = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden'
+      previouslyFocused.current = (document.activeElement as HTMLElement) || null
     } else {
       document.body.style.overflow = ''
     }
@@ -25,12 +30,56 @@ export function DetailDrawer({ open, onClose, children, className }: DetailDrawe
   }, [open])
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) onClose()
+    if (!open) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+        return
+      }
+      if (e.key === 'Tab' && panelRef.current) {
+        const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
-    document.addEventListener('keydown', handleEsc)
-    return () => document.removeEventListener('keydown', handleEsc)
+    document.addEventListener('keydown', handleKey)
+
+    // Enfocar primer elemento focuseable
+    const t = window.setTimeout(() => {
+      if (!panelRef.current) return
+      const focusable = panelRef.current.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      ;(focusable || panelRef.current).focus()
+    }, 50)
+
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      window.clearTimeout(t)
+    }
   }, [open, onClose])
+
+  // Restaurar foco al cerrar
+  useEffect(() => {
+    if (!open) {
+      const prev = previouslyFocused.current
+      if (prev && typeof prev.focus === 'function' && document.body.contains(prev)) {
+        const t = window.setTimeout(() => prev.focus(), 0)
+        return () => window.clearTimeout(t)
+      }
+    }
+  }, [open])
 
   return (
     <>
@@ -43,6 +92,7 @@ export function DetailDrawer({ open, onClose, children, className }: DetailDrawe
         aria-hidden="true"
       />
       <div
+        ref={panelRef}
         className={cn(
           'fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[410px] sm:max-w-[90vw] glass-panel border-l border-border flex flex-col transition-transform duration-250 ease-out shadow-2xl',
           open ? 'translate-x-0' : 'translate-x-full',
@@ -50,6 +100,8 @@ export function DetailDrawer({ open, onClose, children, className }: DetailDrawe
         )}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="drawer-title"
+        tabIndex={-1}
       >
         {children}
       </div>
@@ -79,7 +131,7 @@ export function DrawerHeader({
               {eyebrow}
             </p>
           )}
-          <h2 className="text-base font-bold text-foreground leading-tight truncate">{title}</h2>
+          <h2 className="text-base font-bold text-foreground leading-tight truncate" id="drawer-title">{title}</h2>
           {subtitle && (
             <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono">{subtitle}</p>
           )}
@@ -87,9 +139,9 @@ export function DrawerHeader({
         <button
           onClick={onClose}
           className="h-10 w-10 sm:h-9 sm:w-9 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center shrink-0"
-          aria-label="Cerrar panel"
+          aria-label="Cerrar panel de detalle"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
       {badges && <div className="flex gap-1.5 mt-3 flex-wrap">{badges}</div>}
@@ -123,12 +175,12 @@ export function DrawerSection({
   className?: string
 }) {
   return (
-    <div className={cn('space-y-2.5', className)}>
+    <section className={cn('space-y-2.5', className)}>
       <h3 className="text-eyebrow font-bold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border">
         {title}
       </h3>
-      {children}
-    </div>
+      <div>{children}</div>
+    </section>
   )
 }
 

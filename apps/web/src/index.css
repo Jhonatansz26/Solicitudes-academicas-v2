@@ -136,7 +136,7 @@
   --color-sidebar-accent-foreground: #ffffff;
   --color-sidebar-border: #E2E8F0;
   --color-sidebar-muted: #475569;
-  --color-sidebar-muted-foreground: #94A3B8;
+  --color-sidebar-muted-foreground: #64748B;
 
   /* — Navy scale — */
   --color-navy-50: #f0f2f6;
@@ -523,6 +523,12 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .active\:scale-mobile:active {
+    transform: none;
+  }
+}
+
 /* Safe area para dispositivos con notch */
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
@@ -548,5 +554,74 @@
 @media (max-width: 640px) {
   :focus-visible {
     outline-offset: 2px;
+  }
+}
+
+/* ===========================================================================
+   ACCESSIBILITY — UTILIDADES WCAG 2.2 AA
+   =========================================================================== */
+
+/* Visually hidden pero accesible para screen readers */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Focus visible global — nunca quitar el outline por completo */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Focus visible sobre fondo oscuro (dark mode) */
+.dark :focus-visible {
+  outline-color: #93c5fd;
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-lg);
+  transition: top 0.2s ease-out;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* High contrast support */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid LinkText;
+    outline-offset: 2px;
+  }
+  .border {
+    border-color: CanvasText;
   }
 }

@@ -13,6 +13,7 @@ import {
   type UsersQuery,
   type UserActivity,
 } from '@/features/admin/api/users-api'
+import { notify, NOTIFY } from '@/shared/lib/notify'
 
 export const usersKeys = {
   all: ['users'] as const,
@@ -77,10 +78,12 @@ export function useCreateUser() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: createUser,
-    onSuccess: () => {
+    onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
       queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
+      notify.success(NOTIFY.user.created, user.fullName)
     },
+    onError: (err) => notify.error(NOTIFY.user.createdError, err),
   })
 }
 
@@ -92,7 +95,9 @@ export function useUpdateUser() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
       queryClient.invalidateQueries({ queryKey: usersKeys.detail(variables.id) })
+      notify.success(NOTIFY.user.updated)
     },
+    onError: (err) => notify.error(NOTIFY.user.updatedError, err),
   })
 }
 
@@ -101,10 +106,12 @@ export function useUpdateUserStatus() {
   return useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       updateUserStatus(id, isActive),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
       queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
+      notify.success(variables.isActive ? NOTIFY.user.activated : NOTIFY.user.deactivated)
     },
+    onError: (err) => notify.error(NOTIFY.user.statusError, err),
   })
 }
 
@@ -115,6 +122,8 @@ export function useDeleteUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() })
       queryClient.invalidateQueries({ queryKey: usersKeys.stats() })
+      notify.success(NOTIFY.user.deleted)
     },
+    onError: (err) => notify.error(NOTIFY.user.deletedError, err),
   })
 }

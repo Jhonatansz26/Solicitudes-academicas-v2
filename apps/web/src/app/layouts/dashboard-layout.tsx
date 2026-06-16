@@ -43,6 +43,12 @@ export function DashboardLayout() {
         'relative overflow-x-hidden',
       )}
     >
+      <a
+        href="#main-content"
+        className="skip-link"
+      >
+        Saltar al contenido principal
+      </a>
       <Sidebar
         collapsed={collapsed}
         onToggle={toggle}
@@ -57,7 +63,12 @@ export function DashboardLayout() {
           sidebarCollapsed={collapsed}
         />
 
-        <main className="flex-1 w-full min-w-0">
+        <main
+          id="main-content"
+          aria-label="Contenido principal"
+          className="flex-1 w-full min-w-0"
+          tabIndex={-1}
+        >
           <div className="w-full mx-auto max-w-[1440px]">
             <Outlet />
           </div>

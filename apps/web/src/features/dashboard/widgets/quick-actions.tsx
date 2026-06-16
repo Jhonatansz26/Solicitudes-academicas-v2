@@ -42,7 +42,7 @@ export function QuickActions({
 }: QuickActionsProps) {
   return (
     <Widget title={title} description={description} className={className}>
-      <div className={cn('grid gap-2.5 sm:gap-3', columnClasses[columns])}>
+      <div className={cn('grid gap-2.5 sm:gap-3', columnClasses[columns])} role="list">
         {actions.map((action) => {
           const Icon = action.icon
           const variant = action.variant ?? 'default'
@@ -83,7 +83,13 @@ export function QuickActions({
           )
           if (action.href) {
             return (
-              <Link key={action.label} to={action.href} className={className}>
+              <Link
+                key={action.label}
+                to={action.href}
+                className={className}
+                role="listitem"
+                aria-label={action.description ? `${action.label}: ${action.description}` : action.label}
+              >
                 {inner}
               </Link>
             )
@@ -95,6 +101,8 @@ export function QuickActions({
                 type="button"
                 onClick={action.onClick}
                 className={cn('text-left', className)}
+                role="listitem"
+                aria-label={action.description ? `${action.label}: ${action.description}` : action.label}
               >
                 {inner}
               </button>

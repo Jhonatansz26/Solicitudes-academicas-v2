@@ -13,6 +13,7 @@ import {
   type ChangeStatusInput,
   type AcademicStats,
 } from '@/features/requests/api/requests-api'
+import { notify, NOTIFY } from '@/shared/lib/notify'
 
 export const requestsKeys = {
   all: ['requests'] as const,
@@ -70,7 +71,11 @@ export function useCreateRequest() {
     onSuccess: (newRequest) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+      notify.success(NOTIFY.request.created, `Folio ${newRequest.trackingNumber}`)
       return newRequest
+    },
+    onError: (err) => {
+      notify.error(NOTIFY.request.createdError, err)
     },
   })
 }
@@ -83,6 +88,10 @@ export function useSubmitRequest() {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+      notify.success(NOTIFY.request.submitted, `Folio ${request.trackingNumber}`)
+    },
+    onError: (err) => {
+      notify.error(NOTIFY.request.submittedError, err)
     },
   })
 }
@@ -95,6 +104,10 @@ export function useCancelRequest() {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+      notify.success(NOTIFY.request.cancelled, `Folio ${request.trackingNumber}`)
+    },
+    onError: (err) => {
+      notify.error(NOTIFY.request.cancelledError, err)
     },
   })
 }
@@ -104,10 +117,45 @@ export function useChangeRequestStatus() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: ChangeStatusInput }) =>
       changeRequestStatus(id, input),
-    onSuccess: (request) => {
+    onSuccess: (request, variables) => {
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: requestsKeys.detail(request.id) })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+      // Mensaje según el nuevo estado
+      const newStatus = variables?.input?.newStatus
+      switch (newStatus) {
+        case 'APPROVED':
+          notify.success(NOTIFY.request.approved)
+          break
+        case 'REJECTED':
+          notify.info(NOTIFY.request.rejected)
+          break
+        case 'PENDING_DOCUMENTS':
+          notify.info(NOTIFY.request.docsRequested)
+          break
+        case 'IN_REVIEW':
+          notify.info(NOTIFY.request.reviewStarted)
+          break
+        default:
+          notify.success('Estado actualizado')
+      }
+    },
+    onError: (err, variables) => {
+      const status = variables?.input?.newStatus
+      const map: Record<string, { success: string; error: string }> = {
+        APPROVED: { success: NOTIFY.request.approved, error: NOTIFY.request.approvedError },
+        REJECTED: { success: NOTIFY.request.rejected, error: NOTIFY.request.rejectedError },
+        PENDING_DOCUMENTS: {
+          success: NOTIFY.request.docsRequested,
+          error: NOTIFY.request.docsRequestedError,
+        },
+        IN_REVIEW: { success: NOTIFY.request.reviewStarted, error: NOTIFY.request.reviewStartedError },
+      }
+      const messages = map[status as string] ?? {
+        success: 'Estado actualizado',
+        error: NOTIFY.generic.updateError,
+      }
+      notify.error(messages.error, err)
     },
   })
 }

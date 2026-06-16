@@ -65,11 +65,52 @@ export function RequestDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-5 sm:space-y-6" aria-busy="true" aria-live="polite">
         <Skeleton className="h-10 w-32" />
-        <Skeleton className="h-40 sm:h-40 w-full rounded-lg" />
-        <Skeleton className="h-60 w-full rounded-lg" />
-        <Skeleton className="h-48 w-full rounded-lg" />
+        <div className="rounded-2xl border border-border bg-surface">
+          <div className="p-4 sm:p-6 border-b border-border space-y-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <Skeleton className="h-6 w-3/4" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-1.5">
+                  <Skeleton className="h-3 w-12" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border bg-surface p-4 sm:p-6 space-y-4">
+          <Skeleton className="h-4 w-32" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border bg-surface p-4 sm:p-6 space-y-3">
+          <Skeleton className="h-4 w-40" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-3 sm:gap-4">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <span className="sr-only">Cargando detalle de solicitud…</span>
       </div>
     )
   }
@@ -98,20 +139,24 @@ export function RequestDetail() {
             onClick={() => navigate('/dashboard/requests')}
             className="-ml-2 sm:ml-0 h-10 sm:h-9"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Volver
           </Button>
         </div>
 
         {(canSubmit || canCancel) && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+            role="group"
+            aria-label="Acciones de la solicitud"
+          >
             {canSubmit && confirmAction !== 'submit' && (
               <Button
                 size="sm"
                 onClick={() => setConfirmAction('submit')}
                 className="h-10 sm:h-9 w-full sm:w-auto"
               >
-                <Send className="mr-2 h-4 w-4" />
+                <Send className="mr-2 h-4 w-4" aria-hidden="true" />
                 Enviar
               </Button>
             )}
@@ -122,7 +167,7 @@ export function RequestDetail() {
                 onClick={() => setConfirmAction('cancel')}
                 className="h-10 sm:h-9 w-full sm:w-auto"
               >
-                <XCircle className="mr-2 h-4 w-4" />
+                <XCircle className="mr-2 h-4 w-4" aria-hidden="true" />
                 Cancelar
               </Button>
             )}
@@ -131,16 +176,21 @@ export function RequestDetail() {
       </div>
 
       {confirmAction && (
-        <div className="rounded-2xl border border-warning/20 bg-warning-soft p-4 space-y-3">
+        <div
+          className="rounded-2xl border border-warning/20 bg-warning-soft p-4 space-y-3"
+          role="alertdialog"
+          aria-labelledby="confirm-action-title"
+          aria-describedby="confirm-action-desc"
+        >
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+            <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" aria-hidden="true" />
             <div className="space-y-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
+              <p id="confirm-action-title" className="text-sm font-medium text-foreground">
                 {confirmAction === 'submit'
                   ? '¿Enviar solicitud a revisión?'
                   : '¿Cancelar esta solicitud?'}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p id="confirm-action-desc" className="text-xs text-muted-foreground">
                 {confirmAction === 'submit'
                   ? 'Esta acción no se puede deshacer. La solicitud pasará a estado "Enviada".'
                   : 'La solicitud será marcada como cancelada y no podrá ser recuperada.'}
@@ -154,7 +204,7 @@ export function RequestDetail() {
               disabled={submitting || cancelling}
               className="h-10 sm:h-9 w-full sm:w-auto"
             >
-              {(submitting || cancelling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {(submitting || cancelling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
               {confirmAction === 'submit' ? 'Confirmar envío' : 'Confirmar cancelación'}
             </Button>
             <Button
@@ -182,17 +232,17 @@ export function RequestDetail() {
 
       <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-start">
         <div className="flex-1 space-y-5 sm:space-y-6 min-w-0 lg:max-w-[calc(100%-340px)]">
-          <div className="rounded-2xl border border-border bg-surface">
+          <article className="rounded-2xl border border-border bg-surface" aria-labelledby="request-title">
             <div className="p-4 sm:p-6 border-b border-border space-y-4">
               <div className="flex items-start justify-between gap-3 sm:gap-4">
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-mono text-xs text-muted-foreground" aria-label={`Número de seguimiento ${request.trackingNumber}`}>
                       {request.trackingNumber}
                     </span>
                     <StatusBadge status={request.status} />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
+                  <h2 id="request-title" className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
                     {request.title}
                   </h2>
                 </div>
@@ -249,7 +299,7 @@ export function RequestDetail() {
                 </p>
               </div>
             )}
-          </div>
+          </article>
 
           {id && (officialDocs?.data?.length ?? 0) > 0 && (
             <OfficialDocumentsSection requestId={id} />
@@ -271,9 +321,9 @@ export function RequestDetail() {
             <ReviewPanel requestId={id} currentStatus={request.status} />
           )}
 
-          <div className="rounded-2xl border border-border bg-surface">
+          <section className="rounded-2xl border border-border bg-surface" aria-labelledby="history-heading">
             <div className="p-4 sm:p-6 border-b border-border">
-              <h3 className="text-sm font-medium text-foreground">Historial de cambios</h3>
+              <h3 id="history-heading" className="text-sm font-medium text-foreground">Historial de cambios</h3>
             </div>
 
             <div className="p-4 sm:p-6">
@@ -318,7 +368,7 @@ export function RequestDetail() {
                 </p>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>

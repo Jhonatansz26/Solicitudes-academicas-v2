@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'sonner'
 import {
   useAllRequestTypes,
   useRequestTypeStats,
@@ -408,10 +407,6 @@ export function AdminRequestTypesPage() {
           create(input, {
             onSuccess: () => {
               setCreateOpen(false)
-              toast.success('Tipo creado correctamente')
-            },
-            onError: () => {
-              toast.error('Error al crear el tipo')
             },
           })
         }}
@@ -433,10 +428,6 @@ export function AdminRequestTypesPage() {
             update({ id: editTarget.id, input }, {
               onSuccess: () => {
                 setEditTarget(null)
-                toast.success('Tipo actualizado')
-              },
-              onError: () => {
-                toast.error('Error al actualizar el tipo')
               },
             })
           }}
@@ -453,12 +444,6 @@ export function AdminRequestTypesPage() {
           onConfirm={() => {
             remove(deleteTarget.id, {
               onSuccess: () => {
-                setDeleteTarget(null)
-                toast.success('Tipo desactivado')
-              },
-              onError: (err) => {
-                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-                toast.error(msg || 'Error al desactivar el tipo')
                 setDeleteTarget(null)
               },
             })
@@ -514,17 +499,26 @@ function TypeDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleForm)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleForm)} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="type-name">Nombre *</Label>
+            <Label htmlFor="type-name">
+              Nombre <span className="text-danger" aria-hidden="true">*</span>
+            </Label>
             <Input
               id="type-name"
+              aria-required="true"
+              aria-invalid={errors.name ? 'true' : 'false'}
+              aria-describedby={errors.name ? 'type-name-error' : undefined}
               {...register('name')}
               className={errors.name ? 'border-danger' : ''}
               disabled={isPending}
               autoFocus
             />
-            {errors.name && <p className="text-xs text-danger mt-1">{errors.name.message}</p>}
+            {errors.name && (
+              <p id="type-name-error" className="text-xs text-danger mt-1" role="alert">
+                {errors.name.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -532,21 +526,35 @@ function TypeDialog({
             <Textarea
               id="type-desc"
               rows={3}
+              aria-invalid={errors.description ? 'true' : 'false'}
               {...register('description')}
               disabled={isPending}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type-days">Días estimados *</Label>
+            <Label htmlFor="type-days">
+              Días estimados <span className="text-danger" aria-hidden="true">*</span>
+            </Label>
             <Input
               id="type-days"
               type="number"
+              aria-required="true"
+              aria-invalid={errors.estimatedDays ? 'true' : 'false'}
+              aria-describedby={errors.estimatedDays ? 'type-days-error' : 'type-days-help'}
               {...register('estimatedDays', { valueAsNumber: true })}
               className={errors.estimatedDays ? 'border-danger' : ''}
               disabled={isPending}
             />
-            {errors.estimatedDays && <p className="text-xs text-danger mt-1">{errors.estimatedDays.message}</p>}
+            {errors.estimatedDays ? (
+              <p id="type-days-error" className="text-xs text-danger mt-1" role="alert">
+                {errors.estimatedDays.message}
+              </p>
+            ) : (
+              <p id="type-days-help" className="text-xs text-muted-foreground">
+                Tiempo estimado de atención en días hábiles.
+              </p>
+            )}
           </div>
 
           <DialogFooter>
@@ -554,7 +562,7 @@ function TypeDialog({
               Cancelar
             </Button>
             <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
               {defaultValues ? 'Guardar cambios' : 'Crear tipo'}
             </Button>
           </DialogFooter>

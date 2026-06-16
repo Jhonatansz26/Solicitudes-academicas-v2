@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/app/providers/auth-provider'
 import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
-import { Eye, EyeOff } from 'lucide-react'
+import { Label } from '@/shared/components/ui/label'
+import { Eye, EyeOff, AlertCircle, LogIn } from 'lucide-react'
 import { AxiosError } from 'axios'
 
 export function LoginPage() {
@@ -15,21 +16,30 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const emailId = 'login-email'
+  const passwordId = 'login-password'
+  const errorId = 'login-error'
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setEmailError(null)
+    setPasswordError(null)
 
+    let hasError = false
     if (!email.trim()) {
-      setError('El correo es requerido')
-      return
+      setEmailError('Ingresa tu correo institucional')
+      hasError = true
     }
     if (!password.trim()) {
-      setError('La contraseña es requerida')
-      return
+      setPasswordError('Ingresa tu contraseña')
+      hasError = true
     }
+    if (hasError) return
 
     setIsSubmitting(true)
     try {
@@ -37,11 +47,11 @@ export function LoginPage() {
       navigate(from, { replace: true })
     } catch (err) {
       if (err instanceof AxiosError && err.response?.status === 401) {
-        setError('Correo o contraseña inválidos')
+        setError('Correo o contraseña incorrectos. Verifica e intenta de nuevo.')
       } else if (err instanceof AxiosError && err.response?.status === 403) {
-        setError('Tu cuenta está inactiva o suspendida')
+        setError('Tu cuenta está inactiva. Contacta al administrador.')
       } else {
-        setError('Error de conexión. Intenta de nuevo más tarde')
+        setError('No fue posible iniciar sesión. Verifica tu conexión e intenta de nuevo.')
       }
     } finally {
       setIsSubmitting(false)
@@ -50,10 +60,10 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Cargando...</p>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">Cargando…</p>
         </div>
       </div>
     )
@@ -65,7 +75,7 @@ export function LoginPage() {
       <div className="space-y-4 text-center">
         <img
           src="/logo-cul.png"
-          alt="CUL"
+          alt="Logo CUL"
           className="h-14 w-14 rounded-xl mx-auto object-cover border-2 border-gold-500/30"
         />
         <div className="space-y-1">
@@ -73,63 +83,108 @@ export function LoginPage() {
             Bienvenido
           </h1>
           <p className="text-sm text-muted-foreground">
-            Ingresa tus credenciales para acceder al portal
+            Ingresa tus credenciales para acceder al portal académico
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <Label htmlFor={emailId}>
             Correo institucional
-          </label>
+          </Label>
           <Input
+            id={emailId}
             type="email"
             placeholder="usuario@universidad.edu.co"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (emailError) setEmailError(null)
+            }}
             disabled={isSubmitting}
             autoComplete="email"
-            className="h-11 rounded-lg"
+            inputMode="email"
+            aria-required="true"
+            aria-invalid={emailError ? 'true' : 'false'}
+            aria-describedby={emailError ? `${emailId}-error` : undefined}
+            className={`h-11 rounded-lg ${emailError ? 'border-danger' : ''}`}
           />
+          {emailError && (
+            <p id={`${emailId}-error`} className="text-xs text-danger flex items-center gap-1" role="alert">
+              <AlertCircle className="h-3 w-3" aria-hidden="true" />
+              {emailError}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <Label htmlFor={passwordId}>
             Contraseña
-          </label>
+          </Label>
           <div className="relative">
             <Input
+              id={passwordId}
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-11 rounded-lg pr-10"
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (passwordError) setPasswordError(null)
+              }}
+              className={`h-11 rounded-lg pr-10 ${passwordError ? 'border-danger' : ''}`}
               disabled={isSubmitting}
               autoComplete="current-password"
+              aria-required="true"
+              aria-invalid={passwordError ? 'true' : 'false'}
+              aria-describedby={passwordError ? `${passwordId}-error` : undefined}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center text-muted-foreground hover:text-foreground rounded-md"
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               tabIndex={-1}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {passwordError && (
+            <p id={`${passwordId}-error`} className="text-xs text-danger flex items-center gap-1" role="alert">
+              <AlertCircle className="h-3 w-3" aria-hidden="true" />
+              {passwordError}
+            </p>
+          )}
         </div>
 
         {error && (
-          <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger flex items-center gap-2">
-            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            {error}
+          <div
+            id={errorId}
+            className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger flex items-start gap-2"
+            role="alert"
+          >
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
           </div>
         )}
 
-        <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? 'Ingresando...' : 'Iniciar sesión'}
+        <Button
+          type="submit"
+          className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+          size="lg"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+              Ingresando…
+            </>
+          ) : (
+            <>
+              <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
+              Iniciar sesión
+            </>
+          )}
         </Button>
       </form>
 

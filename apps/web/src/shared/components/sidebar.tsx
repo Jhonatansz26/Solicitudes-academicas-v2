@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -61,11 +61,16 @@ interface NavItem {
 
 function SidebarSection({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="mb-2">
-      <p className="text-eyebrow font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-3 pb-1.5">
+    <div className="mb-2" role="group" aria-label={label}>
+      <p
+        className="text-eyebrow font-bold uppercase tracking-widest text-sidebar-muted-foreground px-4 pt-3 pb-1.5"
+        id={`sidebar-section-${label.toLowerCase()}`}
+      >
         {label}
       </p>
-      <div className="space-y-0.5">{children}</div>
+      <div className="space-y-0.5" role="list" aria-labelledby={`sidebar-section-${label.toLowerCase()}`}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -85,12 +90,13 @@ function NavItemLink({
       end={item.to === '/dashboard'}
       onClick={onNavigate}
       title={collapsed ? item.label : undefined}
+      role="listitem"
       className={({ isActive }) =>
         cn(
           'group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200',
           collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-3 h-11 sm:h-10',
           isActive
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
             : 'text-sidebar-muted hover:bg-sidebar-border/40 hover:text-sidebar-foreground',
         )
       }
@@ -108,11 +114,17 @@ function NavItemLink({
             <>
               <span className="flex-1 truncate">{item.label}</span>
               {item.badge !== undefined && item.badge > 0 && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-eyebrow font-bold text-white">
+                <span
+                  className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-eyebrow font-bold text-white"
+                  aria-label={`${item.badge} pendiente${item.badge === 1 ? '' : 's'}`}
+                >
                   {item.badge > 99 ? '99+' : item.badge}
                 </span>
               )}
             </>
+          )}
+          {collapsed && (
+            <span className="sr-only">{item.label}</span>
           )}
         </>
       )}
@@ -124,6 +136,9 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
   const { logout, user } = useAuth()
   const { isReviewer, isAdmin } = usePermissions()
   const { data: stats } = useDashboardStats()
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const previouslyFocused = useRef<HTMLElement | null>(null)
 
   const initials = user?.fullName ? getInitials(user.fullName) : 'U'
   const gradient = user?.fullName ? getUserGradient(user.fullName) : 'from-navy-700 to-blue-500'
@@ -148,15 +163,57 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
     { to: '/dashboard/settings', label: 'Configuración', icon: Settings },
   ]
 
-  // ESC cierra el drawer mobile
+  // ESC cierra el drawer mobile + focus trap
   useEffect(() => {
     if (!open) return
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.()
+
+    previouslyFocused.current = (document.activeElement as HTMLElement) || null
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose?.()
+        return
+      }
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
-    document.addEventListener('keydown', handleEsc)
-    return () => document.removeEventListener('keydown', handleEsc)
+    document.addEventListener('keydown', handleKey)
+
+    // Mover foco al botón de cerrar
+    const t = window.setTimeout(() => {
+      closeButtonRef.current?.focus()
+    }, 50)
+
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      window.clearTimeout(t)
+    }
   }, [open, onClose])
+
+  // Restaurar foco al cerrar
+  useEffect(() => {
+    if (!open) {
+      const prev = previouslyFocused.current
+      if (prev && typeof prev.focus === 'function') {
+        const t = window.setTimeout(() => prev.focus(), 0)
+        return () => window.clearTimeout(t)
+      }
+    }
+  }, [open])
 
   const sidebarContent = (
     <aside
@@ -192,7 +249,7 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-2">
+      <nav className="flex-1 overflow-y-auto py-2" aria-label="Menú principal">
         <SidebarSection label="Principal">
           {dashboardItems.map((item) => (
             <NavItemLink
@@ -241,13 +298,17 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
               title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
               aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
             >
-              {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              {collapsed ? <PanelLeftOpen className="h-4 w-4" aria-hidden="true" /> : <PanelLeftClose className="h-4 w-4" aria-hidden="true" />}
             </button>
           </div>
         )}
 
         {user && (
-          <div className={cn('flex items-center gap-3', collapsed ? 'justify-center p-2' : 'px-3 py-3')}>
+          <div
+            className={cn('flex items-center gap-3', collapsed ? 'justify-center p-2' : 'px-3 py-3')}
+            role="region"
+            aria-label="Información del usuario actual"
+          >
             <div className="relative shrink-0">
               <div
                 className={cn(
@@ -255,10 +316,15 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
                   collapsed ? 'h-9 w-9' : 'h-10 w-10',
                   gradient,
                 )}
+                aria-hidden="true"
               >
                 {initials}
               </div>
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-sidebar rounded-full" />
+              <span
+                className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-sidebar rounded-full"
+                aria-label="En línea"
+                role="status"
+              />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
@@ -280,9 +346,9 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
                 onClick={() => logout()}
                 className="h-9 w-9 inline-flex items-center justify-center text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground transition-colors rounded-md shrink-0"
                 title="Cerrar sesión"
-                aria-label="Cerrar sesión"
+                aria-label={`Cerrar sesión de ${user.fullName ?? 'usuario actual'}`}
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -313,19 +379,26 @@ export function Sidebar({ collapsed = false, onToggle, open = false, onClose }: 
         />
       )}
       <div
+        ref={drawerRef}
         className={cn(
           'lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[90vw] transform transition-transform duration-200 ease-out shadow-2xl',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú de navegación"
+        aria-hidden={!open}
+        {...(!open ? { inert: '' as unknown as boolean } : {})}
       >
         {sidebarContent}
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           className="absolute top-3 right-3 h-10 w-10 inline-flex items-center justify-center rounded-lg text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground"
           aria-label="Cerrar menú"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     </>

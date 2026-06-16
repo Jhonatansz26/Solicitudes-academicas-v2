@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'sonner'
 import {
   useUsers,
   useRoles,
@@ -577,10 +576,6 @@ export function AdminUsersPage() {
           create(input, {
             onSuccess: () => {
               setCreateOpen(false)
-              toast.success('Usuario creado correctamente')
-            },
-            onError: () => {
-              toast.error('Error al crear el usuario')
             },
           })
         }}
@@ -597,10 +592,6 @@ export function AdminUsersPage() {
             update({ id: editTarget.id, input }, {
               onSuccess: () => {
                 setEditTarget(null)
-                toast.success('Usuario actualizado correctamente')
-              },
-              onError: () => {
-                toast.error('Error al actualizar el usuario')
               },
             })
           }}
@@ -618,12 +609,6 @@ export function AdminUsersPage() {
           onConfirm={() => {
             remove(deleteTarget.id, {
               onSuccess: () => {
-                setDeleteTarget(null)
-                toast.success('Usuario eliminado')
-              },
-              onError: (err) => {
-                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-                toast.error(msg || 'Error al eliminar el usuario')
                 setDeleteTarget(null)
               },
             })
@@ -658,12 +643,6 @@ export function AdminUsersPage() {
                     {
                       onSuccess: () => {
                         setToggleTarget(null)
-                        toast.success(
-                          toggleTarget.isActive ? 'Usuario desactivado' : 'Usuario activado',
-                        )
-                      },
-                      onError: () => {
-                        toast.error('Error al cambiar el estado')
                       },
                     },
                   )
@@ -743,40 +722,111 @@ function CreateUserDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleCreate)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleCreate)} className="space-y-4" noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nombre completo *</Label>
-              <Input id="fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} autoFocus />
-              {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
+              <Label htmlFor="fullName">
+                Nombre completo <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="fullName"
+                aria-required="true"
+                aria-invalid={errors.fullName ? 'true' : 'false'}
+                aria-describedby={errors.fullName ? 'create-fullName-error' : undefined}
+                {...register('fullName')}
+                className={errors.fullName ? 'border-danger' : ''}
+                disabled={isPending}
+                autoFocus
+              />
+              {errors.fullName && (
+                <p id="create-fullName-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Correo *</Label>
-              <Input id="email" type="email" {...register('email')} className={errors.email ? 'border-danger' : ''} disabled={isPending} />
-              {errors.email && <p className="text-xs text-danger mt-1">{errors.email.message}</p>}
+              <Label htmlFor="email">
+                Correo <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                aria-required="true"
+                aria-invalid={errors.email ? 'true' : 'false'}
+                aria-describedby={errors.email ? 'create-email-error' : undefined}
+                {...register('email')}
+                className={errors.email ? 'border-danger' : ''}
+                disabled={isPending}
+              />
+              {errors.email && (
+                <p id="create-email-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="documentNumber">Documento *</Label>
-              <Input id="documentNumber" {...register('documentNumber')} className={errors.documentNumber ? 'border-danger' : ''} disabled={isPending} />
-              {errors.documentNumber && <p className="text-xs text-danger mt-1">{errors.documentNumber.message}</p>}
+              <Label htmlFor="documentNumber">
+                Documento <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="documentNumber"
+                aria-required="true"
+                aria-invalid={errors.documentNumber ? 'true' : 'false'}
+                aria-describedby={errors.documentNumber ? 'create-documentNumber-error' : undefined}
+                {...register('documentNumber')}
+                className={errors.documentNumber ? 'border-danger' : ''}
+                disabled={isPending}
+              />
+              {errors.documentNumber && (
+                <p id="create-documentNumber-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.documentNumber.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña *</Label>
-              <Input id="password" type="password" {...register('password')} className={errors.password ? 'border-danger' : ''} disabled={isPending} />
-              {errors.password && <p className="text-xs text-danger mt-1">{errors.password.message}</p>}
+              <Label htmlFor="password">
+                Contraseña <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                aria-required="true"
+                aria-invalid={errors.password ? 'true' : 'false'}
+                aria-describedby={errors.password ? 'create-password-error' : 'create-password-help'}
+                {...register('password')}
+                className={errors.password ? 'border-danger' : ''}
+                disabled={isPending}
+              />
+              {errors.password ? (
+                <p id="create-password-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.password.message}
+                </p>
+              ) : (
+                <p id="create-password-help" className="text-xs text-muted-foreground">
+                  Mínimo 8 caracteres.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="roleId">Rol *</Label>
+              <Label htmlFor="roleId">
+                Rol <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
               <Select
                 value={selectedRoleId}
                 onValueChange={(v) => setValue('roleId', v, { shouldValidate: true })}
                 disabled={isPending}
               >
-                <SelectTrigger className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}>
+                <SelectTrigger
+                  id="roleId"
+                  className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}
+                  aria-required="true"
+                  aria-invalid={errors.roleId ? 'true' : 'false'}
+                  aria-describedby={errors.roleId ? 'create-roleId-error' : undefined}
+                >
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
@@ -787,25 +837,36 @@ function CreateUserDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.roleId && <p className="text-xs text-danger mt-1">{errors.roleId.message}</p>}
+              {errors.roleId && (
+                <p id="create-roleId-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.roleId.message}
+                </p>
+              )}
             </div>
           </div>
 
           {isStudent && (
-            <div className="grid gap-4 sm:grid-cols-3 border-t border-border pt-4">
+            <fieldset className="grid gap-4 sm:grid-cols-3 border-t border-border pt-4">
+              <legend className="sr-only">Datos de estudiante</legend>
               <div className="space-y-2">
-                <Label htmlFor="program">Programa *</Label>
-                <Input id="program" {...register('program')} disabled={isPending} />
+                <Label htmlFor="program">
+                  Programa <span className="text-danger" aria-hidden="true">*</span>
+                </Label>
+                <Input id="program" aria-required="true" {...register('program')} disabled={isPending} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="semester">Semestre *</Label>
-                <Input id="semester" type="number" {...register('semester', { valueAsNumber: true })} disabled={isPending} />
+                <Label htmlFor="semester">
+                  Semestre <span className="text-danger" aria-hidden="true">*</span>
+                </Label>
+                <Input id="semester" type="number" aria-required="true" {...register('semester', { valueAsNumber: true })} disabled={isPending} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="studentCode">Código *</Label>
-                <Input id="studentCode" {...register('studentCode')} disabled={isPending} />
+                <Label htmlFor="studentCode">
+                  Código <span className="text-danger" aria-hidden="true">*</span>
+                </Label>
+                <Input id="studentCode" aria-required="true" {...register('studentCode')} disabled={isPending} />
               </div>
-            </div>
+            </fieldset>
           )}
 
           <DialogFooter>
@@ -813,7 +874,7 @@ function CreateUserDialog({
               Cancelar
             </Button>
             <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
               Crear usuario
             </Button>
           </DialogFooter>
@@ -889,34 +950,86 @@ function EditUserDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleEdit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleEdit)} className="space-y-4" noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="edit-fullName">Nombre completo *</Label>
-              <Input id="edit-fullName" {...register('fullName')} className={errors.fullName ? 'border-danger' : ''} disabled={isPending} autoFocus />
-              {errors.fullName && <p className="text-xs text-danger mt-1">{errors.fullName.message}</p>}
+              <Label htmlFor="edit-fullName">
+                Nombre completo <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="edit-fullName"
+                aria-required="true"
+                aria-invalid={errors.fullName ? 'true' : 'false'}
+                aria-describedby={errors.fullName ? 'edit-fullName-error' : undefined}
+                {...register('fullName')}
+                className={errors.fullName ? 'border-danger' : ''}
+                disabled={isPending}
+                autoFocus
+              />
+              {errors.fullName && (
+                <p id="edit-fullName-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Correo *</Label>
-              <Input id="edit-email" type="email" {...register('email')} className={errors.email ? 'border-danger' : ''} disabled={isPending} />
-              {errors.email && <p className="text-xs text-danger mt-1">{errors.email.message}</p>}
+              <Label htmlFor="edit-email">
+                Correo <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="edit-email"
+                type="email"
+                aria-required="true"
+                aria-invalid={errors.email ? 'true' : 'false'}
+                aria-describedby={errors.email ? 'edit-email-error' : undefined}
+                {...register('email')}
+                className={errors.email ? 'border-danger' : ''}
+                disabled={isPending}
+              />
+              {errors.email && (
+                <p id="edit-email-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-documentNumber">Documento *</Label>
-              <Input id="edit-documentNumber" {...register('documentNumber')} className={errors.documentNumber ? 'border-danger' : ''} disabled={isPending} />
-              {errors.documentNumber && <p className="text-xs text-danger mt-1">{errors.documentNumber.message}</p>}
+              <Label htmlFor="edit-documentNumber">
+                Documento <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="edit-documentNumber"
+                aria-required="true"
+                aria-invalid={errors.documentNumber ? 'true' : 'false'}
+                aria-describedby={errors.documentNumber ? 'edit-documentNumber-error' : undefined}
+                {...register('documentNumber')}
+                className={errors.documentNumber ? 'border-danger' : ''}
+                disabled={isPending}
+              />
+              {errors.documentNumber && (
+                <p id="edit-documentNumber-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.documentNumber.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="edit-roleId">Rol *</Label>
+              <Label htmlFor="edit-roleId">
+                Rol <span className="text-danger" aria-hidden="true">*</span>
+              </Label>
               <Select
                 value={selectedRoleId}
                 onValueChange={(v) => setValue('roleId', v, { shouldValidate: true })}
                 disabled={isPending}
               >
-                <SelectTrigger className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}>
+                <SelectTrigger
+                  id="edit-roleId"
+                  className={`w-full h-10 ${errors.roleId ? 'border-danger' : ''}`}
+                  aria-required="true"
+                  aria-invalid={errors.roleId ? 'true' : 'false'}
+                  aria-describedby={errors.roleId ? 'edit-roleId-error' : undefined}
+                >
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
@@ -927,12 +1040,17 @@ function EditUserDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.roleId && <p className="text-xs text-danger mt-1">{errors.roleId.message}</p>}
+              {errors.roleId && (
+                <p id="edit-roleId-error" className="text-xs text-danger mt-1" role="alert">
+                  {errors.roleId.message}
+                </p>
+              )}
             </div>
           </div>
 
           {isStudent && (
-            <div className="grid gap-4 sm:grid-cols-3 border-t border-border pt-4">
+            <fieldset className="grid gap-4 sm:grid-cols-3 border-t border-border pt-4">
+              <legend className="sr-only">Datos de estudiante</legend>
               <div className="space-y-2">
                 <Label htmlFor="edit-program">Programa</Label>
                 <Input id="edit-program" {...register('program')} disabled={isPending} />
@@ -945,7 +1063,7 @@ function EditUserDialog({
                 <Label htmlFor="edit-studentCode">Código</Label>
                 <Input id="edit-studentCode" {...register('studentCode')} disabled={isPending} />
               </div>
-            </div>
+            </fieldset>
           )}
 
           <DialogFooter>
@@ -953,7 +1071,7 @@ function EditUserDialog({
               Cancelar
             </Button>
             <Button size="sm" type="submit" disabled={isPending} className="w-full sm:w-auto h-10 sm:h-9">
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
               Guardar cambios
             </Button>
           </DialogFooter>

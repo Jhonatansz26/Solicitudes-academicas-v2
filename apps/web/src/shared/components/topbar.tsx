@@ -85,9 +85,11 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
           type="button"
           onClick={onMenuClick}
           className="lg:hidden h-11 w-11 -ml-1.5 inline-flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
-          aria-label="Abrir menú"
+          aria-label="Abrir menú de navegación"
+          aria-haspopup="dialog"
+          aria-expanded={undefined}
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
 
         {onToggleSidebar && (
@@ -95,36 +97,36 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
             type="button"
             onClick={onToggleSidebar}
             className="hidden lg:inline-flex h-9 w-9 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
-            aria-label={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-            title={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+            aria-label={sidebarCollapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
+            title={sidebarCollapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
           >
             {sidebarCollapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
+              <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
             )}
           </button>
         )}
 
-        <div className="hidden sm:flex items-center gap-2 min-w-0">
+        <nav className="hidden sm:flex items-center gap-2 min-w-0" aria-label="Ruta de navegación">
           <Link
             to="/dashboard"
             className="text-eyebrow font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Portal Académico
           </Link>
-          <span className="text-muted-foreground/60">/</span>
-          <span className="text-sm font-semibold text-foreground truncate">
+          <span className="text-muted-foreground/60" aria-hidden="true">/</span>
+          <span className="text-sm font-semibold text-foreground truncate" aria-current="page">
             {getPageLabel()}
           </span>
-        </div>
+        </nav>
 
-        <span className="sm:hidden text-sm font-semibold text-foreground truncate">
+        <span className="sm:hidden text-sm font-semibold text-foreground truncate" aria-current="page">
           {getPageLabel()}
         </span>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0" role="toolbar" aria-label="Acciones rápidas">
         <Button
           type="button"
           variant="ghost"
@@ -133,7 +135,7 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
           aria-label="Notificaciones"
           onClick={() => navigate('/dashboard/notifications')}
         >
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4" aria-hidden="true" />
         </Button>
 
         <Button
@@ -141,13 +143,13 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
           variant="ghost"
           size="icon"
           className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
-          aria-label="Cambiar tema"
+          aria-label={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
           onClick={toggleTheme}
         >
           {theme === 'dark' ? (
-            <Sun className="h-4 w-4" />
+            <Sun className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <Moon className="h-4 w-4" />
+            <Moon className="h-4 w-4" aria-hidden="true" />
           )}
         </Button>
 
@@ -156,7 +158,8 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
             <button
               type="button"
               className="flex items-center gap-2 rounded-lg p-1.5 sm:px-2 sm:py-1.5 transition-colors hover:bg-muted min-h-[44px] sm:min-h-0"
-              aria-label="Menú de usuario"
+              aria-label={`Menú de usuario de ${user?.fullName ?? 'usuario'}`}
+              aria-haspopup="menu"
             >
               <div className="hidden text-right md:block min-w-0">
                 <p className="text-sm font-semibold text-foreground leading-tight truncate max-w-[160px]">
@@ -171,6 +174,7 @@ export function Topbar({ onMenuClick, onToggleSidebar, sidebarCollapsed = false 
                   'flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white bg-gradient-to-br transition-all hover:ring-2 hover:ring-primary/30',
                   gradient,
                 )}
+                aria-hidden="true"
               >
                 {initials}
               </div>

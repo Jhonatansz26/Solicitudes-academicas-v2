@@ -131,11 +131,12 @@ export function DocumentsSection({
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="h-10 sm:h-9 w-full sm:w-auto"
+            aria-label="Subir archivo adjunto"
           >
             {uploading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
             ) : (
-              <Upload className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
             )}
             {uploading ? 'Subiendo...' : 'Subir archivo'}
           </Button>

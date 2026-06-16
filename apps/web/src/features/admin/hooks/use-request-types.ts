@@ -6,6 +6,7 @@ import {
   deleteRequestType,
   fetchRequestTypeStats,
 } from '@/features/admin/api/request-types-api'
+import { notify, NOTIFY } from '@/shared/lib/notify'
 
 export const requestTypesKeys = {
   all: ['request-types'] as const,
@@ -33,10 +34,12 @@ export function useCreateRequestType() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: createRequestType,
-    onSuccess: () => {
+    onSuccess: (type) => {
       queryClient.invalidateQueries({ queryKey: requestTypesKeys.admin() })
       queryClient.invalidateQueries({ queryKey: ['requests', 'types'] })
+      notify.success(NOTIFY.requestType.created, type.name)
     },
+    onError: (err) => notify.error(NOTIFY.requestType.createdError, err),
   })
 }
 
@@ -45,10 +48,12 @@ export function useUpdateRequestType() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: Parameters<typeof updateRequestType>[1] }) =>
       updateRequestType(id, input),
-    onSuccess: () => {
+    onSuccess: (type) => {
       queryClient.invalidateQueries({ queryKey: requestTypesKeys.admin() })
       queryClient.invalidateQueries({ queryKey: ['requests', 'types'] })
+      notify.success(NOTIFY.requestType.updated, type.name)
     },
+    onError: (err) => notify.error(NOTIFY.requestType.updatedError, err),
   })
 }
 
@@ -56,9 +61,11 @@ export function useDeleteRequestType() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: deleteRequestType,
-    onSuccess: () => {
+    onSuccess: (type) => {
       queryClient.invalidateQueries({ queryKey: requestTypesKeys.admin() })
       queryClient.invalidateQueries({ queryKey: ['requests', 'types'] })
+      notify.info(NOTIFY.requestType.deactivated, type.name)
     },
+    onError: (err) => notify.error(NOTIFY.requestType.deactivatedError, err),
   })
 }

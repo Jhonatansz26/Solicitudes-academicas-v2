@@ -39,6 +39,10 @@ interface TableViewProps<T> {
   showActions?: boolean
   /** className adicional. */
   className?: string
+  /** Descripción accesible de la tabla (caption). */
+  caption?: string
+  /** Etiqueta accesible para screen readers (descripción del contexto). */
+  ariaLabel?: string
 }
 
 function getAlignClass(align?: ColumnDef<unknown>['align']) {
@@ -61,6 +65,8 @@ export function TableView<T extends object>({
   skeletonRows = 5,
   emptyMessage = 'Sin resultados',
   error = false,
+  caption,
+  ariaLabel,
 }: TableViewProps<T>) {
   if (error) {
     return (
@@ -142,7 +148,11 @@ export function TableView<T extends object>({
   return (
     <>
       {/* Mobile: card view (stacked rows) */}
-      <div className="md:hidden space-y-2">
+      <div
+        className="md:hidden space-y-2"
+        role="list"
+        aria-label={ariaLabel || caption || 'Lista de elementos'}
+      >
         {rows.map((row, index) => {
           const key = rowKey(row)
           const interactive = Boolean(onRowClick)
@@ -162,7 +172,8 @@ export function TableView<T extends object>({
                   : undefined
               }
               tabIndex={interactive ? 0 : undefined}
-              role={interactive ? 'button' : undefined}
+              role={interactive ? 'button' : 'listitem'}
+              aria-label={interactive && ariaLabel ? `${ariaLabel}, elemento ${index + 1} de ${rows.length}` : undefined}
               className={cn(
                 'rounded-xl border border-border bg-surface p-3 transition-colors min-h-[56px]',
                 interactive && 'cursor-pointer hover:border-border-hover hover:bg-surface-hover active:bg-surface-hover focus:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
@@ -193,7 +204,8 @@ export function TableView<T extends object>({
       {/* Desktop: real table */}
       <div className="hidden md:block rounded-xl border border-border bg-surface overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" aria-label={ariaLabel} aria-rowcount={rows.length + 1}>
+            {caption && <caption className="sr-only">{caption}</caption>}
             <thead className="bg-muted/40 border-b border-border">
               <tr>
                 {columns.map((col) => (
@@ -232,6 +244,7 @@ export function TableView<T extends object>({
                         : undefined
                     }
                     tabIndex={interactive ? 0 : undefined}
+                    aria-rowindex={index + 2}
                     className={cn(
                       'transition-colors',
                       interactive &&

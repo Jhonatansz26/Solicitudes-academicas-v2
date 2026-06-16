@@ -1,8 +1,9 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'sonner'
 import { api } from '@/shared/api'
+import { notify, NOTIFY } from '@/shared/lib/notify'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -11,7 +12,6 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
 import { Badge } from '@/shared/components/ui/badge'
 import { User, Shield, Bell, Loader2, AlertCircle, Mail, Hash, GraduationCap, KeyRound, Calendar } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/shared/components/page-header'
 
 const profileSchema = z.object({
@@ -82,10 +82,10 @@ export function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', 'me'] })
-      toast.success('Perfil actualizado correctamente')
+      notify.success(NOTIFY.profile.updated)
     },
-    onError: () => {
-      toast.error('Error al actualizar el perfil')
+    onError: (err) => {
+      notify.error(NOTIFY.profile.updatedError, err)
     },
   })
 
@@ -95,11 +95,10 @@ export function SettingsPage() {
       return data
     },
     onSuccess: () => {
-      toast.success('Contraseña actualizada correctamente')
+      notify.success(NOTIFY.profile.passwordChanged)
     },
-    onError: (err: any) => {
-      const message = err?.response?.data?.message || 'Error al cambiar la contraseña'
-      toast.error(message)
+    onError: (err: unknown) => {
+      notify.error(NOTIFY.profile.passwordChangedError, err)
     },
   })
 
@@ -144,7 +143,7 @@ export function SettingsPage() {
       />
 
       {isLoading ? (
-        <div className="animate-fade-in-up">
+        <div className="animate-fade-in-up" aria-busy="true" aria-live="polite">
           <Card className="overflow-hidden">
             <div className="h-1.5 w-full bg-accent-bar/30" />
             <CardContent className="pt-6 pb-6">
@@ -160,11 +159,11 @@ export function SettingsPage() {
           </Card>
         </div>
       ) : isError ? (
-        <div className="animate-fade-in-up flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-danger-soft py-12 text-center">
-          <AlertCircle className="mb-3 h-10 w-10 text-danger/50" />
+        <div className="animate-fade-in-up flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-danger-soft py-12 text-center" role="alert">
+          <AlertCircle className="mb-3 h-10 w-10 text-danger/50" aria-hidden="true" />
           <h3 className="text-base font-medium text-foreground">Error al cargar el perfil</h3>
           <p className="mt-1 text-sm text-muted-foreground">Verifica tu conexión e intenta nuevamente</p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
+          <Button variant="outline" size="sm" className="mt-4 h-10 sm:h-9" onClick={() => refetch()}>
             Reintentar
           </Button>
         </div>
@@ -189,15 +188,15 @@ export function SettingsPage() {
                     </div>
                     <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5 min-w-0">
-                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span className="truncate">{profile.email}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Hash className="h-3.5 w-3.5 shrink-0" />
+                        <Hash className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span className="font-mono">{profile.documentNumber}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 shrink-0" />
+                        <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         Miembro desde {formatDate(profile.createdAt)}
                       </span>
                     </div>
@@ -211,25 +210,30 @@ export function SettingsPage() {
             <Card className="animate-fade-in-up stagger-2 overflow-hidden hover-elevate">
               <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="text-base flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50" aria-hidden="true">
                     <User className="h-4 w-4 text-primary dark:text-navy-200" />
                   </div>
                   Información personal
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-5 sm:px-6">
-                <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-5">
+                <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-5" noValidate>
                   <div className="space-y-2">
                     <Label htmlFor="profile-fullName">Nombre completo</Label>
                     <Input
                       id="profile-fullName"
+                      aria-required="true"
+                      aria-invalid={profileErrors.fullName ? 'true' : 'false'}
+                      aria-describedby={profileErrors.fullName ? 'profile-fullName-error' : undefined}
                       {...registerProfile('fullName')}
                       className={profileErrors.fullName ? 'border-danger' : ''}
                       disabled={updatingProfile}
                       autoFocus
                     />
                     {profileErrors.fullName && (
-                      <p className="text-xs text-danger mt-1">{profileErrors.fullName.message}</p>
+                      <p id="profile-fullName-error" className="text-xs text-danger mt-1" role="alert">
+                        {profileErrors.fullName.message}
+                      </p>
                     )}
                   </div>
 
@@ -238,12 +242,17 @@ export function SettingsPage() {
                     <Input
                       id="profile-email"
                       type="email"
+                      aria-required="true"
+                      aria-invalid={profileErrors.email ? 'true' : 'false'}
+                      aria-describedby={profileErrors.email ? 'profile-email-error' : undefined}
                       {...registerProfile('email')}
                       className={profileErrors.email ? 'border-danger' : ''}
                       disabled={updatingProfile}
                     />
                     {profileErrors.email && (
-                      <p className="text-xs text-danger mt-1">{profileErrors.email.message}</p>
+                      <p id="profile-email-error" className="text-xs text-danger mt-1" role="alert">
+                        {profileErrors.email.message}
+                      </p>
                     )}
                   </div>
 
@@ -261,7 +270,7 @@ export function SettingsPage() {
                   {profile.studentProfile && (
                     <div className="rounded-lg border border-border bg-surface p-3.5">
                       <div className="flex items-center gap-2 mb-2">
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <span className="text-sm font-medium text-foreground">{profile.studentProfile.program}</span>
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -274,7 +283,7 @@ export function SettingsPage() {
                   )}
 
                   <Button size="sm" type="submit" disabled={updatingProfile || !profileDirty} className="h-10 sm:h-9 w-full sm:w-auto">
-                    {updatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {updatingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
                     Guardar cambios
                   </Button>
                 </form>
@@ -284,17 +293,17 @@ export function SettingsPage() {
             <Card className="animate-fade-in-up stagger-3 overflow-hidden hover-elevate">
               <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="text-base flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50" aria-hidden="true">
                     <Shield className="h-4 w-4 text-primary dark:text-navy-200" />
                   </div>
                   Seguridad
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-5 sm:px-6">
-                <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-5">
+                <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-5" noValidate>
                   <div className="rounded-lg border border-border bg-surface p-3.5 mb-2">
                     <div className="flex items-center gap-2">
-                      <KeyRound className="h-4 w-4 text-muted-foreground" />
+                      <KeyRound className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       <div>
                         <p className="text-sm font-medium text-foreground">Cambiar contraseña</p>
                         <p className="text-xs text-muted-foreground">Ingresa tu contraseña actual y la nueva contraseña</p>
@@ -307,12 +316,18 @@ export function SettingsPage() {
                     <Input
                       id="password-current"
                       type="password"
+                      autoComplete="current-password"
+                      aria-required="true"
+                      aria-invalid={passwordErrors.currentPassword ? 'true' : 'false'}
+                      aria-describedby={passwordErrors.currentPassword ? 'password-current-error' : undefined}
                       {...registerPassword('currentPassword')}
                       className={passwordErrors.currentPassword ? 'border-danger' : ''}
                       disabled={changingPassword}
                     />
                     {passwordErrors.currentPassword && (
-                      <p className="text-xs text-danger mt-1">{passwordErrors.currentPassword.message}</p>
+                      <p id="password-current-error" className="text-xs text-danger mt-1" role="alert">
+                        {passwordErrors.currentPassword.message}
+                      </p>
                     )}
                   </div>
 
@@ -321,12 +336,22 @@ export function SettingsPage() {
                     <Input
                       id="password-new"
                       type="password"
+                      autoComplete="new-password"
+                      aria-required="true"
+                      aria-invalid={passwordErrors.newPassword ? 'true' : 'false'}
+                      aria-describedby={passwordErrors.newPassword ? 'password-new-error' : 'password-new-help'}
                       {...registerPassword('newPassword')}
                       className={passwordErrors.newPassword ? 'border-danger' : ''}
                       disabled={changingPassword}
                     />
-                    {passwordErrors.newPassword && (
-                      <p className="text-xs text-danger mt-1">{passwordErrors.newPassword.message}</p>
+                    {passwordErrors.newPassword ? (
+                      <p id="password-new-error" className="text-xs text-danger mt-1" role="alert">
+                        {passwordErrors.newPassword.message}
+                      </p>
+                    ) : (
+                      <p id="password-new-help" className="text-xs text-muted-foreground">
+                        Mínimo 8 caracteres.
+                      </p>
                     )}
                   </div>
 
@@ -335,17 +360,23 @@ export function SettingsPage() {
                     <Input
                       id="password-confirm"
                       type="password"
+                      autoComplete="new-password"
+                      aria-required="true"
+                      aria-invalid={passwordErrors.confirmPassword ? 'true' : 'false'}
+                      aria-describedby={passwordErrors.confirmPassword ? 'password-confirm-error' : undefined}
                       {...registerPassword('confirmPassword')}
                       className={passwordErrors.confirmPassword ? 'border-danger' : ''}
                       disabled={changingPassword}
                     />
                     {passwordErrors.confirmPassword && (
-                      <p className="text-xs text-danger mt-1">{passwordErrors.confirmPassword.message}</p>
+                      <p id="password-confirm-error" className="text-xs text-danger mt-1" role="alert">
+                        {passwordErrors.confirmPassword.message}
+                      </p>
                     )}
                   </div>
 
                   <Button size="sm" type="submit" disabled={changingPassword} className="h-10 sm:h-9 w-full sm:w-auto">
-                    {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
                     Actualizar contraseña
                   </Button>
                 </form>
@@ -355,7 +386,7 @@ export function SettingsPage() {
             <Card className="animate-fade-in-up stagger-4 md:col-span-2 overflow-hidden hover-elevate">
               <CardHeader className="pb-4">
                 <CardTitle className="text-base flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 dark:bg-navy-900/50" aria-hidden="true">
                     <Bell className="h-4 w-4 text-primary dark:text-navy-200" />
                   </div>
                   Notificaciones
@@ -363,7 +394,7 @@ export function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 dark:bg-navy-900/50 mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 dark:bg-navy-900/50 mb-4" aria-hidden="true">
                     <Bell className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <h3 className="text-sm font-medium text-foreground">Preferencias de notificación</h3>
